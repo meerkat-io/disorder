@@ -65,15 +65,13 @@ type Field struct {
 }
 
 type Message struct {
-	Name    string
-	Package string
-	Fields  []*Field
+	Name   string
+	Fields []*Field
 }
 
 type Enum struct {
-	Name    string
-	Package string
-	Values  []string
+	Name   string
+	Values []string
 }
 
 type Param struct {
@@ -87,7 +85,7 @@ type Rpc struct {
 	Output *Param
 }
 
-type SchemaFile struct {
+type File struct {
 	FilePath string
 
 	Enums    []*Enum
