@@ -41,7 +41,7 @@ func (p *parser) parse(file *schemaFile) (*schema.File, error) {
 			Name: p.qualifiedName(file.Package, name),
 		}
 		for _, enumValue := range enumValues {
-			if _, existing := enumValuesMap[enumValue]; existing {
+			if _, exists := enumValuesMap[enumValue]; exists {
 				return nil, fmt.Errorf("duplicated enum value [%s]", enumValue)
 			}
 			if !p.validator.validateEnumValue(enumValue) {
@@ -62,7 +62,7 @@ func (p *parser) parse(file *schemaFile) (*schema.File, error) {
 			Name: p.qualifiedName(file.Package, name),
 		}
 		for fieldName, fieldType := range msgFields {
-			if _, existing := fieldsMap[fieldName]; existing {
+			if _, exists := fieldsMap[fieldName]; exists {
 				return nil, fmt.Errorf("duplicated field [%s]", fieldName)
 			}
 			if !p.validator.validateFieldName(fieldName) {
@@ -77,6 +77,9 @@ func (p *parser) parse(file *schemaFile) (*schema.File, error) {
 		}
 		schemaFile.Messages = append(schemaFile.Messages, msgDefine)
 	}
+
+	//TO-DO rpc
+
 	return schemaFile, nil
 }
 

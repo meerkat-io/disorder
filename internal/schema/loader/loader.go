@@ -6,7 +6,6 @@ import (
 	"path/filepath"
 
 	"github.com/meerkat-lib/disorder/internal/schema"
-	"github.com/meerkat-lib/disorder/internal/utils"
 )
 
 type Loader interface {
@@ -54,7 +53,12 @@ func (l *loaderImpl) Load(filePath string) ([]*schema.File, error) {
 	result := []*schema.File{}
 	for _, file := range files {
 		result = append(result, file)
-		utils.PrettyPrint(file)
+	}
+
+	r := newResolver()
+	err = r.resolve(result)
+	if err != nil {
+		return nil, err
 	}
 
 	return result, nil
@@ -66,7 +70,7 @@ func (l *loaderImpl) load(filePath string, files map[string]*schema.File) error 
 		return fmt.Errorf("yaml file not found: %s", err.Error())
 	}
 
-	if _, existing := files[absPath]; existing {
+	if _, exists := files[absPath]; exists {
 		return nil
 	}
 
