@@ -4,12 +4,12 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/meerkat-lib/disorder/internal/schema/loader"
+	"github.com/meerkat-lib/disorder/internal/loader"
 )
 
 func TestLoadYamlFile(t *testing.T) {
 	loader := loader.NewYamlLoader()
-	_, err := loader.Load("../../../test_data/schema.yaml")
+	_, err := loader.Load("./test_data/schema.yaml")
 	fmt.Println(err)
 	t.Fail()
 }
@@ -17,7 +17,7 @@ func TestLoadYamlFile(t *testing.T) {
 /*
 func TestLoadJsonFile(t *testing.T) {
 	loader := loader.NewJsonLoader()
-	_, err := loader.Load("../../../test_data/schema.json")
+	_, err := loader.Load("./test_data/schema.json")
 	fmt.Println(err)
 	t.Fail()
 }*/
