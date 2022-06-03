@@ -1,0 +1,44 @@
+{
+  "package": "test",
+  "import": [
+    "sub_schema.yaml"
+  ],
+  "messages": {
+    "object": {
+      "bool_field": "bool",
+      "int_field": "int",
+      "string_field": "string",
+      "enum_field": "color",
+      "int_array": "array[int]",
+      "int_map": "map[int]",
+      "obj_array": "array[sub_object]",
+      "obj_map": "map[sub_object]",
+      "enum_array": "array[color]",
+      "enum_map": "map[color]"
+    },
+    "another_object":{
+      "value": "int"
+    }
+  },
+  "enums": {
+    "color":[
+      "red",
+      "green",
+      "blue"
+    ],
+    "animal":[
+      "dog",
+      "cat"
+    ]
+  },
+  "services":{
+    "get_another_object":{
+      "input": "string",
+      "output": "another_object"
+    }, 
+    "print_object":{
+      "input": "object",
+      "output": null
+    }
+  }
+}
