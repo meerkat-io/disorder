@@ -55,6 +55,6 @@ func (p *parser) parse(file *schemaFile) (*schema.File, error) {
 	return schemaFile, nil
 }
 
-func (l *yamlLoader) parseField(t string) (*schema.Field, error) {
+func (p *parser) parseField(t string) (*schema.Field, error) {
 	return nil, nil
 }
