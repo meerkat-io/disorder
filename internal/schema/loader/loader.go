@@ -5,7 +5,7 @@ import (
 	"io/ioutil"
 	"path/filepath"
 
-	"github.com/meerkat-lib/disorder/schema"
+	"github.com/meerkat-lib/disorder/internal/schema"
 )
 
 type Loader interface {
