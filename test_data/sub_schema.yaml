@@ -6,3 +6,7 @@ messages:
     value: int
 
 services:
+
+  increase:
+    input: int
+    output: int

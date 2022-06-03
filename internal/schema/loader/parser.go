@@ -6,6 +6,10 @@ import (
 	"github.com/meerkat-lib/disorder/internal/schema"
 )
 
+var (
+	undefined = &schema.TypeInfo{}
+)
+
 type parser struct {
 	validator *validator
 }
@@ -78,7 +82,13 @@ func (p *parser) parse(file *schemaFile) (*schema.File, error) {
 		schemaFile.Messages = append(schemaFile.Messages, msgDefine)
 	}
 
-	//TO-DO rpc
+	for name, service := range file.Services {
+		rpc, err := p.parseRpc(file.Package, name, service)
+		if err != nil {
+			return nil, err
+		}
+		schemaFile.Services = append(schemaFile.Services, rpc)
+	}
 
 	return schemaFile, nil
 }
@@ -86,7 +96,7 @@ func (p *parser) parse(file *schemaFile) (*schema.File, error) {
 func (p *parser) parseField(pkg, name, typ string) (*schema.Field, error) {
 	info, err := p.parseType(pkg, typ)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("field [%s] error: %s", name, err.Error())
 	}
 	return &schema.Field{
 		Name: name,
@@ -94,7 +104,38 @@ func (p *parser) parseField(pkg, name, typ string) (*schema.Field, error) {
 	}, nil
 }
 
+func (p *parser) parseRpc(pkg, name string, rpc *rpc) (*schema.Rpc, error) {
+	if !p.validator.validateRpcName(name) {
+		return nil, fmt.Errorf("invalid rpc name: %s", name)
+	}
+	var err error
+	r := &schema.Rpc{
+		Name: name,
+	}
+	if rpc.Input == "" {
+		r.Input = undefined
+	} else {
+		r.Input, err = p.parseType(pkg, rpc.Input)
+		if err != nil {
+			return nil, fmt.Errorf("rpc [%s] input type error: %s", name, err.Error())
+		}
+	}
+	if rpc.Output == "" {
+		r.Output = undefined
+	} else {
+		r.Output, err = p.parseType(pkg, rpc.Output)
+		if err != nil {
+			return nil, fmt.Errorf("rpc [%s] output type error: %s", name, err.Error())
+		}
+	}
+	return r, nil
+}
+
 func (p *parser) parseType(pkg, typ string) (t *schema.TypeInfo, err error) {
+	if typ == "" {
+		err = fmt.Errorf("empty type")
+		return
+	}
 	t = &schema.TypeInfo{}
 	if p.validator.isSimpleType(typ) {
 		if p.validator.isPrimary(typ) {

@@ -9,12 +9,14 @@ import (
 type resolver struct {
 	enums    map[string]string
 	messages map[string]string
+	services map[string]string
 }
 
 func newResolver() *resolver {
 	return &resolver{
 		enums:    map[string]string{},
 		messages: map[string]string{},
+		services: map[string]string{},
 	}
 }
 
@@ -32,7 +34,12 @@ func (r *resolver) resolve(files []*schema.File) error {
 			}
 			r.messages[message.Name] = file.FilePath
 		}
-		//TO-DO rpc
+		for _, service := range file.Services {
+			if f, exists := r.services[service.Name]; exists {
+				return fmt.Errorf("duplicate rpc define [%s] in %s and %s", service.Name, f, file.FilePath)
+			}
+			r.services[service.Name] = file.FilePath
+		}
 	}
 	for _, file := range files {
 		for _, message := range file.Messages {
@@ -42,7 +49,18 @@ func (r *resolver) resolve(files []*schema.File) error {
 				}
 			}
 		}
-		//TO-DO rpc
+		for _, rpc := range file.Services {
+			if rpc.Input.Type != schema.TypeUndefined || rpc.Input.TypeRef != "" {
+				if err := r.resolveType(rpc.Input); err != nil {
+					return fmt.Errorf("resolve rpc input type in file [%s] failed: %s", file.FilePath, err.Error())
+				}
+			}
+			if rpc.Output.Type != schema.TypeUndefined || rpc.Output.TypeRef != "" {
+				if err := r.resolveType(rpc.Output); err != nil {
+					return fmt.Errorf("resolve rpc input type in file [%s] failed: %s", file.FilePath, err.Error())
+				}
+			}
+		}
 	}
 	return nil
 }
