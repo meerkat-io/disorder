@@ -14,8 +14,6 @@ messages:
     int_map: map[int]
     obj_array: array[sub_object]
     obj_map: map[sub_object]
-    enum_array: array[color]
-    enum_map: map[color]
 
   another_object:
     value: int

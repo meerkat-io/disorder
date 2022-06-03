@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/meerkat-lib/disorder/internal/schema"
-	"github.com/meerkat-lib/disorder/internal/utils"
 )
 
 type parser struct {
@@ -15,6 +14,10 @@ func newParser() *parser {
 	return &parser{
 		validator: newValidator(),
 	}
+}
+
+func (p *parser) qualifiedName(pkg, name string) string {
+	return fmt.Sprintf("%s.%s", pkg, name)
 }
 
 func (p *parser) parse(file *schemaFile) (*schema.File, error) {
@@ -35,7 +38,7 @@ func (p *parser) parse(file *schemaFile) (*schema.File, error) {
 		}
 		enumValuesMap := map[string]bool{}
 		enumDefine := &schema.Enum{
-			Name: file.Package + "." + name,
+			Name: p.qualifiedName(file.Package, name),
 		}
 		for _, enumValue := range enumValues {
 			if _, existing := enumValuesMap[enumValue]; existing {
@@ -56,7 +59,7 @@ func (p *parser) parse(file *schemaFile) (*schema.File, error) {
 		}
 		fieldsMap := map[string]bool{}
 		msgDefine := &schema.Message{
-			Name: file.Package + "." + name,
+			Name: p.qualifiedName(file.Package, name),
 		}
 		for fieldName, fieldType := range msgFields {
 			if _, existing := fieldsMap[fieldName]; existing {
@@ -66,23 +69,69 @@ func (p *parser) parse(file *schemaFile) (*schema.File, error) {
 				return nil, fmt.Errorf("invalid field name: %s", fieldName)
 			}
 			fieldsMap[fieldName] = true
-			field, err := p.parseField(fieldName, fieldType)
+			field, err := p.parseField(file.Package, fieldName, fieldType)
 			if err != nil {
-				return nil, fmt.Errorf("invalid field type: %s", err.Error())
+				return nil, err
 			}
 			msgDefine.Fields = append(msgDefine.Fields, field)
 		}
 		schemaFile.Messages = append(schemaFile.Messages, msgDefine)
 	}
-
-	utils.PrettyPrint(schemaFile)
-
 	return schemaFile, nil
 }
 
-func (p *parser) parseField(name, typ string) (*schema.Field, error) {
+func (p *parser) parseField(pkg, name, typ string) (*schema.Field, error) {
+	info, err := p.parseType(pkg, typ)
+	if err != nil {
+		return nil, err
+	}
 	return &schema.Field{
-		Name:    name,
-		SubType: "sub_type",
+		Name: name,
+		Type: info,
 	}, nil
+}
+
+func (p *parser) parseType(pkg, typ string) (t *schema.TypeInfo, err error) {
+	t = &schema.TypeInfo{}
+	if p.validator.isSimpleType(typ) {
+		if p.validator.isPrimary(typ) {
+			t.Type = p.validator.primaryType(typ)
+			return
+		} else {
+			t.TypeRef = p.qualifiedName(pkg, typ)
+			return
+		}
+	} else if p.validator.isQualifiedType(typ) {
+		t.TypeRef = p.qualifiedName(pkg, typ)
+		return
+	} else if p.validator.isSimpleArrayType(typ) {
+		t.Type = schema.TypeArray
+		subType := typ[6 : len(typ)-1]
+		if p.validator.isPrimary(subType) {
+			t.SubType = p.validator.primaryType(subType)
+			return
+		} else {
+			t.SubTypeRef = p.qualifiedName(pkg, subType)
+			return
+		}
+	} else if p.validator.isQualifiedArrayType(typ) {
+		t.Type = schema.TypeArray
+		t.SubTypeRef = typ[6 : len(typ)-1]
+		return
+	} else if p.validator.isSimpleMapType(typ) {
+		t.Type = schema.TypeMap
+		subType := typ[4 : len(typ)-1]
+		if p.validator.isPrimary(subType) {
+			t.SubType = p.validator.primaryType(subType)
+			return
+		} else {
+			t.SubTypeRef = p.qualifiedName(pkg, subType)
+			return
+		}
+	} else if p.validator.isQualifiedMapType(typ) {
+		t.Type = schema.TypeMap
+		t.SubTypeRef = typ[4 : len(typ)-1]
+		return
+	}
+	return nil, fmt.Errorf("invalid type %s", typ)
 }

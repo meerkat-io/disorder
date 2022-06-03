@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 
 	"github.com/meerkat-lib/disorder/internal/schema"
+	"github.com/meerkat-lib/disorder/internal/utils"
 )
 
 type Loader interface {
@@ -53,6 +54,7 @@ func (l *loaderImpl) Load(filePath string) ([]*schema.File, error) {
 	result := []*schema.File{}
 	for _, file := range files {
 		result = append(result, file)
+		utils.PrettyPrint(file)
 	}
 
 	return result, nil
@@ -83,7 +85,7 @@ func (l *loaderImpl) load(filePath string, files map[string]*schema.File) error 
 
 	schema, err := l.parser.parse(file)
 	if err != nil {
-		return fmt.Errorf("parse protocol file [%s] failed: %s", absPath, err.Error())
+		return fmt.Errorf("parse schema file [%s] failed: %s", absPath, err.Error())
 	}
 
 	files[absPath] = schema
