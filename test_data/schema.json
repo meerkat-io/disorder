@@ -1,7 +1,7 @@
 {
   "package": "test",
   "import": [
-    "sub_schema.yaml"
+    "sub_schema.json"
   ],
   "messages": {
     "object": {
@@ -16,27 +16,27 @@
       "enum_array": "array[color]",
       "enum_map": "map[color]"
     },
-    "another_object":{
+    "another_object": {
       "value": "int"
     }
   },
   "enums": {
-    "color":[
+    "color": [
       "red",
       "green",
       "blue"
     ],
-    "animal":[
+    "animal": [
       "dog",
       "cat"
     ]
   },
-  "services":{
-    "get_another_object":{
+  "services": {
+    "get_another_object": {
       "input": "string",
       "output": "another_object"
-    }, 
-    "print_object":{
+    },
+    "print_object": {
       "input": "object",
       "output": null
     }

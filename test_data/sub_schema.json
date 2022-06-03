@@ -1,0 +1,8 @@
+{
+  "package": "test",
+  "messages": {
+    "sub_object": {
+      "value": "int"
+    }
+  }
+}
