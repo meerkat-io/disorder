@@ -20,10 +20,6 @@ func newParser() *parser {
 	}
 }
 
-func (p *parser) qualifiedName(pkg, name string) string {
-	return fmt.Sprintf("%s.%s", pkg, name)
-}
-
 func (p *parser) parse(proto *proto) (*schema.File, error) {
 	if proto.Package == "" {
 		return nil, fmt.Errorf("package name is required")
@@ -41,7 +37,7 @@ func (p *parser) parse(proto *proto) (*schema.File, error) {
 		}
 		valuesSet := map[string]bool{}
 		enum := &schema.Enum{
-			Name: p.qualifiedName(proto.Package, name),
+			Name: name,
 		}
 		for _, value := range values {
 			if _, exists := valuesSet[value]; exists {
@@ -61,7 +57,7 @@ func (p *parser) parse(proto *proto) (*schema.File, error) {
 		}
 		fieldsSet := map[string]bool{}
 		message := &schema.Message{
-			Name: p.qualifiedName(proto.Package, name),
+			Name: name,
 		}
 		for fieldName, fieldType := range fields {
 			if _, exists := fieldsSet[fieldName]; exists {
@@ -147,45 +143,34 @@ func (p *parser) parseType(pkg, typ string) (t *schema.TypeInfo, err error) {
 		return
 	}
 	t = &schema.TypeInfo{}
-	if p.validator.isSimpleType(typ) {
+	if p.validator.isSingularType(typ) {
 		if p.validator.isPrimary(typ) {
 			t.Type = p.validator.primaryType(typ)
 			return
 		} else {
-			t.TypeRef = p.qualifiedName(pkg, typ)
+			t.TypeRef = typ
 			return
 		}
-	} else if p.validator.isQualifiedType(typ) {
-		t.TypeRef = p.qualifiedName(pkg, typ)
-		return
-	} else if p.validator.isSimpleArrayType(typ) {
+	} else if p.validator.isArrayType(typ) {
 		t.Type = schema.TypeArray
 		subType := typ[6 : len(typ)-1]
 		if p.validator.isPrimary(subType) {
 			t.SubType = p.validator.primaryType(subType)
 			return
 		} else {
-			t.SubTypeRef = p.qualifiedName(pkg, subType)
+			t.TypeRef = subType
 			return
 		}
-	} else if p.validator.isQualifiedArrayType(typ) {
-		t.Type = schema.TypeArray
-		t.SubTypeRef = typ[6 : len(typ)-1]
-		return
-	} else if p.validator.isSimpleMapType(typ) {
+	} else if p.validator.isMapType(typ) {
 		t.Type = schema.TypeMap
 		subType := typ[4 : len(typ)-1]
 		if p.validator.isPrimary(subType) {
 			t.SubType = p.validator.primaryType(subType)
 			return
 		} else {
-			t.SubTypeRef = p.qualifiedName(pkg, subType)
+			t.TypeRef = subType
 			return
 		}
-	} else if p.validator.isQualifiedMapType(typ) {
-		t.Type = schema.TypeMap
-		t.SubTypeRef = typ[4 : len(typ)-1]
-		return
 	}
 	return nil, fmt.Errorf("invalid type %s", typ)
 }

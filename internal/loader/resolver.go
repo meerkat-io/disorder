@@ -2,49 +2,61 @@ package loader
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/meerkat-lib/disorder/internal/schema"
 )
 
 type resolver struct {
-	enums    map[string]string
-	messages map[string]string
-	services map[string]string
+	names    map[string]string
+	enums    map[string]bool
+	messages map[string]bool
 }
 
 func newResolver() *resolver {
 	return &resolver{
-		enums:    map[string]string{},
-		messages: map[string]string{},
-		services: map[string]string{},
+		names:    map[string]string{},
+		enums:    map[string]bool{},
+		messages: map[string]bool{},
 	}
+}
+
+func (r *resolver) qualifiedName(pkg, name string) string {
+	if strings.Contains(name, ".") {
+		return name
+	}
+	return fmt.Sprintf("%s.%s", pkg, name)
 }
 
 func (r *resolver) resolve(files []*schema.File) error {
 	for _, file := range files {
 		for _, enum := range file.Enums {
-			if f, exists := r.enums[enum.Name]; exists {
+			if f, exists := r.names[enum.Name]; exists {
 				return fmt.Errorf("duplicate enum define [%s] in %s and %s", enum.Name, f, file.FilePath)
 			}
-			r.enums[enum.Name] = file.FilePath
+			qualified := r.qualifiedName(file.Package, enum.Name)
+			r.names[qualified] = file.FilePath
+			r.enums[qualified] = true
 		}
 		for _, message := range file.Messages {
-			if f, exists := r.messages[message.Name]; exists {
+			if f, exists := r.names[message.Name]; exists {
 				return fmt.Errorf("duplicate message define [%s] in %s and %s", message.Name, f, file.FilePath)
 			}
-			r.messages[message.Name] = file.FilePath
+			qualified := r.qualifiedName(file.Package, message.Name)
+			r.names[qualified] = file.FilePath
+			r.messages[qualified] = true
 		}
 		for _, service := range file.Services {
-			if f, exists := r.services[service.Name]; exists {
+			if f, exists := r.names[service.Name]; exists {
 				return fmt.Errorf("duplicate rpc define [%s] in %s and %s", service.Name, f, file.FilePath)
 			}
-			r.services[service.Name] = file.FilePath
+			r.names[r.qualifiedName(file.Package, service.Name)] = file.FilePath
 		}
 	}
 	for _, file := range files {
 		for _, message := range file.Messages {
 			for _, field := range message.Fields {
-				if err := r.resolveType(field.Type); err != nil {
+				if err := r.resolveType(file.Package, field.Type); err != nil {
 					return fmt.Errorf("resolve type in file [%s] failed: %s", file.FilePath, err.Error())
 				}
 			}
@@ -52,12 +64,12 @@ func (r *resolver) resolve(files []*schema.File) error {
 		for _, service := range file.Services {
 			for _, rpc := range service.Rpc {
 				if rpc.Input.Type != schema.TypeUndefined || rpc.Input.TypeRef != "" {
-					if err := r.resolveType(rpc.Input); err != nil {
+					if err := r.resolveType(file.Package, rpc.Input); err != nil {
 						return fmt.Errorf("resolve rpc input type in file [%s] failed: %s", file.FilePath, err.Error())
 					}
 				}
 				if rpc.Output.Type != schema.TypeUndefined || rpc.Output.TypeRef != "" {
-					if err := r.resolveType(rpc.Output); err != nil {
+					if err := r.resolveType(file.Package, rpc.Output); err != nil {
 						return fmt.Errorf("resolve rpc output type in file [%s] failed: %s", file.FilePath, err.Error())
 					}
 				}
@@ -67,23 +79,24 @@ func (r *resolver) resolve(files []*schema.File) error {
 	return nil
 }
 
-func (r *resolver) resolveType(info *schema.TypeInfo) error {
+func (r *resolver) resolveType(pkg string, info *schema.TypeInfo) error {
 	if info.Type == schema.TypeUndefined {
-		if r.isEnum(info.TypeRef) {
+		qualified := r.qualifiedName(pkg, info.TypeRef)
+		if r.isEnum(qualified) {
 			info.Type = schema.TypeEnum
-		} else if r.isObject(info.TypeRef) {
+		} else if r.isObject(qualified) {
 			info.Type = schema.TypeObject
 		} else {
 			return fmt.Errorf("undefine type \"%s\"", info.TypeRef)
 		}
-	}
-	if info.SubTypeRef != "" {
-		if r.isEnum(info.SubTypeRef) {
+	} else if info.TypeRef != "" {
+		qualified := r.qualifiedName(pkg, info.TypeRef)
+		if r.isEnum(qualified) {
 			info.SubType = schema.TypeEnum
-		} else if r.isObject(info.SubTypeRef) {
+		} else if r.isObject(qualified) {
 			info.SubType = schema.TypeObject
 		} else {
-			return fmt.Errorf("undefine type \"%s\"", info.SubTypeRef)
+			return fmt.Errorf("undefine type \"%s\"", info.TypeRef)
 		}
 	}
 	return nil

@@ -6,16 +6,16 @@ const (
 	TypeUndefined Type = 0
 
 	TypeBool      Type = 1
-	TypeSbyte     Type = 2
-	TypeByte      Type = 3
-	TypeShort     Type = 4
-	TypeUshort    Type = 5
-	TypeInt       Type = 6
-	TypeUint      Type = 7
-	TypeLong      Type = 8
-	TypeUlong     Type = 9
-	TypeFloat     Type = 10
-	TypeDouble    Type = 11
+	TypeI8        Type = 2
+	TypeU8        Type = 3
+	TypeI16       Type = 4
+	TypeU16       Type = 5
+	TypeI32       Type = 6
+	TypeU32       Type = 7
+	TypeI64       Type = 8
+	TypeU64       Type = 9
+	TypeF32       Type = 10
+	TypeF64       Type = 11
 	TypeString    Type = 12
 	TypeTimestamp Type = 13
 	TypeBytes     Type = 14
@@ -26,19 +26,23 @@ const (
 	TypeMap    Type = 18
 )
 
+func (t Type) IsPrimary() bool {
+	return t >= TypeBool && t <= TypeBytes
+}
+
 var (
 	PrimaryTypes = map[string]Type{
 		"bool":      TypeBool,
-		"sbyte":     TypeSbyte,
-		"byte":      TypeByte,
-		"short":     TypeShort,
-		"ushort":    TypeUshort,
-		"int":       TypeInt,
-		"uint":      TypeUint,
-		"long":      TypeLong,
-		"ulong":     TypeUlong,
-		"float":     TypeFloat,
-		"double":    TypeDouble,
+		"i8":        TypeI8,
+		"u8":        TypeU8,
+		"i16":       TypeI16,
+		"u16":       TypeU16,
+		"i32":       TypeI32,
+		"u32":       TypeU32,
+		"i64":       TypeI64,
+		"u64":       TypeU64,
+		"f32":       TypeF32,
+		"f64":       TypeF64,
 		"string":    TypeString,
 		"timestamp": TypeTimestamp,
 		"bytes":     TypeBytes,
@@ -46,10 +50,9 @@ var (
 )
 
 type TypeInfo struct {
-	Type       Type
-	TypeRef    string
-	SubType    Type
-	SubTypeRef string
+	Type    Type
+	SubType Type
+	TypeRef string
 }
 
 type Field struct {

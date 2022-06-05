@@ -2,10 +2,10 @@ package: sub
 
 messages:
   sub_object:
-    value: int
+    value: i32
 
 services:
   math_service:
     increase:
-      input: int
-      output: int
+      input: i32
+      output: i32

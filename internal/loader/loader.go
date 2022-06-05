@@ -6,7 +6,6 @@ import (
 	"path/filepath"
 
 	"github.com/meerkat-lib/disorder/internal/schema"
-	"github.com/meerkat-lib/disorder/internal/utils"
 )
 
 type Loader interface {
@@ -59,9 +58,6 @@ func (l *loaderImpl) Load(file string) ([]*schema.File, error) {
 	err = l.resolver.resolve(schemas)
 	if err != nil {
 		return nil, err
-	}
-	for _, s := range schemas {
-		utils.PrintObject(s)
 	}
 	return schemas, nil
 }

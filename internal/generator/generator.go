@@ -1,12 +1,12 @@
 package generator
 
 import (
+	"bytes"
 	"fmt"
 	"path/filepath"
 	"text/template"
 
 	"github.com/meerkat-lib/disorder/internal/schema"
-	"github.com/meerkat-lib/disorder/internal/utils/strcase"
 )
 
 type Generator interface {
@@ -24,27 +24,23 @@ func newGeneratorImpl(language language) Generator {
 }
 
 type language interface {
-	getTemplate() *template.Template
-	packageFolder(packageName string) string
-}
-
-func caseConversion() template.FuncMap {
-	return template.FuncMap{
-		"PascalCase": func(name string) string {
-			return strcase.PascalCase(name)
-		},
-		"CamelCase": func(name string) string {
-			return strcase.CamelCase(name)
-		},
-		"SnakeCase": func(name string) string {
-			return strcase.SnakeCase(name)
-		},
-	}
+	template() *template.Template
+	folder(pkg string) string
 }
 
 func (g *generatorImpl) Generate(folder string, files []*schema.File) error {
 	for _, file := range files {
-		fmt.Println(filepath.Join(folder, g.language.packageFolder(file.Package)))
+		path, err := filepath.Abs(filepath.Join(folder, g.language.folder(file.Package)))
+		if err != nil {
+			return err
+		}
+		fmt.Println(path)
+		template := g.language.template()
+		buf := &bytes.Buffer{}
+		if err := template.Execute(buf, file); err != nil {
+			return err
+		}
+		fmt.Println(buf.String())
 	}
 	return nil
 }
