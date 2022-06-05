@@ -1,12 +1,11 @@
-package: test
+package: sub
 
 messages:
-
   sub_object:
     value: int
 
 services:
-
-  increase:
-    input: int
-    output: int
+  math_service:
+    increase:
+      input: int
+      output: int

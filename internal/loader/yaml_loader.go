@@ -2,13 +2,13 @@ package loader
 
 import "gopkg.in/yaml.v3"
 
+func NewYamlLoader() Loader {
+	return newLoaderImpl(&yamlUnmarshaller{})
+}
+
 type yamlUnmarshaller struct {
 }
 
-func (*yamlUnmarshaller) Unmarshal(data []byte, schema *schemaFile) error {
+func (*yamlUnmarshaller) unmarshal(data []byte, schema *proto) error {
 	return yaml.Unmarshal(data, schema)
-}
-
-func NewYamlLoader() Loader {
-	return newLoaderImpl(&yamlUnmarshaller{})
 }

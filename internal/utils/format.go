@@ -5,7 +5,7 @@ import (
 	"fmt"
 )
 
-func PrettyPrint(value interface{}) {
+func PrintObject(value interface{}) {
 	data, _ := json.MarshalIndent(value, "", "    ")
 	fmt.Println(string(data))
 }

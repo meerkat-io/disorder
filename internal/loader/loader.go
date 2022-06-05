@@ -14,7 +14,7 @@ type Loader interface {
 }
 
 type unmarshaller interface {
-	Unmarshal([]byte, *schemaFile) error
+	unmarshal([]byte, *proto) error
 }
 
 type rpc struct {
@@ -22,90 +22,81 @@ type rpc struct {
 	Output string `yaml:"output" json:"output"`
 }
 
-type schemaFile struct {
+type proto struct {
 	FilePath string `yaml:"-" json:"-"`
 
 	Package  string                       `yaml:"package" json:"package"`
 	Imports  []string                     `yaml:"import" json:"import"`
 	Enums    map[string][]string          `yaml:"enums" json:"enums"`
 	Messages map[string]map[string]string `yaml:"messages" json:"messages"`
-	Services map[string]*rpc              `yaml:"services" json:"services"`
+	Services map[string]map[string]*rpc   `yaml:"services" json:"services"`
 }
 
 type loaderImpl struct {
 	parser       *parser
 	unmarshaller unmarshaller
+	resolver     *resolver
 }
 
 func newLoaderImpl(unmarshaller unmarshaller) Loader {
 	return &loaderImpl{
 		parser:       newParser(),
 		unmarshaller: unmarshaller,
+		resolver:     newResolver(),
 	}
 }
 
-func (l *loaderImpl) Load(filePath string) ([]*schema.File, error) {
+func (l *loaderImpl) Load(file string) ([]*schema.File, error) {
 	files := map[string]*schema.File{}
-	err := l.load(filePath, files)
+	err := l.load(file, files)
 	if err != nil {
 		return nil, err
 	}
-
-	result := []*schema.File{}
+	schemas := []*schema.File{}
 	for _, file := range files {
-		result = append(result, file)
+		schemas = append(schemas, file)
 	}
-
-	r := newResolver()
-	err = r.resolve(result)
+	err = l.resolver.resolve(schemas)
 	if err != nil {
 		return nil, err
 	}
-
-	for _, f := range result {
-		utils.PrettyPrint(f)
+	for _, s := range schemas {
+		utils.PrintObject(s)
 	}
-
-	return result, nil
+	return schemas, nil
 }
 
-func (l *loaderImpl) load(filePath string, files map[string]*schema.File) error {
-	absPath, err := filepath.Abs(filePath)
+func (l *loaderImpl) load(file string, files map[string]*schema.File) error {
+	file, err := filepath.Abs(file)
 	if err != nil {
 		return fmt.Errorf("yaml file not found: %s", err.Error())
 	}
-
-	if _, exists := files[absPath]; exists {
+	if _, exists := files[file]; exists {
 		return nil
 	}
-
-	bytes, err := ioutil.ReadFile(absPath)
+	bytes, err := ioutil.ReadFile(file)
 	if err != nil {
-		return fmt.Errorf("load yaml file [%s] failed: %s", absPath, err.Error())
+		return fmt.Errorf("load yaml file [%s] failed: %s", file, err.Error())
 	}
-
-	file := &schemaFile{
-		FilePath: absPath,
+	p := &proto{
+		FilePath: file,
 	}
-	err = l.unmarshaller.Unmarshal(bytes, file)
+	err = l.unmarshaller.unmarshal(bytes, p)
 	if err != nil {
-		return fmt.Errorf("unmarshal yaml file [%s] failed: %s", absPath, err.Error())
+		return fmt.Errorf("unmarshal yaml file [%s] failed: %s", file, err.Error())
 	}
-
-	schema, err := l.parser.parse(file)
+	schema, err := l.parser.parse(p)
 	if err != nil {
-		return fmt.Errorf("parse schema file [%s] failed: %s", absPath, err.Error())
+		return fmt.Errorf("parse schema file [%s] failed: %s", file, err.Error())
 	}
-
-	files[absPath] = schema
-	absDir := filepath.Dir(absPath)
-	for _, importPath := range file.Imports {
-		path := filepath.Join(absDir, importPath)
+	files[file] = schema
+	dir := filepath.Dir(file)
+	for _, importPath := range p.Imports {
+		path := filepath.Join(dir, importPath)
 		err = l.load(path, files)
 		if err != nil {
 			return err
 		}
 	}
-
 	return nil
 }

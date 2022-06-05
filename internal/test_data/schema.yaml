@@ -3,23 +3,23 @@ package: test
 import: 
   - sub_schema.yaml
 
-messages:
+option:
+  go_package_prefix: github.com/meerkat/demo
 
+messages:
   object:
-    bool_field: bool
     int_field: int
     string_field: string
     enum_field: color
     int_array: array[int]
     int_map: map[int]
-    obj_array: array[sub_object]
-    obj_map: map[sub_object]
+    obj_array: array[sub.sub_object]
+    obj_map: map[sub.sub_object]
 
   another_object:
     value: int
 
 enums:
-
   color:
     - red
     - green
@@ -30,11 +30,11 @@ enums:
     - cat
 
 services:
+  primary_service:
+    get_another_object:
+      input: string
+      output: another_object
 
-  get_another_object:
-    input: string
-    output: another_object
-
-  print_object:
-    input: object
-    output: null
+    print_object:
+      input: object
+      output: null

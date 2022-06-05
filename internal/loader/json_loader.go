@@ -2,13 +2,13 @@ package loader
 
 import "encoding/json"
 
+func NewJsonLoader() Loader {
+	return newLoaderImpl(&jsonUnmarshaller{})
+}
+
 type jsonUnmarshaller struct {
 }
 
-func (*jsonUnmarshaller) Unmarshal(data []byte, schema *schemaFile) error {
+func (*jsonUnmarshaller) unmarshal(data []byte, schema *proto) error {
 	return json.Unmarshal(data, schema)
-}
-
-func NewJsonLoader() Loader {
-	return newLoaderImpl(&jsonUnmarshaller{})
 }

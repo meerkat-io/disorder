@@ -1,8 +1,5 @@
 package schema
 
-//"github.com/meerkat-lib/cellar/util/logger"
-//"github.com/meerkat-lib/cellar/util/strcase"
-
 type Type int
 
 const (
@@ -21,11 +18,12 @@ const (
 	TypeDouble    Type = 11
 	TypeString    Type = 12
 	TypeTimestamp Type = 13
+	TypeBytes     Type = 14
 
-	TypeEnum   Type = 14
-	TypeObject Type = 15
-	TypeArray  Type = 16
-	TypeMap    Type = 17
+	TypeEnum   Type = 15
+	TypeObject Type = 16
+	TypeArray  Type = 17
+	TypeMap    Type = 18
 )
 
 var (
@@ -43,11 +41,8 @@ var (
 		"double":    TypeDouble,
 		"string":    TypeString,
 		"timestamp": TypeTimestamp,
+		"bytes":     TypeBytes,
 	}
-)
-
-const (
-	PackageGlobal = "global"
 )
 
 type TypeInfo struct {
@@ -78,29 +73,16 @@ type Rpc struct {
 	Output *TypeInfo
 }
 
+type Service struct {
+	Name string
+	Rpc  []*Rpc
+}
+
 type File struct {
 	FilePath string
+	Package  string
 
 	Enums    []*Enum
 	Messages []*Message
-	Services []*Rpc
+	Services []*Service
 }
-
-/*
-var (
-	types = map[string]int{
-		"bool":   1,
-		"sbyte":  1,
-		"byte":   1,
-		"short":  2,
-		"ushort": 2,
-		"int":    4,
-		"uint":   4,
-		"long":   8,
-		"ulong":  8,
-		"float":  4,
-		"double": 8,
-		"string": 0,
-	}
-)
-*/
