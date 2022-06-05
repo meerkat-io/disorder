@@ -32,9 +32,17 @@ func goType(typ schema.Type, ref string) string {
 	}
 	if strings.Contains(ref, ".") {
 		names := strings.Split(ref, ".")
-		return fmt.Sprintf("%s.%s", strcase.SnakeCase(names[len(names)-2]), strcase.PascalCase(names[len(names)-1]))
+		pkg := strcase.SnakeCase(names[len(names)-2])
+		obj := strcase.PascalCase(names[len(names)-1])
+		if typ == schema.TypeEnum {
+			return fmt.Sprintf("%s.%s", pkg, obj)
+		}
+		return fmt.Sprintf("*%s.%s", pkg, obj)
 	}
-	return strcase.PascalCase(ref)
+	if typ == schema.TypeEnum {
+		return strcase.PascalCase(ref)
+	}
+	return fmt.Sprintf("*%s", strcase.PascalCase(ref))
 }
 
 func NewGoGenerator() Generator {
