@@ -84,6 +84,8 @@ type Service struct {
 type File struct {
 	FilePath string
 	Package  string
+	Imports  []string
+	Options  map[string]string
 
 	Enums    []*Enum
 	Messages []*Message

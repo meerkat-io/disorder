@@ -10,7 +10,7 @@ import (
 )
 
 type Generator interface {
-	Generate(folder string, files []*schema.File) error
+	Generate(folder string, files map[string]*schema.File) error
 }
 
 type generatorImpl struct {
@@ -28,7 +28,7 @@ type language interface {
 	folder(pkg string) string
 }
 
-func (g *generatorImpl) Generate(folder string, files []*schema.File) error {
+func (g *generatorImpl) Generate(folder string, files map[string]*schema.File) error {
 	for _, file := range files {
 		path, err := filepath.Abs(filepath.Join(folder, g.language.folder(file.Package)))
 		if err != nil {

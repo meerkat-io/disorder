@@ -4,7 +4,7 @@ import:
   - sub_schema.yaml
 
 option:
-  go_package_prefix: github.com/meerkat/demo
+  go_package_prefix: github.com/meerkat-lib/disorder
 
 messages:
   object:

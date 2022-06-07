@@ -30,6 +30,8 @@ func (p *parser) parse(proto *proto) (*schema.File, error) {
 	file := &schema.File{
 		FilePath: proto.FilePath,
 		Package:  proto.Package,
+		Imports:  proto.Imports,
+		Options:  proto.Options,
 	}
 	for name, values := range proto.Enums {
 		if !p.validator.validateEnumName(name) {

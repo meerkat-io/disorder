@@ -9,7 +9,7 @@ import (
 )
 
 type Loader interface {
-	Load(file string) ([]*schema.File, error)
+	Load(file string) (map[string]*schema.File, error)
 }
 
 type unmarshaller interface {
@@ -22,10 +22,11 @@ type rpc struct {
 }
 
 type proto struct {
-	FilePath string `yaml:"-" json:"-"`
+	FilePath string            `yaml:"-" json:"-"`
+	Package  string            `yaml:"package" json:"package"`
+	Imports  []string          `yaml:"import" json:"import"`
+	Options  map[string]string `yaml:"option" json:"option"`
 
-	Package  string                       `yaml:"package" json:"package"`
-	Imports  []string                     `yaml:"import" json:"import"`
 	Enums    map[string][]string          `yaml:"enums" json:"enums"`
 	Messages map[string]map[string]string `yaml:"messages" json:"messages"`
 	Services map[string]map[string]*rpc   `yaml:"services" json:"services"`
@@ -45,21 +46,17 @@ func newLoaderImpl(unmarshaller unmarshaller) Loader {
 	}
 }
 
-func (l *loaderImpl) Load(file string) ([]*schema.File, error) {
+func (l *loaderImpl) Load(file string) (map[string]*schema.File, error) {
 	files := map[string]*schema.File{}
 	err := l.load(file, files)
 	if err != nil {
 		return nil, err
 	}
-	schemas := []*schema.File{}
-	for _, file := range files {
-		schemas = append(schemas, file)
-	}
-	err = l.resolver.resolve(schemas)
+	err = l.resolver.resolve(files)
 	if err != nil {
 		return nil, err
 	}
-	return schemas, nil
+	return files, nil
 }
 
 func (l *loaderImpl) load(file string, files map[string]*schema.File) error {

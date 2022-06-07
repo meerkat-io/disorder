@@ -9,41 +9,9 @@ import (
 	"github.com/meerkat-lib/disorder/internal/utils/strcase"
 )
 
-var goTypes = map[schema.Type]string{
-	schema.TypeBool:      "bool",
-	schema.TypeI8:        "int8",
-	schema.TypeU8:        "uint8",
-	schema.TypeI16:       "int16",
-	schema.TypeU16:       "uint16",
-	schema.TypeI32:       "int32",
-	schema.TypeU32:       "uint32",
-	schema.TypeI64:       "int64",
-	schema.TypeU64:       "uint64",
-	schema.TypeF32:       "float32",
-	schema.TypeF64:       "float64",
-	schema.TypeString:    "string",
-	schema.TypeTimestamp: "int64",
-	schema.TypeBytes:     "[]byte",
-}
-
-func goType(typ schema.Type, ref string) string {
-	if typ.IsPrimary() {
-		return goTypes[typ]
-	}
-	if strings.Contains(ref, ".") {
-		names := strings.Split(ref, ".")
-		pkg := strcase.SnakeCase(names[len(names)-2])
-		obj := strcase.PascalCase(names[len(names)-1])
-		if typ == schema.TypeEnum {
-			return fmt.Sprintf("%s.%s", pkg, obj)
-		}
-		return fmt.Sprintf("*%s.%s", pkg, obj)
-	}
-	if typ == schema.TypeEnum {
-		return strcase.PascalCase(ref)
-	}
-	return fmt.Sprintf("*%s", strcase.PascalCase(ref))
-}
+const (
+	golang = "golang"
+)
 
 func NewGoGenerator() Generator {
 	return newGeneratorImpl(&goLanguage{})
@@ -105,8 +73,44 @@ type {{PascalCase .Name}} struct {
 				}
 			},
 		}
-		g.goTemplate = template.New("go").Funcs(funcMap)
+		g.goTemplate = template.New(golang).Funcs(funcMap)
 		template.Must(g.goTemplate.Parse(t))
 	}
 	return g.goTemplate
+}
+
+var goTypes = map[schema.Type]string{
+	schema.TypeBool:      "bool",
+	schema.TypeI8:        "int8",
+	schema.TypeU8:        "uint8",
+	schema.TypeI16:       "int16",
+	schema.TypeU16:       "uint16",
+	schema.TypeI32:       "int32",
+	schema.TypeU32:       "uint32",
+	schema.TypeI64:       "int64",
+	schema.TypeU64:       "uint64",
+	schema.TypeF32:       "float32",
+	schema.TypeF64:       "float64",
+	schema.TypeString:    "string",
+	schema.TypeTimestamp: "int64",
+	schema.TypeBytes:     "[]byte",
+}
+
+func goType(typ schema.Type, ref string) string {
+	if typ.IsPrimary() {
+		return goTypes[typ]
+	}
+	if strings.Contains(ref, ".") {
+		names := strings.Split(ref, ".")
+		pkg := strcase.SnakeCase(names[len(names)-2])
+		obj := strcase.PascalCase(names[len(names)-1])
+		if typ == schema.TypeEnum {
+			return fmt.Sprintf("%s.%s", pkg, obj)
+		}
+		return fmt.Sprintf("*%s.%s", pkg, obj)
+	}
+	if typ == schema.TypeEnum {
+		return strcase.PascalCase(ref)
+	}
+	return fmt.Sprintf("*%s", strcase.PascalCase(ref))
 }

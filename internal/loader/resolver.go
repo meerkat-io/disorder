@@ -28,7 +28,7 @@ func (r *resolver) qualifiedName(pkg, name string) string {
 	return fmt.Sprintf("%s.%s", pkg, name)
 }
 
-func (r *resolver) resolve(files []*schema.File) error {
+func (r *resolver) resolve(files map[string]*schema.File) error {
 	for _, file := range files {
 		for _, enum := range file.Enums {
 			if f, exists := r.names[enum.Name]; exists {
