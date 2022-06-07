@@ -1,10 +1,10 @@
-package: test
+package: test_data.test
 
 import: 
   - sub_schema.yaml
 
 option:
-  go_package_prefix: github.com/meerkat-lib/disorder
+  go_package_prefix: github.com/meerkat-lib/disorder/internal
 
 messages:
   object:
@@ -13,8 +13,8 @@ messages:
     enum_field: color
     int_array: array[i32]
     int_map: map[i32]
-    obj_array: array[sub.sub_object]
-    obj_map: map[sub.sub_object]
+    obj_array: array[test_data.test.sub.sub_object]
+    obj_map: map[test_data.test.sub.sub_object]
 
   another_object:
     value: i32

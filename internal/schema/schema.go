@@ -90,4 +90,7 @@ type File struct {
 	Enums    []*Enum
 	Messages []*Message
 	Services []*Service
+
+	AbsImports      []string
+	ResolvedImports []string
 }

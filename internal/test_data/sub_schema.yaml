@@ -1,4 +1,7 @@
-package: sub
+package: test_data.test.sub
+
+option:
+  go_package_prefix: github.com/meerkat-lib/disorder/internal
 
 messages:
   sub_object:
