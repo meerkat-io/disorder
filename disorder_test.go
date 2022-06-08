@@ -1,4 +1,4 @@
-package loader_test
+package disorder_test
 
 import (
 	"fmt"
@@ -10,10 +10,10 @@ import (
 
 func TestLoadYamlFile(t *testing.T) {
 	loader := loader.NewYamlLoader()
-	files, err := loader.Load("./test_data/schema.yaml")
+	files, err := loader.Load("./internal/test_data/schema.yaml")
 	fmt.Println(err)
 	generator := generator.NewGoGenerator()
-	_ = generator.Generate(".", files)
+	_ = generator.Generate("./internal", files)
 	t.Fail()
 }
 

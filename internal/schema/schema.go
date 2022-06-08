@@ -1,6 +1,6 @@
 package schema
 
-type Type int
+type Type byte
 
 const (
 	TypeUndefined Type = 0
