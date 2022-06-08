@@ -4,8 +4,10 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/meerkat-lib/disorder"
 	"github.com/meerkat-lib/disorder/internal/generator"
 	"github.com/meerkat-lib/disorder/internal/loader"
+	"github.com/meerkat-lib/disorder/internal/test_data/test"
 )
 
 func TestLoadYamlFile(t *testing.T) {
@@ -13,7 +15,8 @@ func TestLoadYamlFile(t *testing.T) {
 	files, err := loader.Load("./internal/test_data/schema.yaml")
 	fmt.Println(err)
 	generator := generator.NewGoGenerator()
-	_ = generator.Generate("./internal", files)
+	err = generator.Generate("./internal", files)
+	fmt.Println(err)
 	t.Fail()
 }
 
@@ -24,3 +27,10 @@ func TestLoadJsonFile(t *testing.T) {
 	fmt.Println(err)
 	t.Fail()
 }*/
+
+func TestMarshal(t *testing.T) {
+	data, err := disorder.Marshal(test.AnimalCat)
+	fmt.Println(data)
+	fmt.Println(err)
+	t.Fail()
+}

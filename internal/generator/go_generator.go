@@ -80,6 +80,8 @@ import (
 
 type {{PascalCase $enum.Name}} string
 
+func (*{{PascalCase $enum.Name}}) Enum() {}
+
 const (
 {{- range .Values}}
 	{{PascalCase $enum.Name}}{{PascalCase .}} {{PascalCase $enum.Name}} = "{{.}}"
@@ -151,7 +153,6 @@ var goTypes = map[schema.Type]string{
 	schema.TypeF64:       "float64",
 	schema.TypeString:    "string",
 	schema.TypeTimestamp: "int64",
-	schema.TypeBytes:     "[]byte",
 }
 
 func goType(typ schema.Type, ref string) string {

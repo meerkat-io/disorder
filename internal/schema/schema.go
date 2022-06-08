@@ -5,29 +5,35 @@ type Type byte
 const (
 	TypeUndefined Type = 0
 
-	TypeBool      Type = 1
-	TypeI8        Type = 2
-	TypeU8        Type = 3
-	TypeI16       Type = 4
-	TypeU16       Type = 5
-	TypeI32       Type = 6
-	TypeU32       Type = 7
-	TypeI64       Type = 8
-	TypeU64       Type = 9
-	TypeF32       Type = 10
-	TypeF64       Type = 11
-	TypeString    Type = 12
-	TypeTimestamp Type = 13
-	TypeBytes     Type = 14
+	TypeBool   Type = 1
+	TypeI8     Type = 2
+	TypeU8     Type = 3
+	TypeI16    Type = 4
+	TypeU16    Type = 5
+	TypeI32    Type = 6
+	TypeU32    Type = 7
+	TypeI64    Type = 8
+	TypeU64    Type = 9
+	TypeF32    Type = 10
+	TypeF64    Type = 11
+	TypeString Type = 12
 
-	TypeEnum   Type = 15
-	TypeObject Type = 16
-	TypeArray  Type = 17
-	TypeMap    Type = 18
+	TypeObject Type = 13
+	TypeArray  Type = 14
+	TypeMap    Type = 15
+
+	TypeEnum      Type = 16
+	TypeTimestamp Type = 17
+)
+
+const (
+	EndObject Type = 33
+	EndArray  Type = 34
+	EndMap    Type = 35
 )
 
 func (t Type) IsPrimary() bool {
-	return t >= TypeBool && t <= TypeBytes
+	return t >= TypeBool && t <= TypeString
 }
 
 var (
@@ -45,7 +51,6 @@ var (
 		"f64":       TypeF64,
 		"string":    TypeString,
 		"timestamp": TypeTimestamp,
-		"bytes":     TypeBytes,
 	}
 )
 
