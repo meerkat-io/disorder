@@ -7,7 +7,7 @@ import (
 
 type Color string
 
-func (*Color) Enum() {}
+func (Color) Enum() {}
 
 const (
 	ColorRed   Color = "red"
@@ -17,23 +17,23 @@ const (
 
 type Animal string
 
-func (*Animal) Enum() {}
+func (Animal) Enum() {}
 
 const (
 	AnimalDog Animal = "dog"
 	AnimalCat Animal = "cat"
 )
 
-type AnotherObject struct {
-	Value int32 `disorder:"value"`
-}
-
 type Object struct {
-	StringField string                    `disorder:"string_field"`
-	EnumField   Color                     `disorder:"enum_field"`
 	IntArray    []int32                   `disorder:"int_array"`
 	IntMap      map[string]int32          `disorder:"int_map"`
 	ObjArray    []*sub.SubObject          `disorder:"obj_array"`
 	ObjMap      map[string]*sub.SubObject `disorder:"obj_map"`
 	IntField    int32                     `disorder:"int_field"`
+	StringField string                    `disorder:"string_field"`
+	EnumField   Color                     `disorder:"enum_field"`
+}
+
+type AnotherObject struct {
+	Value int32 `disorder:"value"`
 }

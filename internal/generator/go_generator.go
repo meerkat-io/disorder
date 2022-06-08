@@ -80,7 +80,7 @@ import (
 
 type {{PascalCase $enum.Name}} string
 
-func (*{{PascalCase $enum.Name}}) Enum() {}
+func ({{PascalCase $enum.Name}}) Enum() {}
 
 const (
 {{- range .Values}}

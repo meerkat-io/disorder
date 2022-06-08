@@ -29,7 +29,8 @@ func TestLoadJsonFile(t *testing.T) {
 }*/
 
 func TestMarshal(t *testing.T) {
-	data, err := disorder.Marshal(test.AnimalCat)
+	cat := test.AnimalCat
+	data, err := disorder.Marshal(&cat)
 	fmt.Println(data)
 	fmt.Println(err)
 	t.Fail()

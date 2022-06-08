@@ -32,23 +32,18 @@ func (e *Encoder) write(value reflect.Value) error {
 	var bytes []byte
 	switch i := value.Interface().(type) {
 	case time.Time:
-		return e.writeTime(value)
+		return e.writeTime(&i)
 
 	case *time.Time:
-		return e.writeTime(value.Elem())
+		return e.writeTime(i)
 
 	case Marshaler:
 		return i.MarshalDO(e.writer)
-
-	default:
-		fmt.Printf("%v === \n", i)
 	}
 	/*
 		switch value.Kind() {
 		case reflect.Map:
 			e.mapv(tag, in)
-		case reflect.Ptr:
-			e.marshal(tag, in.Elem())
 		case reflect.Struct:
 			e.structv(tag, in)
 		case reflect.Slice, reflect.Array:
@@ -57,9 +52,6 @@ func (e *Encoder) write(value reflect.Value) error {
 			panic("cannot marshal type: " + in.Type().String())
 		}*/
 	switch value.Kind() {
-	case reflect.Interface:
-		return e.write(value.Elem())
-
 	case reflect.Ptr:
 		return e.write(value.Elem())
 
@@ -123,18 +115,18 @@ func (e *Encoder) write(value reflect.Value) error {
 		binary.LittleEndian.PutUint64(bytes[1:], math.Float64bits(value.Float()))
 
 	case reflect.String:
+		if value.MethodByName("Enum").IsValid() {
+			_, err := e.writer.Write([]byte{byte(schema.TypeEnum)})
+			if err != nil {
+				return err
+			}
+			return e.writeName(value.String())
+		}
 		bytes = make([]byte, 5)
 		bytes[0] = byte(schema.TypeString)
 		str := value.String()
 		binary.LittleEndian.PutUint32(bytes[1:], uint32(len(str)))
 		bytes = append(bytes, []byte(str)...)
-		/*
-			case []byte:
-				bytes = make([]byte, 5)
-				bytes[0] = byte(schema.TypeBytes)
-				binary.LittleEndian.PutUint32(bytes[1:], uint32(len(value)))
-				bytes = append(bytes, value...)*/
-		//value.MethodByName()
 
 	default:
 		return fmt.Errorf("invalid type: %s", value.Type().String())
@@ -143,9 +135,7 @@ func (e *Encoder) write(value reflect.Value) error {
 	return err
 }
 
-func (e *Encoder) writeTime(value reflect.Value) error {
-	fmt.Println("------------")
-	t := value.Interface().(time.Time)
+func (e *Encoder) writeTime(t *time.Time) error {
 	bytes := make([]byte, 9)
 	bytes[0] = byte(schema.TypeTimestamp)
 	binary.LittleEndian.PutUint64(bytes[1:], uint64(t.Unix()))
