@@ -5,6 +5,12 @@ import (
 	"io"
 )
 
+type Enum interface {
+	Enum()
+	FromString(enum string) error
+	ToString() (string, error)
+}
+
 type Marshaler interface {
 	MarshalDO(w io.Writer) error
 }

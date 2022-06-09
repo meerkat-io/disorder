@@ -2,36 +2,83 @@
 package test
 
 import (
+	"fmt"
 	"github.com/meerkat-lib/disorder/internal/test_data/test/sub"
 )
 
-type Color string
-
-func (Color) Enum() {}
+type Animal int
 
 const (
-	ColorRed   Color = "red"
-	ColorGreen Color = "green"
-	ColorBlue  Color = "blue"
+	AnimalDog Animal = iota
+	AnimalCat
 )
 
-type Animal string
+func (*Animal) Enum() {}
 
-func (Animal) Enum() {}
+func (enum *Animal) FromString(value string) error {
+	switch {
+	case value == "dog":
+		*enum = AnimalDog
+	case value == "cat":
+		*enum = AnimalCat
+	}
+	return fmt.Errorf("invalid enum value")
+}
+
+func (enum *Animal) ToString() (string, error) {
+	switch *enum {
+	case AnimalDog:
+		return "dog", nil
+	case AnimalCat:
+		return "cat", nil
+	default:
+		return "", fmt.Errorf("invalid enum value")
+	}
+}
+
+type Color int
 
 const (
-	AnimalDog Animal = "dog"
-	AnimalCat Animal = "cat"
+	ColorRed Color = iota
+	ColorGreen
+	ColorBlue
 )
+
+func (*Color) Enum() {}
+
+func (enum *Color) FromString(value string) error {
+	switch {
+	case value == "red":
+		*enum = ColorRed
+	case value == "green":
+		*enum = ColorGreen
+	case value == "blue":
+		*enum = ColorBlue
+	}
+	return fmt.Errorf("invalid enum value")
+}
+
+func (enum *Color) ToString() (string, error) {
+	switch *enum {
+	case ColorRed:
+		return "red", nil
+	case ColorGreen:
+		return "green", nil
+	case ColorBlue:
+		return "blue", nil
+	default:
+		return "", fmt.Errorf("invalid enum value")
+	}
+}
 
 type Object struct {
-	EnumField   Color                     `disorder:"enum_field"`
+	IntField    int32                     `disorder:"int_field"`
+	StringField string                    `disorder:"string_field"`
+	EnumField   *Color                    `disorder:"enum_field"`
 	IntArray    []int32                   `disorder:"int_array"`
 	IntMap      map[string]int32          `disorder:"int_map"`
 	ObjArray    []*sub.SubObject          `disorder:"obj_array"`
 	ObjMap      map[string]*sub.SubObject `disorder:"obj_map"`
-	IntField    int32                     `disorder:"int_field"`
-	StringField string                    `disorder:"string_field"`
 }
 
 type AnotherObject struct {

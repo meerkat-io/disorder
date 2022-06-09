@@ -13,15 +13,36 @@ import (
 {{- end}}
 {{- range $index, $enum := .Enums}}
 
-type {{PascalCase $enum.Name}} string
-
-func ({{PascalCase $enum.Name}}) Enum() {}
+type {{PascalCase $enum.Name}} int
 
 const (
-{{- range .Values}}
-	{{PascalCase $enum.Name}}{{PascalCase .}} {{PascalCase $enum.Name}} = "{{.}}"
+{{- range $i, $v := .Values}}
+	{{PascalCase $enum.Name}}{{PascalCase .}} {{if eq $i 0}}{{PascalCase $enum.Name}} = iota{{end}}
 {{- end}}
 )
+
+func (*{{PascalCase $enum.Name}}) Enum() {}
+
+func (enum *{{PascalCase $enum.Name}}) FromString(value string) error {
+	switch {
+{{- range .Values}}
+	case value == "{{.}}":
+		*enum = {{PascalCase $enum.Name}}{{PascalCase .}}
+{{- end}}
+	}
+	return fmt.Errorf("invalid enum value")
+}
+
+func (enum *{{PascalCase $enum.Name}}) ToString() (string, error) {
+	switch *enum {
+{{- range .Values}}
+	case {{PascalCase $enum.Name}}{{PascalCase .}}:
+		return "{{.}}", nil
+{{- end}}
+	default:
+		return "", fmt.Errorf("invalid enum value")
+	}
+}
 {{- end}}
 {{- range .Messages}}
 
@@ -32,3 +53,20 @@ type {{PascalCase .Name}} struct {
 }
 {{- end}}`
 )
+
+/*
+func (c *Color) ToString() (string, error) {
+	switch *c {
+	case ColorRed:
+		return "red", nil
+
+	case ColorGreen:
+		return "green", nil
+
+	case ColorBlue:
+		return "blue", nil
+
+	default:
+		return "", fmt.Errorf("invalid enum value")
+	}
+}*/

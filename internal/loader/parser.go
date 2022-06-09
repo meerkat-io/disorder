@@ -51,6 +51,9 @@ func (p *parser) parse(proto *proto) (*schema.File, error) {
 			valuesSet[value] = true
 			enum.Values = append(enum.Values, value)
 		}
+		if len(enum.Values) == 0 {
+			return nil, fmt.Errorf("empty enum define: %s", name)
+		}
 		file.Enums = append(file.Enums, enum)
 	}
 	for name, fields := range proto.Messages {
@@ -75,6 +78,9 @@ func (p *parser) parse(proto *proto) (*schema.File, error) {
 			}
 			message.Fields = append(message.Fields, field)
 		}
+		if len(message.Fields) == 0 {
+			return nil, fmt.Errorf("empty message define: %s", name)
+		}
 		file.Messages = append(file.Messages, message)
 	}
 	for name, rpcs := range proto.Services {
@@ -98,6 +104,9 @@ func (p *parser) parse(proto *proto) (*schema.File, error) {
 				return nil, err
 			}
 			service.Rpc = append(service.Rpc, rpc)
+		}
+		if len(service.Rpc) == 0 {
+			return nil, fmt.Errorf("empty service define: %s", name)
 		}
 		file.Services = append(file.Services, service)
 	}

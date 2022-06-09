@@ -40,6 +40,9 @@ func (g *goGenerator) Generate(dir string, files map[string]*schema.File) error 
 		for importPath := range resolvedImports {
 			file.ResolvedImports = append(file.ResolvedImports, importPath)
 		}
+		if len(file.Enums) > 0 {
+			file.ResolvedImports = append(file.ResolvedImports, "fmt")
+		}
 		buf := &bytes.Buffer{}
 		if err := g.define.Execute(buf, file); err != nil {
 			return err
@@ -137,9 +140,6 @@ func goType(typ schema.Type, ref string) string {
 			return fmt.Sprintf("%s.%s", pkg, obj)
 		}
 		return fmt.Sprintf("*%s.%s", pkg, obj)
-	}
-	if typ == schema.TypeEnum {
-		return strcase.PascalCase(ref)
 	}
 	return fmt.Sprintf("*%s", strcase.PascalCase(ref))
 }
