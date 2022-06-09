@@ -54,7 +54,7 @@ func (e *Encoder) write(value reflect.Value) error {
 
 	var bytes []byte
 	switch value.Kind() {
-	case reflect.Ptr:
+	case reflect.Ptr, reflect.Interface:
 		return e.write(value.Elem())
 
 	case reflect.Bool:
@@ -135,20 +135,91 @@ func (e *Encoder) write(value reflect.Value) error {
 	default:
 		return fmt.Errorf("invalid type: %s", value.Type().String())
 	}
+
 	_, err := e.writer.Write(bytes)
 	return err
 }
 
 func (e *Encoder) writeArray(value reflect.Value) error {
-	return nil
+	count := value.Len()
+	if count == 0 {
+		return nil
+	}
+
+	_, err := e.writer.Write([]byte{byte(schema.TypeArray)})
+	if err != nil {
+		return err
+	}
+
+	for i := 0; i < count; i++ {
+		err = e.write(value.Index(i))
+		if err != nil {
+			return err
+		}
+	}
+
+	_, err = e.writer.Write([]byte{byte(schema.EndArray)})
+	return err
 }
 
 func (e *Encoder) writeMap(value reflect.Value) error {
-	return nil
+	count := value.Len()
+	if count == 0 {
+		return nil
+	}
+
+	_, err := e.writer.Write([]byte{byte(schema.TypeMap)})
+	if err != nil {
+		return err
+	}
+
+	keys := value.MapKeys()
+	for _, key := range keys {
+		if key.Kind() != reflect.String {
+			return fmt.Errorf("map key type must be string")
+		}
+		err := e.writeName(key.String())
+		if err != nil {
+			return err
+		}
+		err = e.write(value.MapIndex(key))
+		if err != nil {
+			return err
+		}
+	}
+
+	_, err = e.writer.Write([]byte{byte(schema.EndMap)})
+	return err
 }
 
 func (e *Encoder) writeObject(value reflect.Value) error {
-	return nil
+	info, err := getStructInfo(value.Type())
+	if err != nil {
+		return err
+	}
+
+	_, err = e.writer.Write([]byte{byte(schema.TypeObject)})
+	if err != nil {
+		return err
+	}
+
+	for _, field := range info.fieldsList {
+		fieldValue := value.Field(field.index)
+		if field.omitEmpty && isZero(fieldValue) {
+			continue
+		}
+		err = e.writeName(field.key)
+		if err != nil {
+			return err
+		}
+		err = e.write(fieldValue)
+		if err != nil {
+			return err
+		}
+	}
+
+	_, err = e.writer.Write([]byte{byte(schema.EndObject)})
+	return err
 }
 
 func (e *Encoder) writeTime(t *time.Time) error {
