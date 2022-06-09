@@ -7,8 +7,6 @@ import (
 	"math"
 	"reflect"
 	"time"
-
-	"github.com/meerkat-lib/disorder/internal/schema"
 )
 
 type Encoder struct {
@@ -38,7 +36,7 @@ func (e *Encoder) write(value reflect.Value) error {
 		return e.writeTime(i)
 
 	case Enum:
-		_, err := e.writer.Write([]byte{byte(schema.TypeEnum)})
+		_, err := e.writer.Write([]byte{byte(tagEnum)})
 		if err != nil {
 			return err
 		}
@@ -59,7 +57,7 @@ func (e *Encoder) write(value reflect.Value) error {
 
 	case reflect.Bool:
 		bytes = make([]byte, 2)
-		bytes[0] = byte(schema.TypeBool)
+		bytes[0] = byte(tagBool)
 		if value.Bool() {
 			bytes[1] = 1
 		} else {
@@ -68,57 +66,57 @@ func (e *Encoder) write(value reflect.Value) error {
 
 	case reflect.Uint8:
 		bytes = make([]byte, 2)
-		bytes[0] = byte(schema.TypeU8)
+		bytes[0] = byte(tagU8)
 		bytes[1] = byte(uint8(value.Int()))
 
 	case reflect.Uint16:
 		bytes = make([]byte, 3)
-		bytes[0] = byte(schema.TypeU16)
+		bytes[0] = byte(tagU16)
 		binary.LittleEndian.PutUint16(bytes[1:], uint16(value.Int()))
 
-	case reflect.Uint32:
+	case reflect.Uint32, reflect.Uint:
 		bytes = make([]byte, 5)
-		bytes[0] = byte(schema.TypeU32)
+		bytes[0] = byte(tagU32)
 		binary.LittleEndian.PutUint32(bytes[1:], uint32(value.Int()))
 
 	case reflect.Uint64:
 		bytes = make([]byte, 9)
-		bytes[0] = byte(schema.TypeU64)
+		bytes[0] = byte(tagU64)
 		binary.LittleEndian.PutUint64(bytes[1:], uint64(value.Int()))
 
 	case reflect.Int8:
 		bytes = make([]byte, 2)
-		bytes[0] = byte(schema.TypeI8)
+		bytes[0] = byte(tagI8)
 		bytes[1] = byte(int8(value.Int()))
 
 	case reflect.Int16:
 		bytes = make([]byte, 3)
-		bytes[0] = byte(schema.TypeI16)
+		bytes[0] = byte(tagI16)
 		binary.LittleEndian.PutUint16(bytes[1:], uint16(value.Int()))
 
-	case reflect.Int32:
+	case reflect.Int32, reflect.Int:
 		bytes = make([]byte, 5)
-		bytes[0] = byte(schema.TypeI32)
+		bytes[0] = byte(tagI32)
 		binary.LittleEndian.PutUint32(bytes[1:], uint32(value.Int()))
 
 	case reflect.Int64:
 		bytes = make([]byte, 9)
-		bytes[0] = byte(schema.TypeI64)
+		bytes[0] = byte(tagI64)
 		binary.LittleEndian.PutUint64(bytes[1:], uint64(value.Int()))
 
 	case reflect.Float32:
 		bytes = make([]byte, 5)
-		bytes[0] = byte(schema.TypeF32)
+		bytes[0] = byte(tagF32)
 		binary.LittleEndian.PutUint32(bytes[1:], math.Float32bits(float32(value.Float())))
 
 	case reflect.Float64:
 		bytes = make([]byte, 9)
-		bytes[0] = byte(schema.TypeF64)
+		bytes[0] = byte(tagF64)
 		binary.LittleEndian.PutUint64(bytes[1:], math.Float64bits(value.Float()))
 
 	case reflect.String:
 		bytes = make([]byte, 5)
-		bytes[0] = byte(schema.TypeString)
+		bytes[0] = byte(tagString)
 		str := value.String()
 		binary.LittleEndian.PutUint32(bytes[1:], uint32(len(str)))
 		bytes = append(bytes, []byte(str)...)
@@ -146,7 +144,7 @@ func (e *Encoder) writeArray(value reflect.Value) error {
 		return nil
 	}
 
-	_, err := e.writer.Write([]byte{byte(schema.TypeArray)})
+	_, err := e.writer.Write([]byte{byte(tagStartArray)})
 	if err != nil {
 		return err
 	}
@@ -158,7 +156,7 @@ func (e *Encoder) writeArray(value reflect.Value) error {
 		}
 	}
 
-	_, err = e.writer.Write([]byte{byte(schema.EndArray)})
+	_, err = e.writer.Write([]byte{byte(tagEndArray)})
 	return err
 }
 
@@ -168,7 +166,7 @@ func (e *Encoder) writeMap(value reflect.Value) error {
 		return nil
 	}
 
-	_, err := e.writer.Write([]byte{byte(schema.TypeMap)})
+	_, err := e.writer.Write([]byte{byte(tagStartObject)})
 	if err != nil {
 		return err
 	}
@@ -188,7 +186,7 @@ func (e *Encoder) writeMap(value reflect.Value) error {
 		}
 	}
 
-	_, err = e.writer.Write([]byte{byte(schema.EndMap)})
+	_, err = e.writer.Write([]byte{byte(tagEndObject)})
 	return err
 }
 
@@ -198,7 +196,7 @@ func (e *Encoder) writeObject(value reflect.Value) error {
 		return err
 	}
 
-	_, err = e.writer.Write([]byte{byte(schema.TypeObject)})
+	_, err = e.writer.Write([]byte{byte(tagStartObject)})
 	if err != nil {
 		return err
 	}
@@ -218,13 +216,13 @@ func (e *Encoder) writeObject(value reflect.Value) error {
 		}
 	}
 
-	_, err = e.writer.Write([]byte{byte(schema.EndObject)})
+	_, err = e.writer.Write([]byte{byte(tagEndObject)})
 	return err
 }
 
 func (e *Encoder) writeTime(t *time.Time) error {
 	bytes := make([]byte, 9)
-	bytes[0] = byte(schema.TypeTimestamp)
+	bytes[0] = byte(tagTimestamp)
 	binary.LittleEndian.PutUint64(bytes[1:], uint64(t.Unix()))
 	_, err := e.writer.Write(bytes)
 	return err

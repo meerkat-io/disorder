@@ -72,13 +72,13 @@ func (enum *Animal) ToString() (string, error) {
 }
 
 type Object struct {
+	IntField    int32                     `disorder:"int_field"`
+	StringField string                    `disorder:"string_field"`
 	EnumField   *Color                    `disorder:"enum_field"`
 	IntArray    []int32                   `disorder:"int_array"`
 	IntMap      map[string]int32          `disorder:"int_map"`
 	ObjArray    []*sub.SubObject          `disorder:"obj_array"`
 	ObjMap      map[string]*sub.SubObject `disorder:"obj_map"`
-	IntField    int32                     `disorder:"int_field"`
-	StringField string                    `disorder:"string_field"`
 }
 
 type AnotherObject struct {

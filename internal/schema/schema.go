@@ -18,18 +18,12 @@ const (
 	TypeF64    Type = 11
 	TypeString Type = 12
 
-	TypeObject Type = 13
-	TypeArray  Type = 14
-	TypeMap    Type = 15
+	TypeEnum      Type = 13
+	TypeTimestamp Type = 14
 
-	TypeEnum      Type = 16
-	TypeTimestamp Type = 17
-)
-
-const (
-	EndObject Type = 33
-	EndArray  Type = 34
-	EndMap    Type = 35
+	TypeArray  Type = 15
+	TypeMap    Type = 16
+	TypeObject Type = 17
 )
 
 func (t Type) IsPrimary() bool {
