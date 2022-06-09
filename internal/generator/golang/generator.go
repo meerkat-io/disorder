@@ -91,6 +91,9 @@ func (g *goGenerator) initTemplete() {
 				return goType(typ.Type, typ.TypeRef)
 			}
 		},
+		"Tag": func(name string) string {
+			return fmt.Sprintf("`disorder:\"%s\"`", name)
+		},
 	}
 	g.define = template.New(golang).Funcs(funcMap)
 	template.Must(g.define.Parse(goTemplate))

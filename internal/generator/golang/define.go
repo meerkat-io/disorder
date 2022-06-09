@@ -48,25 +48,8 @@ func (enum *{{PascalCase $enum.Name}}) ToString() (string, error) {
 
 type {{PascalCase .Name}} struct {
 	{{- range .Fields}}
-	{{PascalCase .Name}} {{Type .Type}}` +
-		" `disorder:\"{{.Name}}\"`" + `{{- end}}
+	{{PascalCase .Name}} {{Type .Type}} {{Tag .Name}}
+	{{- end}}
 }
 {{- end}}`
 )
-
-/*
-func (c *Color) ToString() (string, error) {
-	switch *c {
-	case ColorRed:
-		return "red", nil
-
-	case ColorGreen:
-		return "green", nil
-
-	case ColorBlue:
-		return "blue", nil
-
-	default:
-		return "", fmt.Errorf("invalid enum value")
-	}
-}*/

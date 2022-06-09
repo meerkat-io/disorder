@@ -6,36 +6,6 @@ import (
 	"github.com/meerkat-lib/disorder/internal/test_data/test/sub"
 )
 
-type Animal int
-
-const (
-	AnimalDog Animal = iota
-	AnimalCat
-)
-
-func (*Animal) Enum() {}
-
-func (enum *Animal) FromString(value string) error {
-	switch {
-	case value == "dog":
-		*enum = AnimalDog
-	case value == "cat":
-		*enum = AnimalCat
-	}
-	return fmt.Errorf("invalid enum value")
-}
-
-func (enum *Animal) ToString() (string, error) {
-	switch *enum {
-	case AnimalDog:
-		return "dog", nil
-	case AnimalCat:
-		return "cat", nil
-	default:
-		return "", fmt.Errorf("invalid enum value")
-	}
-}
-
 type Color int
 
 const (
@@ -71,14 +41,44 @@ func (enum *Color) ToString() (string, error) {
 	}
 }
 
+type Animal int
+
+const (
+	AnimalDog Animal = iota
+	AnimalCat
+)
+
+func (*Animal) Enum() {}
+
+func (enum *Animal) FromString(value string) error {
+	switch {
+	case value == "dog":
+		*enum = AnimalDog
+	case value == "cat":
+		*enum = AnimalCat
+	}
+	return fmt.Errorf("invalid enum value")
+}
+
+func (enum *Animal) ToString() (string, error) {
+	switch *enum {
+	case AnimalDog:
+		return "dog", nil
+	case AnimalCat:
+		return "cat", nil
+	default:
+		return "", fmt.Errorf("invalid enum value")
+	}
+}
+
 type Object struct {
+	ObjMap      map[string]*sub.SubObject `disorder:"obj_map"`
 	IntField    int32                     `disorder:"int_field"`
 	StringField string                    `disorder:"string_field"`
 	EnumField   *Color                    `disorder:"enum_field"`
 	IntArray    []int32                   `disorder:"int_array"`
 	IntMap      map[string]int32          `disorder:"int_map"`
 	ObjArray    []*sub.SubObject          `disorder:"obj_array"`
-	ObjMap      map[string]*sub.SubObject `disorder:"obj_map"`
 }
 
 type AnotherObject struct {
