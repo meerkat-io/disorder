@@ -29,9 +29,14 @@ func TestLoadJsonFile(t *testing.T) {
 }*/
 
 func TestMarshal(t *testing.T) {
-	cat := test.AnimalCat
-	data, err := disorder.Marshal(&cat)
-	fmt.Println(data)
+	enum := test.AnimalDog
+	var input disorder.Enum = &enum
+	data, err := disorder.Marshal(input)
 	fmt.Println(err)
+	fmt.Println(data)
+	var output interface{}
+	err = disorder.Unmarshal(data, &output)
+	fmt.Println(err)
+	fmt.Println(output)
 	t.Fail()
 }

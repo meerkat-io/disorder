@@ -28,6 +28,7 @@ func (enum *{{PascalCase $enum.Name}}) FromString(value string) error {
 {{- range .Values}}
 	case value == "{{.}}":
 		*enum = {{PascalCase $enum.Name}}{{PascalCase .}}
+		return nil
 {{- end}}
 	}
 	return fmt.Errorf("invalid enum value")

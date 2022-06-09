@@ -19,12 +19,12 @@ func NewEncoder(w io.Writer) *Encoder {
 	}
 }
 
-func (e *Encoder) Encode(v interface{}) error {
-	return e.write(reflect.ValueOf(v))
+func (e *Encoder) Encode(value interface{}) error {
+	return e.write(reflect.ValueOf(value))
 }
 
 func (e *Encoder) write(value reflect.Value) error {
-	if !value.IsValid() || value.Kind() == reflect.Ptr && value.IsNil() {
+	if !value.IsValid() || (value.Kind() == reflect.Ptr && value.IsNil()) {
 		return fmt.Errorf("invalid value or type")
 	}
 
@@ -67,22 +67,22 @@ func (e *Encoder) write(value reflect.Value) error {
 	case reflect.Uint8:
 		bytes = make([]byte, 2)
 		bytes[0] = byte(tagU8)
-		bytes[1] = byte(uint8(value.Int()))
+		bytes[1] = byte(uint8(value.Uint()))
 
 	case reflect.Uint16:
 		bytes = make([]byte, 3)
 		bytes[0] = byte(tagU16)
-		binary.LittleEndian.PutUint16(bytes[1:], uint16(value.Int()))
+		binary.LittleEndian.PutUint16(bytes[1:], uint16(value.Uint()))
 
 	case reflect.Uint32, reflect.Uint:
 		bytes = make([]byte, 5)
 		bytes[0] = byte(tagU32)
-		binary.LittleEndian.PutUint32(bytes[1:], uint32(value.Int()))
+		binary.LittleEndian.PutUint32(bytes[1:], uint32(value.Uint()))
 
 	case reflect.Uint64:
 		bytes = make([]byte, 9)
 		bytes[0] = byte(tagU64)
-		binary.LittleEndian.PutUint64(bytes[1:], uint64(value.Int()))
+		binary.LittleEndian.PutUint64(bytes[1:], uint64(value.Uint()))
 
 	case reflect.Int8:
 		bytes = make([]byte, 2)
