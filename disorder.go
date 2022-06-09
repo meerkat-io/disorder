@@ -30,5 +30,7 @@ func Marshal(value interface{}) ([]byte, error) {
 }
 
 func Unmarshal(data []byte, value interface{}) error {
-	return nil
+	buffer := bytes.NewBuffer(data)
+	decoder := NewDecoder(buffer)
+	return decoder.Decode(value)
 }

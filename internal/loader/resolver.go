@@ -53,6 +53,7 @@ func (r *resolver) resolve(files map[string]*schema.File) error {
 			r.names[r.qualifiedName(file.Package, service.Name)] = file.FilePath
 		}
 	}
+
 	for _, file := range files {
 		for _, message := range file.Messages {
 			for _, field := range message.Fields {

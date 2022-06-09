@@ -43,6 +43,7 @@ func (g *goGenerator) Generate(dir string, files map[string]*schema.File) error 
 		if len(file.Enums) > 0 {
 			file.ResolvedImports = append(file.ResolvedImports, "fmt")
 		}
+
 		buf := &bytes.Buffer{}
 		if err := g.define.Execute(buf, file); err != nil {
 			return err

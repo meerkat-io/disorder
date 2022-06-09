@@ -71,6 +71,7 @@ func (l *loaderImpl) load(file string, files map[string]*schema.File) error {
 	if err != nil {
 		return fmt.Errorf("load yaml file [%s] failed: %s", file, err.Error())
 	}
+
 	p := &proto{
 		FilePath: file,
 	}
@@ -78,11 +79,13 @@ func (l *loaderImpl) load(file string, files map[string]*schema.File) error {
 	if err != nil {
 		return fmt.Errorf("unmarshal yaml file [%s] failed: %s", file, err.Error())
 	}
+
 	schema, err := l.parser.parse(p)
 	if err != nil {
 		return fmt.Errorf("parse schema file [%s] failed: %s", file, err.Error())
 	}
 	files[file] = schema
+
 	dir := filepath.Dir(file)
 	for _, importPath := range p.Imports {
 		path := filepath.Join(dir, importPath)

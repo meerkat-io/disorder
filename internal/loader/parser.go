@@ -33,6 +33,7 @@ func (p *parser) parse(proto *proto) (*schema.File, error) {
 		Imports:  proto.Imports,
 		Options:  proto.Options,
 	}
+
 	for name, values := range proto.Enums {
 		if !p.validator.validateEnumName(name) {
 			return nil, fmt.Errorf("invalid enum name: %s", name)
@@ -56,6 +57,7 @@ func (p *parser) parse(proto *proto) (*schema.File, error) {
 		}
 		file.Enums = append(file.Enums, enum)
 	}
+
 	for name, fields := range proto.Messages {
 		if !p.validator.validateMessageName(name) {
 			return nil, fmt.Errorf("invalid message name: %s", name)
@@ -83,6 +85,7 @@ func (p *parser) parse(proto *proto) (*schema.File, error) {
 		}
 		file.Messages = append(file.Messages, message)
 	}
+
 	for name, rpcs := range proto.Services {
 		if !p.validator.validateServiceName(name) {
 			return nil, fmt.Errorf("invalid service name: %s", name)

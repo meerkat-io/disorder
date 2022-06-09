@@ -29,7 +29,7 @@ func (e *Encoder) write(value reflect.Value) error {
 	if !value.IsValid() || value.Kind() == reflect.Ptr && value.IsNil() {
 		return fmt.Errorf("invalid value or type")
 	}
-	var bytes []byte
+
 	switch i := value.Interface().(type) {
 	case time.Time:
 		return e.writeTime(&i)
@@ -37,20 +37,22 @@ func (e *Encoder) write(value reflect.Value) error {
 	case *time.Time:
 		return e.writeTime(i)
 
+	case Enum:
+		_, err := e.writer.Write([]byte{byte(schema.TypeEnum)})
+		if err != nil {
+			return err
+		}
+		name, err := i.ToString()
+		if err != nil {
+			return err
+		}
+		return e.writeName(name)
+
 	case Marshaler:
 		return i.MarshalDO(e.writer)
 	}
-	/*
-		switch value.Kind() {
-		case reflect.Map:
-			e.mapv(tag, in)
-		case reflect.Struct:
-			e.structv(tag, in)
-		case reflect.Slice, reflect.Array:
-			e.slicev(tag, in)
-		default:
-			panic("cannot marshal type: " + in.Type().String())
-		}*/
+
+	var bytes []byte
 	switch value.Kind() {
 	case reflect.Ptr:
 		return e.write(value.Elem())
@@ -115,24 +117,38 @@ func (e *Encoder) write(value reflect.Value) error {
 		binary.LittleEndian.PutUint64(bytes[1:], math.Float64bits(value.Float()))
 
 	case reflect.String:
-		if value.MethodByName("Enum").IsValid() {
-			_, err := e.writer.Write([]byte{byte(schema.TypeEnum)})
-			if err != nil {
-				return err
-			}
-			return e.writeName(value.String())
-		}
 		bytes = make([]byte, 5)
 		bytes[0] = byte(schema.TypeString)
 		str := value.String()
 		binary.LittleEndian.PutUint32(bytes[1:], uint32(len(str)))
 		bytes = append(bytes, []byte(str)...)
 
+	case reflect.Slice, reflect.Array:
+		return e.writeArray(value)
+
+	case reflect.Map:
+		return e.writeMap(value)
+
+	case reflect.Struct:
+		return e.writeObject(value)
+
 	default:
 		return fmt.Errorf("invalid type: %s", value.Type().String())
 	}
 	_, err := e.writer.Write(bytes)
 	return err
+}
+
+func (e *Encoder) writeArray(value reflect.Value) error {
+	return nil
+}
+
+func (e *Encoder) writeMap(value reflect.Value) error {
+	return nil
+}
+
+func (e *Encoder) writeObject(value reflect.Value) error {
+	return nil
 }
 
 func (e *Encoder) writeTime(t *time.Time) error {
