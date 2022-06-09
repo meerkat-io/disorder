@@ -54,8 +54,8 @@ const (
 	tagEnum      tag = 13
 	tagTimestamp tag = 14
 
-	tagStartArray  tag = 13
-	tagEndArray    tag = 14
-	tagStartObject tag = 15
-	tagEndObject   tag = 16
+	tagStartArray  tag = 15
+	tagEndArray    tag = 16
+	tagStartObject tag = 17
+	tagEndObject   tag = 18
 )
