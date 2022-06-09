@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/meerkat-lib/disorder"
-	"github.com/meerkat-lib/disorder/internal/generator"
+	"github.com/meerkat-lib/disorder/internal/generator/golang"
 	"github.com/meerkat-lib/disorder/internal/loader"
 	"github.com/meerkat-lib/disorder/internal/test_data/test"
 )
@@ -14,7 +14,7 @@ func TestLoadYamlFile(t *testing.T) {
 	loader := loader.NewYamlLoader()
 	files, err := loader.Load("./internal/test_data/schema.yaml")
 	fmt.Println(err)
-	generator := generator.NewGoGenerator()
+	generator := golang.NewGoGenerator()
 	err = generator.Generate("./internal", files)
 	fmt.Println(err)
 	t.Fail()
