@@ -21,12 +21,11 @@ func NewDecoder(r io.Reader) *Decoder {
 
 func (d *Decoder) Decode(value interface{}) error {
 	//TO-DO recover panic
-	t := make([]byte, 1)
-	_, err := d.reader.Read(t)
+	t, err := d.readTag()
 	if err != nil {
 		return err
 	}
-	return d.read(tag(t[0]), reflect.ValueOf(value))
+	return d.read(t, reflect.ValueOf(value))
 }
 
 func (d *Decoder) read(t tag, value reflect.Value) error {
@@ -35,8 +34,17 @@ func (d *Decoder) read(t tag, value reflect.Value) error {
 	}
 
 	switch i := value.Interface().(type) {
-	case Unmarshaler:
-		return i.UnmarshalDO(d.reader)
+	case *time.Time:
+		if t == tagTimestamp {
+			time, err := d.readTime()
+			if err != nil {
+				return err
+			}
+			value.Elem().Set(reflect.ValueOf(*time))
+			return nil
+		} else {
+			return fmt.Errorf("type mismatch: assign time to %s", value.Type())
+		}
 
 	case Enum:
 		if t == tagEnum {
@@ -48,6 +56,9 @@ func (d *Decoder) read(t tag, value reflect.Value) error {
 		} else {
 			return fmt.Errorf("type mismatch: assign enum to %s", value.Type())
 		}
+
+	case Unmarshaler:
+		return i.UnmarshalDO(d.reader)
 	}
 
 	if value.Kind() == reflect.Ptr {
@@ -125,7 +136,7 @@ func (d *Decoder) read(t tag, value reflect.Value) error {
 		}
 		resolved = int8(bytes[0])
 		if value.Kind() == reflect.Int8 {
-			value.SetInt(int64(resolved.(uint8)))
+			value.SetInt(int64(resolved.(int8)))
 			return nil
 		}
 
@@ -210,13 +221,13 @@ func (d *Decoder) read(t tag, value reflect.Value) error {
 			return nil
 		}
 
-		/*
-			case time.Time:
-				return e.writeTime(&i)
+	case tagTimestamp:
+		var err error
+		resolved, err = d.readTime()
+		if err != nil {
+			return err
+		}
 
-			case *time.Time:
-				return e.writeTime(i)
-		*/
 	case tagEnum:
 		var err error
 		resolved, err = d.readName()
@@ -224,10 +235,9 @@ func (d *Decoder) read(t tag, value reflect.Value) error {
 			return err
 		}
 
+	case tagStartArray:
+		return d.readArray(value)
 		/*
-			case reflect.Slice, reflect.Array:
-				return e.writeArray(value)
-
 			case reflect.Map:
 				return e.writeMap(value)
 
@@ -242,31 +252,59 @@ func (d *Decoder) read(t tag, value reflect.Value) error {
 		value.Set(reflect.ValueOf(resolved))
 		return nil
 	}
-
+	fmt.Println(value.Kind())
 	return fmt.Errorf("type mismatch: assign %s to %s", reflect.ValueOf(resolved).Type(), value.Type())
 }
 
 func (d *Decoder) readArray(value reflect.Value) error {
-	/*
-		count := value.Len()
-		if count == 0 {
-			return nil
-		}
+	var valueCopy reflect.Value
+	var elementType reflect.Type
+	switch value.Kind() {
+	case reflect.Slice:
+		elementType = value.Type().Elem()
 
-		_, err := e.writer.Write([]byte{byte(tagStartArray)})
+	case reflect.Interface:
+		valueCopy = value
+		var i interface{}
+		elementType = d.createValue(&i).Elem().Type()
+
+	default:
+		return fmt.Errorf("type mismatch, assign slice to type %s ", value.Type())
+	}
+
+	t, err := d.readTag()
+	if err != nil {
+		return err
+	}
+	values := []reflect.Value{}
+	for t != tagEndArray {
+		element := reflect.New(elementType).Elem()
+		err = d.read(t, element)
 		if err != nil {
 			return err
 		}
-
-		for i := 0; i < count; i++ {
-			err = e.write(value.Index(i))
-			if err != nil {
-				return err
-			}
+		t, err = d.readTag()
+		if err != nil {
+			return err
 		}
+		values = append(values, element)
+	}
+	count := len(values)
 
-		_, err = e.writer.Write([]byte{byte(tagEndArray)})
-		return err*/
+	switch value.Kind() {
+	case reflect.Slice:
+		value.Set(reflect.MakeSlice(value.Type(), count, count))
+
+	case reflect.Interface:
+		value = d.createValue(make([]interface{}, count))
+	}
+	for i, v := range values {
+		value.Index(i).Set(v)
+	}
+	if valueCopy.IsValid() {
+		valueCopy.Set(value)
+	}
+
 	return nil
 }
 
@@ -335,13 +373,14 @@ func (d *Decoder) readObject(value reflect.Value) error {
 }
 
 func (d *Decoder) readTime() (*time.Time, error) {
-	/*
-		bytes := make([]byte, 9)
-		bytes[0] = byte(tagTimestamp)
-		binary.LittleEndian.PutUint64(bytes[1:], uint64(t.Unix()))
-		_, err := e.writer.Write(bytes)
-		return err*/
-	return nil, nil
+	bytes := make([]byte, 8)
+	_, err := d.reader.Read(bytes)
+	if err != nil {
+		return nil, err
+	}
+	timestamp := int64(binary.LittleEndian.Uint64(bytes))
+	t := time.Unix(timestamp, 0)
+	return &t, nil
 }
 
 func (d *Decoder) readName() (string, error) {
@@ -360,4 +399,17 @@ func (d *Decoder) readName() (string, error) {
 		return string(bytes), nil
 	}
 	return "", nil
+}
+
+func (d *Decoder) readTag() (tag, error) {
+	t := make([]byte, 1)
+	_, err := d.reader.Read(t)
+	return tag(t[0]), err
+}
+
+func (d *Decoder) createValue(i interface{}) reflect.Value {
+	v := reflect.ValueOf(i)
+	value := reflect.New(reflect.ValueOf(i).Type()).Elem()
+	value.Set(v)
+	return value
 }

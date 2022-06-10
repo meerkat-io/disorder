@@ -7,7 +7,6 @@ import (
 	"github.com/meerkat-lib/disorder"
 	"github.com/meerkat-lib/disorder/internal/generator/golang"
 	"github.com/meerkat-lib/disorder/internal/loader"
-	"github.com/meerkat-lib/disorder/internal/test_data/test"
 )
 
 func TestLoadYamlFile(t *testing.T) {
@@ -29,8 +28,7 @@ func TestLoadJsonFile(t *testing.T) {
 }*/
 
 func TestMarshal(t *testing.T) {
-	enum := test.AnimalDog
-	var input disorder.Enum = &enum
+	input := []uint8{1, 2, 3}
 	data, err := disorder.Marshal(input)
 	fmt.Println(err)
 	fmt.Println(data)
