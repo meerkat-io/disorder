@@ -28,7 +28,7 @@ func TestLoadJsonFile(t *testing.T) {
 }*/
 
 type S struct {
-	Value uint16
+	Value uint8
 }
 
 func TestMarshal(t *testing.T) {
