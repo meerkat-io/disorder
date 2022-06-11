@@ -140,10 +140,6 @@ func (e *Encoder) write(value reflect.Value) error {
 
 func (e *Encoder) writeArray(value reflect.Value) error {
 	count := value.Len()
-	if count == 0 {
-		return nil
-	}
-
 	_, err := e.writer.Write([]byte{byte(tagStartArray)})
 	if err != nil {
 		return err
@@ -161,11 +157,6 @@ func (e *Encoder) writeArray(value reflect.Value) error {
 }
 
 func (e *Encoder) writeMap(value reflect.Value) error {
-	count := value.Len()
-	if count == 0 {
-		return nil
-	}
-
 	_, err := e.writer.Write([]byte{byte(tagStartObject)})
 	if err != nil {
 		return err

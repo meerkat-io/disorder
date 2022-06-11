@@ -1,8 +1,19 @@
 {
-  "package": "test",
+  "package": "test_data.test.sub",
+  "option": {
+    "go_package_prefix": "github.com/meerkat-lib/disorder/internal"
+  },
   "messages": {
     "sub_object": {
-      "value": "int"
+      "value": "i32"
+    }
+  },
+  "services": {
+    "math_service": {
+      "increase": {
+        "input":"i32",
+        "output":"i32"
+      }
     }
   }
 }

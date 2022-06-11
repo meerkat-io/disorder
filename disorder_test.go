@@ -33,9 +33,7 @@ type S struct {
 
 func TestMarshal(t *testing.T) {
 
-	input := map[string]interface{}{
-		"Value": byte(123),
-	}
+	input := map[string]string{}
 	/*
 		input := S{
 			Value: 123,
@@ -44,7 +42,7 @@ func TestMarshal(t *testing.T) {
 	fmt.Println(err)
 	fmt.Println(input)
 	fmt.Println(data)
-	var output S
+	var output interface{}
 	err = disorder.Unmarshal(data, &output)
 	fmt.Println(err)
 	fmt.Println(output)
