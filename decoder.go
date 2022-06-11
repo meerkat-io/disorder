@@ -10,7 +10,8 @@ import (
 )
 
 type Decoder struct {
-	reader io.Reader
+	reader   io.Reader
+	warnings []error
 }
 
 func NewDecoder(r io.Reader) *Decoder {
@@ -19,13 +20,22 @@ func NewDecoder(r io.Reader) *Decoder {
 	}
 }
 
-func (d *Decoder) Decode(value interface{}) error {
-	//TO-DO recover panic
-	t, err := d.readTag()
+func (d *Decoder) Decode(value interface{}) (err error) {
+	defer func() {
+		if r := recover(); r != nil {
+			err = fmt.Errorf("recover panic when decoding disorder data: %s", r)
+		}
+	}()
+	var t tag
+	t, err = d.readTag()
 	if err != nil {
-		return err
+		return
 	}
 	return d.read(t, reflect.ValueOf(value))
+}
+
+func (d *Decoder) Warnings() []error {
+	return d.warnings
 }
 
 func (d *Decoder) read(t tag, value reflect.Value) error {
@@ -249,7 +259,6 @@ func (d *Decoder) read(t tag, value reflect.Value) error {
 		value.Set(reflect.ValueOf(resolved))
 		return nil
 	}
-	fmt.Println(value.Kind())
 	return fmt.Errorf("type mismatch: assign %s to %s", reflect.ValueOf(resolved).Type(), value.Type())
 }
 
@@ -319,19 +328,22 @@ func (d *Decoder) readObject(value reflect.Value) error {
 			} else if end {
 				return nil
 			}
+			t, err := d.readTag()
+			if err != nil {
+				return err
+			}
 			if fieldInfo, exists := info.fieldsMap[name]; exists {
 				field := value.Field(fieldInfo.index)
-				t, err := d.readTag()
-				if err != nil {
-					return err
-				}
 				err = d.read(t, field)
 				if err != nil {
 					return err
 				}
 			} else {
-				//TO-DO skip data
-				return fmt.Errorf("no field %s in struct %s", name, value.Type())
+				d.warnings = append(d.warnings, fmt.Errorf("field %s not found in struct %s", name, value.Type()))
+				err = d.skip(t)
+				if err != nil {
+					return err
+				}
 			}
 		}
 
@@ -421,6 +433,100 @@ func (d *Decoder) createValue(i interface{}) reflect.Value {
 	return value
 }
 
-func (d *Decoder) skip() error {
+func (d *Decoder) skip(t tag) error {
+	var bytes []byte
+	switch t {
+	case tagBool, tagU8, tagI8:
+		return d.skipBytes(1)
+
+	case tagU16, tagI16:
+		return d.skipBytes(2)
+
+	case tagU32, tagI32, tagF32:
+		return d.skipBytes(4)
+
+	case tagU64, tagI64, tagF64, tagTimestamp:
+		return d.skipBytes(8)
+
+	case tagString:
+		bytes = make([]byte, 4)
+		_, err := d.reader.Read(bytes)
+		if err != nil {
+			return err
+		}
+		count := binary.LittleEndian.Uint32(bytes)
+		return d.skipBytes(int(count))
+
+	case tagEnum:
+		_, err := d.skipName()
+		return err
+
+	case tagStartArray:
+		return d.skipArray()
+
+	case tagStartObject:
+		return d.skipObject()
+
+	default:
+		return fmt.Errorf("invalid tag: %d", t)
+	}
+}
+
+func (d *Decoder) skipBytes(count int) error {
+	bytes := make([]byte, count)
+	_, err := d.reader.Read(bytes)
+	return err
+}
+
+func (d *Decoder) skipName() (bool, error) {
+	bytes := make([]byte, 1)
+	_, err := d.reader.Read(bytes)
+	if err != nil {
+		return false, err
+	}
+	count := bytes[0]
+	if count > 0 && count < 255 {
+		err := d.skipBytes(int(count))
+		return false, err
+	} else if count == byte(tagEndObject) {
+		return true, nil
+	}
+	return false, nil
+}
+
+func (d *Decoder) skipArray() error {
+	t, err := d.readTag()
+	if err != nil {
+		return err
+	}
+	for t != tagEndArray {
+		err = d.skip(t)
+		if err != nil {
+			return err
+		}
+		t, err = d.readTag()
+		if err != nil {
+			return err
+		}
+	}
 	return nil
+}
+
+func (d *Decoder) skipObject() error {
+	for {
+		end, err := d.skipName()
+		if err != nil {
+			return err
+		} else if end {
+			return nil
+		}
+		t, err := d.readTag()
+		if err != nil {
+			return err
+		}
+		err = d.skip(t)
+		if err != nil {
+			return err
+		}
+	}
 }
