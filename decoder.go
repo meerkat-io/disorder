@@ -48,7 +48,7 @@ func (d *Decoder) read(t tag, value reflect.Value) error {
 
 	case Enum:
 		if t == tagEnum {
-			enum, err := d.readName()
+			enum, _, err := d.readName()
 			if err != nil {
 				return err
 			}
@@ -111,7 +111,7 @@ func (d *Decoder) read(t tag, value reflect.Value) error {
 			return err
 		}
 		resolved = binary.LittleEndian.Uint32(bytes)
-		if value.Kind() == reflect.Uint32 {
+		if value.Kind() == reflect.Uint32 || value.Kind() == reflect.Int32 {
 			value.SetUint(uint64(resolved.(uint32)))
 			return nil
 		}
@@ -159,7 +159,7 @@ func (d *Decoder) read(t tag, value reflect.Value) error {
 			return err
 		}
 		resolved = int32(binary.LittleEndian.Uint32(bytes))
-		if value.Kind() == reflect.Int32 {
+		if value.Kind() == reflect.Int32 || value.Kind() == reflect.Int {
 			value.SetInt(int64(resolved.(int32)))
 			return nil
 		}
@@ -230,20 +230,17 @@ func (d *Decoder) read(t tag, value reflect.Value) error {
 
 	case tagEnum:
 		var err error
-		resolved, err = d.readName()
+		resolved, _, err = d.readName()
 		if err != nil {
 			return err
 		}
 
 	case tagStartArray:
 		return d.readArray(value)
-		/*
-			case reflect.Map:
-				return e.writeMap(value)
 
-			case reflect.Struct:
-				return e.writeObject(value)
-		*/
+	case tagStartObject:
+		return d.readObject(value)
+
 	default:
 		return fmt.Errorf("invalid tag: %d", t)
 	}
@@ -308,68 +305,76 @@ func (d *Decoder) readArray(value reflect.Value) error {
 	return nil
 }
 
-/*
-func (d *Decoder) writeMap(value reflect.Value) error {
-	count := value.Len()
-	if count == 0 {
-		return nil
-	}
-
-	_, err := e.writer.Write([]byte{byte(tagStartObject)})
-	if err != nil {
-		return err
-	}
-
-	keys := value.MapKeys()
-	for _, key := range keys {
-		if key.Kind() != reflect.String {
-			return fmt.Errorf("map key type must be string")
-		}
-		err := e.writeName(key.String())
-		if err != nil {
-			return err
-		}
-		err = e.write(value.MapIndex(key))
-		if err != nil {
-			return err
-		}
-	}
-
-	_, err = e.writer.Write([]byte{byte(tagEndObject)})
-	return err
-}*/
-
 func (d *Decoder) readObject(value reflect.Value) error {
-	/*
+	switch value.Kind() {
+	case reflect.Struct:
 		info, err := getStructInfo(value.Type())
 		if err != nil {
 			return err
 		}
+		for {
+			name, end, err := d.readName()
+			if err != nil {
+				return err
+			} else if end {
+				return nil
+			}
+			if fieldInfo, exists := info.fieldsMap[name]; exists {
+				field := value.Field(fieldInfo.index)
+				t, err := d.readTag()
+				if err != nil {
+					return err
+				}
+				err = d.read(t, field)
+				if err != nil {
+					return err
+				}
+			} else {
+				//TO-DO skip data
+				return fmt.Errorf("no field %s in struct %s", name, value.Type())
+			}
+		}
 
-		_, err = d.reader.Read([]byte{byte(tagStartObject)})
+	case reflect.Map:
+		if value.Type().Key().Kind() != reflect.String {
+			return fmt.Errorf("map key type must be string")
+		}
+
+	case reflect.Interface:
+		valueCopy := value
+		value = reflect.MakeMap(reflect.TypeOf(map[string]interface{}{}))
+		valueCopy.Set(value)
+
+	default:
+		return fmt.Errorf("type mismatch, assign map to type %s ", value.Type())
+	}
+
+	valueType := value.Type()
+	keyType := valueType.Key()
+	elementType := valueType.Elem()
+	if value.IsNil() {
+		value.Set(reflect.MakeMap(valueType))
+	}
+	for {
+		name, end, err := d.readName()
+		if err != nil {
+			return err
+		} else if end {
+			return nil
+		}
+		key := reflect.New(keyType).Elem()
+		key.SetString(name)
+		t, err := d.readTag()
 		if err != nil {
 			return err
 		}
-
-		for _, field := range info.fieldsList {
-			fieldValue := value.Field(field.index)
-			if field.omitEmpty && isZero(fieldValue) {
-				continue
-			}
-			err = e.writeName(field.key)
-			if err != nil {
-				return err
-			}
-			err = e.write(fieldValue)
-			if err != nil {
-				return err
-			}
+		element := reflect.New(elementType).Elem()
+		err = d.read(t, element)
+		if err != nil {
+			return err
 		}
-
-		_, err = d.reader.Read([]byte{byte(tagEndObject)})
-		return err*/
-
-	return nil
+		value.SetMapIndex(key, element)
+	}
 }
 
 func (d *Decoder) readTime() (*time.Time, error) {
@@ -383,22 +388,24 @@ func (d *Decoder) readTime() (*time.Time, error) {
 	return &t, nil
 }
 
-func (d *Decoder) readName() (string, error) {
+func (d *Decoder) readName() (string, bool, error) {
 	bytes := make([]byte, 1)
 	_, err := d.reader.Read(bytes)
 	if err != nil {
-		return "", err
+		return "", false, err
 	}
-	count := uint8(bytes[0])
-	if count > 0 {
+	count := bytes[0]
+	if count > 0 && count < 255 {
 		bytes = make([]byte, count)
 		_, err := d.reader.Read(bytes)
 		if err != nil {
-			return "", err
+			return "", false, err
 		}
-		return string(bytes), nil
+		return string(bytes), false, nil
+	} else if count == byte(tagEndObject) {
+		return "", true, nil
 	}
-	return "", nil
+	return "", false, nil
 }
 
 func (d *Decoder) readTag() (tag, error) {
@@ -412,4 +419,8 @@ func (d *Decoder) createValue(i interface{}) reflect.Value {
 	value := reflect.New(reflect.ValueOf(i).Type()).Elem()
 	value.Set(v)
 	return value
+}
+
+func (d *Decoder) skip() error {
+	return nil
 }

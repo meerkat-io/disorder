@@ -27,14 +27,27 @@ func TestLoadJsonFile(t *testing.T) {
 	t.Fail()
 }*/
 
+type S struct {
+	Value int32
+}
+
 func TestMarshal(t *testing.T) {
-	input := []uint8{1, 2, 3}
+
+	input := map[string]interface{}{
+		"Value": 123,
+	}
+	/*
+		input := S{
+			Value: 123,
+		}*/
 	data, err := disorder.Marshal(input)
 	fmt.Println(err)
+	fmt.Println(input)
 	fmt.Println(data)
-	var output interface{}
+	var output S
 	err = disorder.Unmarshal(data, &output)
 	fmt.Println(err)
 	fmt.Println(output)
+
 	t.Fail()
 }

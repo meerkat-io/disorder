@@ -5,8 +5,6 @@ import (
 	"reflect"
 	"strings"
 	"sync"
-
-	"github.com/meerkat-lib/disorder/internal/utils/strcase"
 )
 
 type IsZeroer interface {
@@ -75,7 +73,7 @@ func getStructInfo(typ reflect.Type) (*structInfo, error) {
 		if tag != "" {
 			f.key = tag
 		} else {
-			f.key = strcase.SnakeCase(field.Name)
+			f.key = field.Name
 		}
 
 		if _, exists = s.fieldsMap[f.key]; exists {
@@ -85,6 +83,7 @@ func getStructInfo(typ reflect.Type) (*structInfo, error) {
 		s.fieldsList = append(s.fieldsList, f)
 		s.fieldsMap[f.key] = f
 	}
+	structsMap[typ] = s
 	return s, nil
 }
 
