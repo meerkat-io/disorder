@@ -29,6 +29,16 @@ func TestLoadJsonFile(t *testing.T) {
 	t.Fail()
 }
 
+func TestLoadTomlFile(t *testing.T) {
+	loader := loader.NewTomlLoader()
+	files, err := loader.Load("./internal/test_data/schema.toml")
+	fmt.Println(err)
+	generator := golang.NewGoGenerator()
+	err = generator.Generate("./internal", files)
+	fmt.Println(err)
+	t.Fail()
+}
+
 type S struct {
 	Value uint8
 }

@@ -17,19 +17,19 @@ type unmarshaller interface {
 }
 
 type rpc struct {
-	Input  string `yaml:"input" json:"input"`
-	Output string `yaml:"output" json:"output"`
+	Input  string `yaml:"input" json:"input" toml:"input"`
+	Output string `yaml:"output" json:"output" toml:"output"`
 }
 
 type proto struct {
-	FilePath string            `yaml:"-" json:"-"`
-	Package  string            `yaml:"package" json:"package"`
-	Imports  []string          `yaml:"import" json:"import"`
-	Options  map[string]string `yaml:"option" json:"option"`
+	FilePath string            `yaml:"-" json:"-" toml:"-"`
+	Package  string            `yaml:"package" json:"package" toml:"package"`
+	Imports  []string          `yaml:"import" json:"import" toml:"import"`
+	Options  map[string]string `yaml:"option" json:"option" toml:"option"`
 
-	Enums    map[string][]string          `yaml:"enums" json:"enums"`
-	Messages map[string]map[string]string `yaml:"messages" json:"messages"`
-	Services map[string]map[string]*rpc   `yaml:"services" json:"services"`
+	Enums    map[string][]string          `yaml:"enums" json:"enums" toml:"enums"`
+	Messages map[string]map[string]string `yaml:"messages" json:"messages" toml:"messages"`
+	Services map[string]map[string]*rpc   `yaml:"services" json:"services" toml:"services"`
 }
 
 type loaderImpl struct {
@@ -62,14 +62,14 @@ func (l *loaderImpl) Load(file string) (map[string]*schema.File, error) {
 func (l *loaderImpl) load(file string, files map[string]*schema.File) error {
 	file, err := filepath.Abs(file)
 	if err != nil {
-		return fmt.Errorf("yaml file not found: %s", err.Error())
+		return fmt.Errorf("schema file not found: %s", err.Error())
 	}
 	if _, exists := files[file]; exists {
 		return nil
 	}
 	bytes, err := ioutil.ReadFile(file)
 	if err != nil {
-		return fmt.Errorf("load yaml file [%s] failed: %s", file, err.Error())
+		return fmt.Errorf("load schema file [%s] failed: %s", file, err.Error())
 	}
 
 	p := &proto{
@@ -77,7 +77,7 @@ func (l *loaderImpl) load(file string, files map[string]*schema.File) error {
 	}
 	err = l.unmarshaller.unmarshal(bytes, p)
 	if err != nil {
-		return fmt.Errorf("unmarshal yaml file [%s] failed: %s", file, err.Error())
+		return fmt.Errorf("unmarshal schema file [%s] failed: %s", file, err.Error())
 	}
 
 	schema, err := l.parser.parse(p)

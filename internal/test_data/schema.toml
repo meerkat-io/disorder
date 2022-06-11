@@ -1,0 +1,46 @@
+package = "test_data.test"
+
+import = [ 
+  "sub_schema.toml"
+]
+
+[option]
+  go_package_prefix = "github.com/meerkat-lib/disorder/internal"
+
+[messages]
+
+[messages.object]
+    int_field = "i32"
+    string_field = "string"
+    enum_field = "color"
+    int_array = "array[i32]"
+    int_map = "map[i32]"
+    obj_array = "array[test_data.test.sub.sub_object]"
+    obj_map = "map[test_data.test.sub.sub_object]"
+
+[messages.another_object]
+    value = "i32"
+
+[enums]
+  color = [
+    "red",
+    "green",
+    "blue"
+  ]
+
+  animal = [
+    "dog",
+    "cat"
+  ]
+
+[services]
+
+[services.primary_service]
+
+[services.primary_service.get_another_object]
+  input = "string"
+  output = "another_object"
+
+[services.primary_service.print_object]
+  input = "object"
+  output = "null"
