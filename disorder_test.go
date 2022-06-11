@@ -28,13 +28,13 @@ func TestLoadJsonFile(t *testing.T) {
 }*/
 
 type S struct {
-	Value int32
+	Value uint16
 }
 
 func TestMarshal(t *testing.T) {
 
 	input := map[string]interface{}{
-		"Value": 123,
+		"Value": byte(123),
 	}
 	/*
 		input := S{

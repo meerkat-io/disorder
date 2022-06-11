@@ -336,7 +336,7 @@ func (d *Decoder) readObject(value reflect.Value) error {
 				field := value.Field(fieldInfo.index)
 				err = d.read(t, field)
 				if err != nil {
-					return err
+					return fmt.Errorf("assign \"%s\" to field \"%s\" in struct \"%s\" failed: %s", field.Type(), name, value.Type(), err.Error())
 				}
 			} else {
 				d.warnings = append(d.warnings, fmt.Errorf("field %s not found in struct %s", name, value.Type()))
@@ -349,7 +349,7 @@ func (d *Decoder) readObject(value reflect.Value) error {
 
 	case reflect.Map:
 		if value.Type().Key().Kind() != reflect.String {
-			return fmt.Errorf("map key type must be string")
+			return fmt.Errorf("key type of map must be string")
 		}
 
 	case reflect.Interface:
