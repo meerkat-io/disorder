@@ -19,13 +19,15 @@ func TestLoadYamlFile(t *testing.T) {
 	t.Fail()
 }
 
-/*
 func TestLoadJsonFile(t *testing.T) {
 	loader := loader.NewJsonLoader()
-	_, err := loader.Load("./test_data/schema.json")
+	files, err := loader.Load("./internal/test_data/schema.json")
+	fmt.Println(err)
+	generator := golang.NewGoGenerator()
+	err = generator.Generate("./internal", files)
 	fmt.Println(err)
 	t.Fail()
-}*/
+}
 
 type S struct {
 	Value uint8

@@ -1,23 +1,23 @@
 {
-  "package": "test",
+  "package": "test_data.test",
   "import": [
     "sub_schema.json"
   ],
+  "option": {
+    "go_package_prefix": "github.com/meerkat-lib/disorder/internal"
+  },
   "messages": {
     "object": {
-      "bool_field": "bool",
-      "int_field": "int",
+      "int_field": "i32",
       "string_field": "string",
       "enum_field": "color",
-      "int_array": "array[int]",
-      "int_map": "map[int]",
-      "obj_array": "array[sub_object]",
-      "obj_map": "map[sub_object]",
-      "enum_array": "array[color]",
-      "enum_map": "map[color]"
+      "int_array": "array[i32]",
+      "int_map": "map[i32]",
+      "obj_array": "array[test_data.test.sub.sub_object]",
+      "obj_map": "map[test_data.test.sub.sub_object]"
     },
     "another_object": {
-      "value": "int"
+      "value": "i32"
     }
   },
   "enums": {
@@ -32,13 +32,15 @@
     ]
   },
   "services": {
-    "get_another_object": {
-      "input": "string",
-      "output": "another_object"
-    },
-    "print_object": {
-      "input": "object",
-      "output": null
+    "primary_service": {
+      "get_another_object": {
+        "input": "string",
+        "output": "another_object"
+      },
+      "print_object": {
+        "input": "object",
+        "output": null
+      }
     }
   }
 }
