@@ -229,7 +229,10 @@ func (e *Encoder) writeTime(t *time.Time) error {
 }
 
 func (e *Encoder) writeName(value string) error {
-	if len(value) > 254 {
+	if len(value) == 0 {
+		return fmt.Errorf("empty name")
+	}
+	if len(value) > 255 {
 		return fmt.Errorf("string length overflow. should less than 255")
 	}
 	_, err := e.writer.Write([]byte{byte(len(value))})

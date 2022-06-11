@@ -407,17 +407,15 @@ func (d *Decoder) readName() (string, bool, error) {
 		return "", false, err
 	}
 	count := bytes[0]
-	if count > 0 && count < 255 {
-		bytes = make([]byte, count)
-		_, err := d.reader.Read(bytes)
-		if err != nil {
-			return "", false, err
-		}
-		return string(bytes), false, nil
-	} else if count == byte(tagEndObject) {
+	if count == 0 {
 		return "", true, nil
 	}
-	return "", false, nil
+	bytes = make([]byte, count)
+	_, err = d.reader.Read(bytes)
+	if err != nil {
+		return "", false, err
+	}
+	return string(bytes), false, nil
 }
 
 func (d *Decoder) readTag() (tag, error) {
@@ -485,13 +483,11 @@ func (d *Decoder) skipName() (bool, error) {
 		return false, err
 	}
 	count := bytes[0]
-	if count > 0 && count < 255 {
-		err := d.skipBytes(int(count))
-		return false, err
-	} else if count == byte(tagEndObject) {
+	if count == 0 {
 		return true, nil
 	}
-	return false, nil
+	err = d.skipBytes(int(count))
+	return false, err
 }
 
 func (d *Decoder) skipArray() error {

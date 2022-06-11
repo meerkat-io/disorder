@@ -57,5 +57,5 @@ const (
 	tagStartArray  tag = 15
 	tagEndArray    tag = 16
 	tagStartObject tag = 17
-	tagEndObject   tag = 255
+	tagEndObject   tag = 0
 )
