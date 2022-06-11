@@ -43,4 +43,4 @@ import = [
 
 [services.primary_service.print_object]
   input = "object"
-  output = "null"
+  output = ""
