@@ -13,10 +13,11 @@ import (
 type primaryServiceHandler func(*rpc.Context, *disorder.Decoder) (interface{}, *rpc.Error)
 
 type PrimaryService interface {
-	PrintTime(*rpc.Context, *time.Time) (*time.Time, *rpc.Error)
-	PrintArray(*rpc.Context, []int32) ([]int32, *rpc.Error)
 	GetAnotherObject(*rpc.Context, string) (*AnotherObject, *rpc.Error)
 	PrintSubObject(*rpc.Context, *sub.SubObject) (int32, *rpc.Error)
+	PrintTime(*rpc.Context, *time.Time) (*time.Time, *rpc.Error)
+	PrintArray(*rpc.Context, []int32) ([]int32, *rpc.Error)
+	PrintEnum(*rpc.Context, *Color) (*Color, *rpc.Error)
 }
 
 func NewPrimaryServiceClient(client *rpc.Client) PrimaryService {
@@ -31,6 +32,18 @@ type primaryServiceClient struct {
 	client *rpc.Client
 }
 
+func (c *primaryServiceClient) GetAnotherObject(context *rpc.Context, request string) (*AnotherObject, *rpc.Error) {
+	var response *AnotherObject = &AnotherObject{}
+	err := c.client.Send(context, c.name, "get_another_object", request, response)
+	return response, err
+}
+
+func (c *primaryServiceClient) PrintSubObject(context *rpc.Context, request *sub.SubObject) (int32, *rpc.Error) {
+	var response int32
+	err := c.client.Send(context, c.name, "print_sub_object", request, &response)
+	return response, err
+}
+
 func (c *primaryServiceClient) PrintTime(context *rpc.Context, request *time.Time) (*time.Time, *rpc.Error) {
 	var response *time.Time = &time.Time{}
 	err := c.client.Send(context, c.name, "print_time", request, response)
@@ -43,15 +56,9 @@ func (c *primaryServiceClient) PrintArray(context *rpc.Context, request []int32)
 	return response, err
 }
 
-func (c *primaryServiceClient) GetAnotherObject(context *rpc.Context, request string) (*AnotherObject, *rpc.Error) {
-	var response *AnotherObject = &AnotherObject{}
-	err := c.client.Send(context, c.name, "get_another_object", request, response)
-	return response, err
-}
-
-func (c *primaryServiceClient) PrintSubObject(context *rpc.Context, request *sub.SubObject) (int32, *rpc.Error) {
-	var response int32
-	err := c.client.Send(context, c.name, "print_sub_object", request, &response)
+func (c *primaryServiceClient) PrintEnum(context *rpc.Context, request *Color) (*Color, *rpc.Error) {
+	var response *Color
+	err := c.client.Send(context, c.name, "print_enum", request, response)
 	return response, err
 }
 
@@ -67,10 +74,11 @@ func RegisterPrimaryServiceServer(s *rpc.Server, service PrimaryService) {
 		service: service,
 	}
 	server.methods = map[string]primaryServiceHandler{
-		"print_time":         server.printTime,
-		"print_array":        server.printArray,
 		"get_another_object": server.getAnotherObject,
 		"print_sub_object":   server.printSubObject,
+		"print_time":         server.printTime,
+		"print_array":        server.printArray,
+		"print_enum":         server.printEnum,
 	}
 	s.RegisterService("primary_service", server)
 }
@@ -84,6 +92,38 @@ func (s *primaryServiceServer) Handle(context *rpc.Context, method string, d *di
 		Code:  code.Unimplemented,
 		Error: fmt.Errorf("Unimplemented method \"%s\" under service \"%s\"", method, s.name),
 	}
+}
+
+func (s *primaryServiceServer) getAnotherObject(context *rpc.Context, d *disorder.Decoder) (interface{}, *rpc.Error) {
+	var request string
+	err := d.Decode(&request)
+	if err != nil {
+		return nil, &rpc.Error{
+			Code:  code.InvalidRequest,
+			Error: err,
+		}
+	}
+	response, rpcErr := s.service.GetAnotherObject(context, request)
+	if rpcErr != nil {
+		return nil, rpcErr
+	}
+	return response, nil
+}
+
+func (s *primaryServiceServer) printSubObject(context *rpc.Context, d *disorder.Decoder) (interface{}, *rpc.Error) {
+	var request *sub.SubObject = &sub.SubObject{}
+	err := d.Decode(request)
+	if err != nil {
+		return nil, &rpc.Error{
+			Code:  code.InvalidRequest,
+			Error: err,
+		}
+	}
+	response, rpcErr := s.service.PrintSubObject(context, request)
+	if rpcErr != nil {
+		return nil, rpcErr
+	}
+	return response, nil
 }
 
 func (s *primaryServiceServer) printTime(context *rpc.Context, d *disorder.Decoder) (interface{}, *rpc.Error) {
@@ -118,24 +158,8 @@ func (s *primaryServiceServer) printArray(context *rpc.Context, d *disorder.Deco
 	return response, nil
 }
 
-func (s *primaryServiceServer) getAnotherObject(context *rpc.Context, d *disorder.Decoder) (interface{}, *rpc.Error) {
-	var request string
-	err := d.Decode(&request)
-	if err != nil {
-		return nil, &rpc.Error{
-			Code:  code.InvalidRequest,
-			Error: err,
-		}
-	}
-	response, rpcErr := s.service.GetAnotherObject(context, request)
-	if rpcErr != nil {
-		return nil, rpcErr
-	}
-	return response, nil
-}
-
-func (s *primaryServiceServer) printSubObject(context *rpc.Context, d *disorder.Decoder) (interface{}, *rpc.Error) {
-	var request *sub.SubObject = &sub.SubObject{}
+func (s *primaryServiceServer) printEnum(context *rpc.Context, d *disorder.Decoder) (interface{}, *rpc.Error) {
+	var request *Color
 	err := d.Decode(request)
 	if err != nil {
 		return nil, &rpc.Error{
@@ -143,7 +167,7 @@ func (s *primaryServiceServer) printSubObject(context *rpc.Context, d *disorder.
 			Error: err,
 		}
 	}
-	response, rpcErr := s.service.PrintSubObject(context, request)
+	response, rpcErr := s.service.PrintEnum(context, request)
 	if rpcErr != nil {
 		return nil, rpcErr
 	}

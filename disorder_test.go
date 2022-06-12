@@ -44,6 +44,12 @@ func (*testService) PrintArray(c *rpc.Context, request []int32) ([]int32, *rpc.E
 	return []int32{4, 5, 6}, nil
 }
 
+func (*testService) PrintEnum(c *rpc.Context, request *test.Color) (*test.Color, *rpc.Error) {
+	fmt.Println(request.ToString())
+	color := test.ColorGreen
+	return &color, nil
+}
+
 func TestLoadYamlFile(t *testing.T) {
 	loader := loader.NewYamlLoader()
 	files, err := loader.Load("./internal/test_data/schema.yaml")
@@ -82,6 +88,21 @@ func TestMarshalTime(t *testing.T) {
 	err = disorder.Unmarshal(data, output)
 	fmt.Println(err)
 	fmt.Println(output)
+
+	t.Fail()
+}
+
+func TestMarshalEnum(t *testing.T) {
+
+	input := test.ColorRed
+	data, err := disorder.Marshal(&input)
+	fmt.Println(err)
+	fmt.Println(input.ToString())
+	fmt.Println(data)
+	output := test.ColorGreen
+	err = disorder.Unmarshal(data, &output)
+	fmt.Println(err)
+	fmt.Println(output.ToString())
 
 	t.Fail()
 }
@@ -128,6 +149,11 @@ func TestRpc2(t *testing.T) {
 	result4, rpcErr := c.PrintArray(rpc.NewContext(), []int32{1, 2, 3})
 	fmt.Println(rpcErr)
 	fmt.Println(result4)
+
+	color := test.ColorRed
+	result5, rpcErr := c.PrintEnum(rpc.NewContext(), &color)
+	fmt.Println(rpcErr)
+	fmt.Println(result5.ToString())
 
 	t.Fail()
 }
