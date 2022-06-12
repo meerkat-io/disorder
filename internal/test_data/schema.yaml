@@ -51,3 +51,7 @@ services:
     print_enum:
       input: color
       output: color
+
+    print_map:
+      input: map[string]
+      output: map[string]

@@ -50,6 +50,13 @@ func (*testService) PrintEnum(c *rpc.Context, request *test.Color) (*test.Color,
 	return &color, nil
 }
 
+func (*testService) PrintMap(c *rpc.Context, request map[string]string) (map[string]string, *rpc.Error) {
+	fmt.Println(request)
+	return map[string]string{
+		"bar": "foo",
+	}, nil
+}
+
 func TestLoadYamlFile(t *testing.T) {
 	loader := loader.NewYamlLoader()
 	files, err := loader.Load("./internal/test_data/schema.yaml")
@@ -148,12 +155,18 @@ func TestRpc2(t *testing.T) {
 
 		result4, rpcErr := c.PrintArray(rpc.NewContext(), []int32{1, 2, 3})
 		fmt.Println(rpcErr)
-		fmt.Println(result4)*/
+		fmt.Println(result4)
 
-	color := test.ColorRed
-	result5, rpcErr := c.PrintEnum(rpc.NewContext(), &color)
+		color := test.ColorRed
+		result5, rpcErr := c.PrintEnum(rpc.NewContext(), &color)
+		fmt.Println(rpcErr)
+		fmt.Println(result5.ToString())*/
+
+	result6, rpcErr := c.PrintMap(rpc.NewContext(), map[string]string{
+		"foo": "bar",
+	})
 	fmt.Println(rpcErr)
-	fmt.Println(result5.ToString())
+	fmt.Println(result6)
 
 	t.Fail()
 }
