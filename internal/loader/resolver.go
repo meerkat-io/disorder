@@ -64,15 +64,11 @@ func (r *resolver) resolve(files map[string]*schema.File) error {
 		}
 		for _, service := range file.Services {
 			for _, rpc := range service.Rpc {
-				if rpc.Input.Type != schema.TypeUndefined || rpc.Input.TypeRef != "" {
-					if err := r.resolveType(file.Package, rpc.Input); err != nil {
-						return fmt.Errorf("resolve rpc input type in file [%s] failed: %s", file.FilePath, err.Error())
-					}
+				if err := r.resolveType(file.Package, rpc.Input); err != nil {
+					return fmt.Errorf("resolve rpc input type in file [%s] failed: %s", file.FilePath, err.Error())
 				}
-				if rpc.Output.Type != schema.TypeUndefined || rpc.Output.TypeRef != "" {
-					if err := r.resolveType(file.Package, rpc.Output); err != nil {
-						return fmt.Errorf("resolve rpc output type in file [%s] failed: %s", file.FilePath, err.Error())
-					}
+				if err := r.resolveType(file.Package, rpc.Output); err != nil {
+					return fmt.Errorf("resolve rpc output type in file [%s] failed: %s", file.FilePath, err.Error())
 				}
 			}
 		}

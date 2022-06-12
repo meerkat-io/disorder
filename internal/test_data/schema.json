@@ -39,7 +39,7 @@
       },
       "print_object": {
         "input": "object",
-        "output": null
+        "output": "i32"
       }
     }
   }
