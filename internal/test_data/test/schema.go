@@ -6,6 +6,38 @@ import (
 	"github.com/meerkat-lib/disorder/internal/test_data/test/sub"
 )
 
+type Animal int
+
+const (
+	AnimalDog Animal = iota
+	AnimalCat
+)
+
+func (*Animal) Enum() {}
+
+func (enum *Animal) FromString(value string) error {
+	switch {
+	case value == "dog":
+		*enum = AnimalDog
+		return nil
+	case value == "cat":
+		*enum = AnimalCat
+		return nil
+	}
+	return fmt.Errorf("invalid enum value")
+}
+
+func (enum *Animal) ToString() (string, error) {
+	switch *enum {
+	case AnimalDog:
+		return "dog", nil
+	case AnimalCat:
+		return "cat", nil
+	default:
+		return "", fmt.Errorf("invalid enum value")
+	}
+}
+
 type Color int
 
 const (
@@ -39,38 +71,6 @@ func (enum *Color) ToString() (string, error) {
 		return "green", nil
 	case ColorBlue:
 		return "blue", nil
-	default:
-		return "", fmt.Errorf("invalid enum value")
-	}
-}
-
-type Animal int
-
-const (
-	AnimalDog Animal = iota
-	AnimalCat
-)
-
-func (*Animal) Enum() {}
-
-func (enum *Animal) FromString(value string) error {
-	switch {
-	case value == "dog":
-		*enum = AnimalDog
-		return nil
-	case value == "cat":
-		*enum = AnimalCat
-		return nil
-	}
-	return fmt.Errorf("invalid enum value")
-}
-
-func (enum *Animal) ToString() (string, error) {
-	switch *enum {
-	case AnimalDog:
-		return "dog", nil
-	case AnimalCat:
-		return "cat", nil
 	default:
 		return "", fmt.Errorf("invalid enum value")
 	}

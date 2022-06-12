@@ -10,23 +10,20 @@ import (
 	"github.com/meerkat-lib/disorder/internal/loader"
 	"github.com/meerkat-lib/disorder/internal/test_data/test/sub"
 	"github.com/meerkat-lib/disorder/rpc"
-	"github.com/meerkat-lib/disorder/rpc/code"
 )
 
 type mathService struct {
 }
 
-func (*mathService) Increase(c *rpc.Context, request *int32) (*int32, *rpc.Error) {
-	return nil, &rpc.Error{
-		Code:  code.Internal,
-		Error: fmt.Errorf("caculator broken"),
-	}
+func (*mathService) Increase(c *rpc.Context, request int32) (int32, *rpc.Error) {
 	/*
-		fmt.Println("increase from server")
-		value := *request
-		value++
-		fmt.Println(value)
-		return &value, nil*/
+		return 0, &rpc.Error{
+			Code:  code.Internal,
+			Error: fmt.Errorf("caculator broken"),
+		}*/
+
+	request++
+	return request, nil
 }
 
 func TestLoadYamlFile(t *testing.T) {
@@ -61,12 +58,14 @@ func TestLoadTomlFile(t *testing.T) {
 
 func TestMarshal(t *testing.T) {
 
-	input := map[string]string{}
+	input := map[string]string{
+		"foo": "bar",
+	}
 	data, err := disorder.Marshal(input)
 	fmt.Println(err)
 	fmt.Println(input)
 	fmt.Println(data)
-	var output interface{}
+	output := make(map[string]string)
 	err = disorder.Unmarshal(data, &output)
 	fmt.Println(err)
 	fmt.Println(output)
@@ -76,16 +75,15 @@ func TestMarshal(t *testing.T) {
 
 func TestRpc(t *testing.T) {
 	s := rpc.NewServer()
-	sub.RegisterMathService(s, &mathService{})
+	sub.RegisterMathServiceServer(s, &mathService{})
 	_ = s.Listen(":8888")
 
 	time.Sleep(time.Second)
 
 	c := sub.NewMathServiceClient(rpc.NewClient("localhost:8888"))
-	value := int32(10)
-	result, rpcErr := c.Increase(rpc.NewContext(), &value)
+	result, rpcErr := c.Increase(rpc.NewContext(), 15)
 	fmt.Println(rpcErr)
-	fmt.Println(*result)
+	fmt.Println(result)
 
 	t.Fail()
 }

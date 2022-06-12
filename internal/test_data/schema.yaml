@@ -35,6 +35,6 @@ services:
       input: string
       output: another_object
 
-    print_object:
-      input: object
+    print_sub_object:
+      input: test_data.test.sub.sub_object
       output: i32

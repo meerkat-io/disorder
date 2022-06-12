@@ -28,6 +28,7 @@ func NewGoGenerator() generator.Generator {
 
 type goGenerator struct {
 	define *template.Template
+	rpc    *template.Template
 }
 
 func (g *goGenerator) Generate(dir string, files map[string]*schema.File) error {
@@ -36,35 +37,59 @@ func (g *goGenerator) Generate(dir string, files map[string]*schema.File) error 
 		for _, importPath := range file.AbsImports {
 			resolvedImports[g.resolveImport(files[importPath])] = true
 		}
-		file.ResolvedImports = file.ResolvedImports[:0]
-		for importPath := range resolvedImports {
-			file.ResolvedImports = append(file.ResolvedImports, importPath)
-		}
+		file.DefineImports = file.DefineImports[:0]
+		file.RpcImports = file.RpcImports[:0]
 		if len(file.Enums) > 0 {
-			file.ResolvedImports = append(file.ResolvedImports, "fmt")
+			file.DefineImports = append(file.DefineImports, "fmt")
+		}
+		file.RpcImports = append(file.RpcImports, "fmt")
+		for importPath := range resolvedImports {
+			file.DefineImports = append(file.DefineImports, importPath)
+			file.RpcImports = append(file.RpcImports, importPath)
+		}
+		file.RpcImports = append(file.RpcImports, "github.com/meerkat-lib/disorder")
+		file.RpcImports = append(file.RpcImports, "github.com/meerkat-lib/disorder/rpc")
+		file.RpcImports = append(file.RpcImports, "github.com/meerkat-lib/disorder/rpc/code")
+
+		schemaDir, err := filepath.Abs(filepath.Join(dir, g.packageFolder(file.Package)))
+		if err != nil {
+			return err
+		}
+		err = folder.Create(schemaDir)
+		if err != nil {
+			return err
 		}
 
 		buf := &bytes.Buffer{}
 		if err := g.define.Execute(buf, file); err != nil {
 			return err
 		}
-		schemaDir, err := filepath.Abs(filepath.Join(dir, g.packageFolder(file.Package)))
-		if err != nil {
+		source := buf.Bytes()
+		if source, err = format.Source(source); err != nil {
 			return err
 		}
 		schemaFile := filepath.Base(file.FilePath)
 		schemaFile = fmt.Sprintf("%s.go", strings.TrimSuffix(schemaFile, filepath.Ext(schemaFile)))
-		err = folder.Create(schemaDir)
+		err = ioutil.WriteFile(filepath.Join(schemaDir, schemaFile), source, 0666)
 		if err != nil {
 			return err
 		}
-		bytes := buf.Bytes()
-		if bytes, err = format.Source(bytes); err != nil {
-			return err
-		}
-		err = ioutil.WriteFile(filepath.Join(schemaDir, schemaFile), bytes, 0666)
-		if err != nil {
-			return err
+
+		if len(file.Services) > 0 {
+			buf = &bytes.Buffer{}
+			if err := g.rpc.Execute(buf, file); err != nil {
+				return err
+			}
+			source = buf.Bytes()
+			if source, err = format.Source(source); err != nil {
+				return err
+			}
+			schemaFile = filepath.Base(file.FilePath)
+			schemaFile = fmt.Sprintf("%s_rpc.go", strings.TrimSuffix(schemaFile, filepath.Ext(schemaFile)))
+			err = ioutil.WriteFile(filepath.Join(schemaDir, schemaFile), source, 0666)
+			if err != nil {
+				return err
+			}
 		}
 	}
 	return nil
@@ -77,6 +102,9 @@ func (g *goGenerator) initTemplete() {
 		},
 		"SnakeCase": func(name string) string {
 			return strcase.SnakeCase(name)
+		},
+		"CamelCase": func(name string) string {
+			return strcase.CamelCase(name)
 		},
 		"PackageName": func(pkg string) string {
 			names := strings.Split(pkg, ".")
@@ -92,12 +120,22 @@ func (g *goGenerator) initTemplete() {
 				return goType(typ.Type, typ.TypeRef)
 			}
 		},
+		"IsPointer": func(typ *schema.TypeInfo) bool {
+			switch typ.Type {
+			case schema.TypeEnum, schema.TypeTimestamp, schema.TypeObject:
+				return true
+			default:
+				return false
+			}
+		},
 		"Tag": func(name string) string {
 			return fmt.Sprintf("`disorder:\"%s\"`", name)
 		},
 	}
-	g.define = template.New(golang).Funcs(funcMap)
-	template.Must(g.define.Parse(goTemplate))
+	g.define = template.New(fmt.Sprintf("%s_define", golang)).Funcs(funcMap)
+	template.Must(g.define.Parse(defineTemplate))
+	g.rpc = template.New(fmt.Sprintf("%s_rpc", golang)).Funcs(funcMap)
+	template.Must(g.rpc.Parse(rpcTemplate))
 }
 
 func (g *goGenerator) packageFolder(pkg string) string {
@@ -140,9 +178,6 @@ func goType(typ schema.Type, ref string) string {
 		names := strings.Split(ref, ".")
 		pkg := strcase.SnakeCase(names[len(names)-2])
 		obj := strcase.PascalCase(names[len(names)-1])
-		if typ == schema.TypeEnum {
-			return fmt.Sprintf("%s.%s", pkg, obj)
-		}
 		return fmt.Sprintf("*%s.%s", pkg, obj)
 	}
 	return fmt.Sprintf("*%s", strcase.PascalCase(ref))

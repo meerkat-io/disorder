@@ -90,6 +90,7 @@ type File struct {
 	Messages []*Message
 	Services []*Service
 
-	AbsImports      []string
-	ResolvedImports []string
+	AbsImports    []string
+	DefineImports []string
+	RpcImports    []string
 }
