@@ -8,22 +8,29 @@ import (
 	"github.com/meerkat-lib/disorder"
 	"github.com/meerkat-lib/disorder/internal/generator/golang"
 	"github.com/meerkat-lib/disorder/internal/loader"
+	"github.com/meerkat-lib/disorder/internal/test_data/test"
 	"github.com/meerkat-lib/disorder/internal/test_data/test/sub"
 	"github.com/meerkat-lib/disorder/rpc"
 )
 
-type mathService struct {
+type testService struct {
 }
 
-func (*mathService) Increase(c *rpc.Context, request int32) (int32, *rpc.Error) {
-	/*
-		return 0, &rpc.Error{
-			Code:  code.Internal,
-			Error: fmt.Errorf("caculator broken"),
-		}*/
-
+func (*testService) Increase(c *rpc.Context, request int32) (int32, *rpc.Error) {
 	request++
 	return request, nil
+}
+
+func (*testService) GetAnotherObject(c *rpc.Context, request string) (*test.AnotherObject, *rpc.Error) {
+	fmt.Println(request)
+	return &test.AnotherObject{
+		Value: 456,
+	}, nil
+}
+
+func (*testService) PrintSubObject(c *rpc.Context, request *sub.SubObject) (int32, *rpc.Error) {
+	fmt.Printf("%v\n", *request)
+	return 123, nil
 }
 
 func TestLoadYamlFile(t *testing.T) {
@@ -75,15 +82,30 @@ func TestMarshal(t *testing.T) {
 
 func TestRpc(t *testing.T) {
 	s := rpc.NewServer()
-	sub.RegisterMathServiceServer(s, &mathService{})
+	sub.RegisterMathServiceServer(s, &testService{})
 	_ = s.Listen(":8888")
 
 	time.Sleep(time.Second)
 
 	c := sub.NewMathServiceClient(rpc.NewClient("localhost:8888"))
-	result, rpcErr := c.Increase(rpc.NewContext(), 15)
+	result, rpcErr := c.Increase(rpc.NewContext(), 17)
 	fmt.Println(rpcErr)
 	fmt.Println(result)
+
+	t.Fail()
+}
+
+func TestRpc2(t *testing.T) {
+	s := rpc.NewServer()
+	test.RegisterPrimaryServiceServer(s, &testService{})
+	_ = s.Listen(":8888")
+
+	time.Sleep(time.Second)
+
+	c := test.NewPrimaryServiceClient(rpc.NewClient("localhost:8888"))
+	result, rpcErr := c.GetAnotherObject(rpc.NewContext(), "foo.bar")
+	fmt.Println(rpcErr)
+	fmt.Println(*result)
 
 	t.Fail()
 }
