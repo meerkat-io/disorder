@@ -66,6 +66,21 @@ func TestMarshal(t *testing.T) {
 	t.Fail()
 }
 
+func TestMarshalTime(t *testing.T) {
+
+	input := time.Now()
+	data, err := disorder.Marshal(&input)
+	fmt.Println(err)
+	fmt.Println(input)
+	fmt.Println(data)
+	output := &time.Time{}
+	err = disorder.Unmarshal(data, output)
+	fmt.Println(err)
+	fmt.Println(output)
+
+	t.Fail()
+}
+
 func TestRpc(t *testing.T) {
 	s := rpc.NewServer()
 	sub.RegisterMathServiceServer(s, &testService{})
@@ -99,6 +114,11 @@ func TestRpc2(t *testing.T) {
 	})
 	fmt.Println(rpcErr)
 	fmt.Println(result2)
+
+	tt := time.Now()
+	result3, rpcErr := c.PrintTime(rpc.NewContext(), &tt)
+	fmt.Println(rpcErr)
+	fmt.Println(*result3)
 
 	t.Fail()
 }

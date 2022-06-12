@@ -95,7 +95,6 @@ func (s *Server) handle(c *connection) {
 		s.writeError(c, status.Code, status.Error)
 		return
 	}
-
 	writer := &bytes.Buffer{}
 	e := disorder.NewEncoder(writer)
 	_ = e.Encode(byte(code.OK))
