@@ -72,33 +72,33 @@ func (s *Server) handle(c *connection) {
 		_ = s.writeError(c, code.InvalidRequest, err)
 		return
 	}
-	serviceName := ""
-	err = d.Decode(serviceName)
+	var serviceName title
+	err = d.Decode(&serviceName)
 	if err != nil {
 		_ = s.writeError(c, code.InvalidRequest, err)
 		return
 	}
-	methodName := ""
-	err = d.Decode(methodName)
+	var methodName title
+	err = d.Decode(&methodName)
 	if err != nil {
 		_ = s.writeError(c, code.InvalidRequest, err)
 		return
 	}
-	service, exists := s.services[serviceName]
+	service, exists := s.services[string(serviceName)]
 	if !exists {
 		_ = s.writeError(c, code.Unavailable, fmt.Errorf("service \"%s\" not found", serviceName))
 		return
 	}
 
-	response, status := service.Handle(context, methodName, d)
-	if status.Code != code.OK {
+	response, status := service.Handle(context, string(methodName), d)
+	if status != nil && status.Code != code.OK {
 		_ = s.writeError(c, status.Code, status.Error)
 		return
 	}
 
 	writer := &bytes.Buffer{}
 	e := disorder.NewEncoder(writer)
-	_ = e.Encode(code.OK)
+	_ = e.Encode(byte(code.OK))
 	err = e.Encode(response)
 	if err != nil {
 		_ = s.writeError(c, code.Internal, err)

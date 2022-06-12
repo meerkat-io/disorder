@@ -10,17 +10,23 @@ import (
 	"github.com/meerkat-lib/disorder/internal/loader"
 	"github.com/meerkat-lib/disorder/internal/test_data/test/sub"
 	"github.com/meerkat-lib/disorder/rpc"
+	"github.com/meerkat-lib/disorder/rpc/code"
 )
 
 type mathService struct {
 }
 
 func (*mathService) Increase(c *rpc.Context, request *int32) (*int32, *rpc.Error) {
-	fmt.Println("increase from server")
-	value := *request
-	value++
-	fmt.Println(value)
-	return &value, nil
+	return nil, &rpc.Error{
+		Code:  code.Internal,
+		Error: fmt.Errorf("caculator broken"),
+	}
+	/*
+		fmt.Println("increase from server")
+		value := *request
+		value++
+		fmt.Println(value)
+		return &value, nil*/
 }
 
 func TestLoadYamlFile(t *testing.T) {
@@ -79,8 +85,7 @@ func TestMarshal(t *testing.T) {
 func TestRpc(t *testing.T) {
 	s := rpc.NewServer()
 	sub.RegisterMathService(s, &mathService{})
-	err := s.Listen(":8888")
-	fmt.Println(err)
+	_ = s.Listen(":8888")
 
 	time.Sleep(time.Second)
 
