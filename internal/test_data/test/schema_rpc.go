@@ -86,7 +86,7 @@ func (s *primaryServiceServer) getAnotherObject(context *rpc.Context, d *disorde
 }
 
 func (s *primaryServiceServer) printSubObject(context *rpc.Context, d *disorder.Decoder) (interface{}, *rpc.Error) {
-	var request *sub.SubObject
+	var request *sub.SubObject = &sub.SubObject{}
 	err := d.Decode(request)
 	if err != nil {
 		return nil, &rpc.Error{

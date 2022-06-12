@@ -128,6 +128,19 @@ func (g *goGenerator) initTemplete() {
 				return false
 			}
 		},
+		"InitType": func(typ *schema.TypeInfo) string {
+			switch typ.Type {
+			//case schema.TypeEnum, schema.TypeTimestamp, schema.TypeObject:
+			case schema.TypeObject:
+				initStmt := fmt.Sprintf(" = %s{}", goType(typ.SubType, typ.TypeRef))
+				[]byte(initStmt)[0] = '&'
+				return initStmt
+			case schema.TypeMap:
+				return fmt.Sprintf(" = make(map[string]%s)", goType(typ.SubType, typ.TypeRef))
+			default:
+				return ""
+			}
+		},
 		"Tag": func(name string) string {
 			return fmt.Sprintf("`disorder:\"%s\"`", name)
 		},
