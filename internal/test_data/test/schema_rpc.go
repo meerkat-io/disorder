@@ -12,8 +12,8 @@ import (
 type primaryServiceHandler func(*rpc.Context, *disorder.Decoder) (interface{}, *rpc.Error)
 
 type PrimaryService interface {
-	GetAnotherObject(*rpc.Context, string) (*AnotherObject, *rpc.Error)
 	PrintSubObject(*rpc.Context, *sub.SubObject) (int32, *rpc.Error)
+	GetAnotherObject(*rpc.Context, string) (*AnotherObject, *rpc.Error)
 }
 
 func NewPrimaryServiceClient(client *rpc.Client) PrimaryService {
@@ -28,15 +28,15 @@ type primaryServiceClient struct {
 	client *rpc.Client
 }
 
-func (c *primaryServiceClient) GetAnotherObject(context *rpc.Context, request string) (*AnotherObject, *rpc.Error) {
-	var response *AnotherObject = &AnotherObject{}
-	err := c.client.Send(context, c.name, "get_another_object", request, response)
-	return response, err
-}
-
 func (c *primaryServiceClient) PrintSubObject(context *rpc.Context, request *sub.SubObject) (int32, *rpc.Error) {
 	var response int32
 	err := c.client.Send(context, c.name, "print_sub_object", request, &response)
+	return response, err
+}
+
+func (c *primaryServiceClient) GetAnotherObject(context *rpc.Context, request string) (*AnotherObject, *rpc.Error) {
+	var response *AnotherObject = &AnotherObject{}
+	err := c.client.Send(context, c.name, "get_another_object", request, response)
 	return response, err
 }
 
@@ -52,8 +52,8 @@ func RegisterPrimaryServiceServer(s *rpc.Server, service PrimaryService) {
 		service: service,
 	}
 	server.methods = map[string]primaryServiceHandler{
-		"get_another_object": server.getAnotherObject,
 		"print_sub_object":   server.printSubObject,
+		"get_another_object": server.getAnotherObject,
 	}
 	s.RegisterService("primary_service", server)
 }
@@ -69,22 +69,6 @@ func (s *primaryServiceServer) Handle(context *rpc.Context, method string, d *di
 	}
 }
 
-func (s *primaryServiceServer) getAnotherObject(context *rpc.Context, d *disorder.Decoder) (interface{}, *rpc.Error) {
-	var request string
-	err := d.Decode(&request)
-	if err != nil {
-		return nil, &rpc.Error{
-			Code:  code.InvalidRequest,
-			Error: err,
-		}
-	}
-	response, rpcErr := s.service.GetAnotherObject(context, request)
-	if rpcErr != nil {
-		return nil, rpcErr
-	}
-	return response, nil
-}
-
 func (s *primaryServiceServer) printSubObject(context *rpc.Context, d *disorder.Decoder) (interface{}, *rpc.Error) {
 	var request *sub.SubObject = &sub.SubObject{}
 	err := d.Decode(request)
@@ -95,6 +79,22 @@ func (s *primaryServiceServer) printSubObject(context *rpc.Context, d *disorder.
 		}
 	}
 	response, rpcErr := s.service.PrintSubObject(context, request)
+	if rpcErr != nil {
+		return nil, rpcErr
+	}
+	return response, nil
+}
+
+func (s *primaryServiceServer) getAnotherObject(context *rpc.Context, d *disorder.Decoder) (interface{}, *rpc.Error) {
+	var request string
+	err := d.Decode(&request)
+	if err != nil {
+		return nil, &rpc.Error{
+			Code:  code.InvalidRequest,
+			Error: err,
+		}
+	}
+	response, rpcErr := s.service.GetAnotherObject(context, request)
 	if rpcErr != nil {
 		return nil, rpcErr
 	}

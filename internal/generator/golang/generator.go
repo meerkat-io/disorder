@@ -132,9 +132,8 @@ func (g *goGenerator) initTemplete() {
 			switch typ.Type {
 			//case schema.TypeEnum, schema.TypeTimestamp, schema.TypeObject:
 			case schema.TypeObject:
-				initStmt := fmt.Sprintf(" = %s{}", goType(typ.SubType, typ.TypeRef))
-				[]byte(initStmt)[0] = '&'
-				return initStmt
+				typ := goType(typ.SubType, typ.TypeRef)
+				return fmt.Sprintf(" = &%s{}", string([]byte(typ)[1:]))
 			case schema.TypeMap:
 				return fmt.Sprintf(" = make(map[string]%s)", goType(typ.SubType, typ.TypeRef))
 			default:
