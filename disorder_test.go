@@ -103,9 +103,16 @@ func TestRpc2(t *testing.T) {
 	time.Sleep(time.Second)
 
 	c := test.NewPrimaryServiceClient(rpc.NewClient("localhost:8888"))
-	result, rpcErr := c.GetAnotherObject(rpc.NewContext(), "foo.bar")
+
+	result1, rpcErr := c.GetAnotherObject(rpc.NewContext(), "foo.bar")
 	fmt.Println(rpcErr)
-	fmt.Println(*result)
+	fmt.Println(*result1)
+
+	result2, rpcErr := c.PrintSubObject(rpc.NewContext(), &sub.SubObject{
+		Value: 789,
+	})
+	fmt.Println(rpcErr)
+	fmt.Println(result2)
 
 	t.Fail()
 }

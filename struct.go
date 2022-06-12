@@ -32,11 +32,10 @@ func getStructInfo(typ reflect.Type) (*structInfo, error) {
 	s, exists := structsMap[typ]
 	structsMapMutex.RUnlock()
 	if exists {
-		fmt.Println("get struct info from cache")
 		return s, nil
 	}
 
-	fmt.Println("create new struct info")
+	fmt.Println("create new struct info:", typ.String())
 	count := typ.NumField()
 	s = &structInfo{
 		fieldsMap:  map[string]*fieldInfo{},
