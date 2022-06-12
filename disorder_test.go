@@ -94,5 +94,6 @@ func TestRpc(t *testing.T) {
 	result, rpcErr := c.Increase(rpc.NewContext(), &value)
 	fmt.Println(rpcErr)
 	fmt.Println(*result)
+
 	t.Fail()
 }
