@@ -43,3 +43,11 @@ services:
     print_time:
       input: timestamp
       output: timestamp
+
+    print_array:
+      input: array[i32]
+      output: array[i32]
+
+    print_enum:
+      input: color
+      output: color

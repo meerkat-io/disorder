@@ -14,6 +14,7 @@ type primaryServiceHandler func(*rpc.Context, *disorder.Decoder) (interface{}, *
 
 type PrimaryService interface {
 	PrintTime(*rpc.Context, *time.Time) (*time.Time, *rpc.Error)
+	PrintArray(*rpc.Context, []int32) ([]int32, *rpc.Error)
 	GetAnotherObject(*rpc.Context, string) (*AnotherObject, *rpc.Error)
 	PrintSubObject(*rpc.Context, *sub.SubObject) (int32, *rpc.Error)
 }
@@ -33,6 +34,12 @@ type primaryServiceClient struct {
 func (c *primaryServiceClient) PrintTime(context *rpc.Context, request *time.Time) (*time.Time, *rpc.Error) {
 	var response *time.Time = &time.Time{}
 	err := c.client.Send(context, c.name, "print_time", request, response)
+	return response, err
+}
+
+func (c *primaryServiceClient) PrintArray(context *rpc.Context, request []int32) ([]int32, *rpc.Error) {
+	var response []int32
+	err := c.client.Send(context, c.name, "print_array", request, &response)
 	return response, err
 }
 
@@ -61,6 +68,7 @@ func RegisterPrimaryServiceServer(s *rpc.Server, service PrimaryService) {
 	}
 	server.methods = map[string]primaryServiceHandler{
 		"print_time":         server.printTime,
+		"print_array":        server.printArray,
 		"get_another_object": server.getAnotherObject,
 		"print_sub_object":   server.printSubObject,
 	}
@@ -88,6 +96,22 @@ func (s *primaryServiceServer) printTime(context *rpc.Context, d *disorder.Decod
 		}
 	}
 	response, rpcErr := s.service.PrintTime(context, request)
+	if rpcErr != nil {
+		return nil, rpcErr
+	}
+	return response, nil
+}
+
+func (s *primaryServiceServer) printArray(context *rpc.Context, d *disorder.Decoder) (interface{}, *rpc.Error) {
+	var request []int32
+	err := d.Decode(&request)
+	if err != nil {
+		return nil, &rpc.Error{
+			Code:  code.InvalidRequest,
+			Error: err,
+		}
+	}
+	response, rpcErr := s.service.PrintArray(context, request)
 	if rpcErr != nil {
 		return nil, rpcErr
 	}

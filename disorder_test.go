@@ -39,6 +39,11 @@ func (*testService) PrintTime(c *rpc.Context, request *time.Time) (*time.Time, *
 	return &t, nil
 }
 
+func (*testService) PrintArray(c *rpc.Context, request []int32) ([]int32, *rpc.Error) {
+	fmt.Println(request)
+	return []int32{4, 5, 6}, nil
+}
+
 func TestLoadYamlFile(t *testing.T) {
 	loader := loader.NewYamlLoader()
 	files, err := loader.Load("./internal/test_data/schema.yaml")
@@ -119,6 +124,10 @@ func TestRpc2(t *testing.T) {
 	result3, rpcErr := c.PrintTime(rpc.NewContext(), &tt)
 	fmt.Println(rpcErr)
 	fmt.Println(*result3)
+
+	result4, rpcErr := c.PrintArray(rpc.NewContext(), []int32{1, 2, 3})
+	fmt.Println(rpcErr)
+	fmt.Println(result4)
 
 	t.Fail()
 }
