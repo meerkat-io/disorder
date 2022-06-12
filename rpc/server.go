@@ -69,42 +69,48 @@ func (s *Server) handle(c *connection) {
 	d := disorder.NewDecoder(reader)
 	err = d.Decode(context.Headers)
 	if err != nil {
-		_ = c.writeError(code.InvalidRequest, err)
+		_ = s.writeError(c, code.InvalidRequest, err)
 		return
 	}
 	serviceName := ""
 	err = d.Decode(serviceName)
 	if err != nil {
-		_ = c.writeError(code.InvalidRequest, err)
+		_ = s.writeError(c, code.InvalidRequest, err)
 		return
 	}
 	methodName := ""
 	err = d.Decode(methodName)
 	if err != nil {
-		_ = c.writeError(code.InvalidRequest, err)
+		_ = s.writeError(c, code.InvalidRequest, err)
 		return
 	}
 	service, exists := s.services[serviceName]
 	if !exists {
-		_ = c.writeError(code.Unavailable, fmt.Errorf("service \"%s\" not found", serviceName))
+		_ = s.writeError(c, code.Unavailable, fmt.Errorf("service \"%s\" not found", serviceName))
 		return
 	}
 
 	response, status := service.Handle(context, methodName, d)
 	if status.Code != code.OK {
-		_ = c.writeError(status.Code, status.Error)
+		_ = s.writeError(c, status.Code, status.Error)
 		return
 	}
 
 	writer := &bytes.Buffer{}
 	e := disorder.NewEncoder(writer)
+	_ = e.Encode(code.OK)
 	err = e.Encode(response)
 	if err != nil {
-		_ = c.writeError(code.Internal, err)
+		_ = s.writeError(c, code.Internal, err)
 		return
 	}
-	err = c.writeCode(code.OK)
-	if err == nil {
-		_ = c.send(writer.Bytes())
-	}
+	_ = c.send(writer.Bytes())
+}
+
+func (s *Server) writeError(c *connection, code code.Code, err error) error {
+	writer := &bytes.Buffer{}
+	e := disorder.NewEncoder(writer)
+	status := byte(code)
+	_ = e.Encode(status)
+	return e.Encode(err.Error())
 }

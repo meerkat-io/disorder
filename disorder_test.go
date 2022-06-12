@@ -77,7 +77,15 @@ func TestMarshal(t *testing.T) {
 func TestRpc(t *testing.T) {
 	s := rpc.NewServer()
 	sub.RegisterMathService(s, &mathService{})
-	s.Listen(":8080")
+	err := s.Listen(":8080")
+	fmt.Println(err)
 
-	time.Sleep(time.Second * 3)
+	time.Sleep(time.Second)
+
+	c := sub.NewMathServiceClient(rpc.Dial("localhost:8080"))
+	value := int32(1)
+	result, rpcErr := c.Increase(rpc.NewContext(), &value)
+	fmt.Println(rpcErr)
+	fmt.Println(*result)
+	t.Fail()
 }

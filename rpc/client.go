@@ -125,10 +125,18 @@ func (c *Client) Send(context *Context, serviceName, methodName string, request 
 				Error: err,
 			}
 		}
-		status := code.Code(data[0])
-		if status != code.OK {
+		d := disorder.NewDecoder(bytes.NewBuffer(data))
+		var status byte
+		err = d.Decode(&status)
+		if err != nil {
+			return &Error{
+				Code:  code.Internal,
+				Error: err,
+			}
+		}
+		if code.Code(status) != code.OK {
 			var errMsg string
-			err = disorder.Unmarshal(data[1:], &errMsg)
+			err = d.Decode(&errMsg)
 			if err != nil {
 				return &Error{
 					Code:  code.Internal,
@@ -136,11 +144,11 @@ func (c *Client) Send(context *Context, serviceName, methodName string, request 
 				}
 			}
 			return &Error{
-				Code:  status,
+				Code:  code.Code(status),
 				Error: fmt.Errorf(errMsg),
 			}
 		}
-		err = disorder.Unmarshal(data[1:], response)
+		err = d.Decode(response)
 	}
 	if err != nil {
 		return &Error{

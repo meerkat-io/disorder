@@ -12,9 +12,10 @@ type MathService interface {
 	Increase(*rpc.Context, *int32) (*int32, *rpc.Error)
 }
 
-func NewMathServiceClient(c *rpc.Client) MathService {
+func NewMathServiceClient(client *rpc.Client) MathService {
 	return &mathServiceClient{
-		name: "math_service",
+		name:   "math_service",
+		client: client,
 	}
 }
 

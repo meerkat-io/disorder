@@ -182,7 +182,7 @@ func Parse(config interface{}) error {
 		f.Visited = true
 		args = args[1:]
 		if f.Value.IsBool() {
-			f.Value.Set("true")
+			_ = f.Value.Set("true")
 		} else {
 			if len(args) == 0 || args[0][0] == '-' {
 				return fmt.Errorf("flag -%s has no value", name)

@@ -4,9 +4,6 @@ import (
 	"encoding/binary"
 	"fmt"
 	"net"
-
-	"github.com/meerkat-lib/disorder"
-	"github.com/meerkat-lib/disorder/rpc/code"
 )
 
 const (
@@ -87,23 +84,4 @@ func (c *connection) writePacketSize(length int) error {
 		return fmt.Errorf("write data error to %s", c.socket.RemoteAddr())
 	}
 	return nil
-}
-
-func (c *connection) writeError(code code.Code, err error) error {
-	e := c.writeCode(code)
-	if e != nil {
-		return e
-	}
-	data, e := disorder.Marshal(err.Error())
-	if e != nil {
-		return e
-	}
-	return c.send(data)
-}
-
-func (c *connection) writeCode(code code.Code) error {
-	data := make([]byte, 1)
-	data[0] = byte(code)
-	_, err := c.socket.Write(data)
-	return err
 }
