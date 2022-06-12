@@ -34,7 +34,7 @@ type {{CamelCase $service.Name}}Client struct {
 
 func (c *{{CamelCase $service.Name}}Client) {{PascalCase .Name}}(context *rpc.Context, request {{Type .Input}}) ({{Type .Output}}, *rpc.Error) {
 	var response {{Type .Output}}
-	err := c.client.Send(context, c.name, "{{.Name}}", request, {{if not IsPointer .Output}}&{{end}}response)
+	err := c.client.Send(context, c.name, "{{.Name}}", request, {{if not (IsPointer .Output)}}&{{end}}response)
 	return response, err
 }
 {{- end}}
@@ -72,7 +72,7 @@ func (s *{{CamelCase $service.Name}}Server) Handle(context *rpc.Context, method 
 
 func (s *{{CamelCase $service.Name}}Server) {{CamelCase .Name}}(context *rpc.Context, d *disorder.Decoder) (interface{}, *rpc.Error) {
 	var request {{Type .Input}}
-	err := d.Decode(&request)
+	err := d.Decode({{if not (IsPointer .Input)}}&{{end}}request)
 	if err != nil {
 		return nil, &rpc.Error{
 			Code:  code.InvalidRequest,

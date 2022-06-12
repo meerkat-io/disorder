@@ -30,7 +30,7 @@ type primaryServiceClient struct {
 
 func (c *primaryServiceClient) GetAnotherObject(context *rpc.Context, request string) (*AnotherObject, *rpc.Error) {
 	var response *AnotherObject
-	err := c.client.Send(context, c.name, "get_another_object", request, &response)
+	err := c.client.Send(context, c.name, "get_another_object", request, response)
 	return response, err
 }
 
@@ -87,7 +87,7 @@ func (s *primaryServiceServer) getAnotherObject(context *rpc.Context, d *disorde
 
 func (s *primaryServiceServer) printSubObject(context *rpc.Context, d *disorder.Decoder) (interface{}, *rpc.Error) {
 	var request *sub.SubObject
-	err := d.Decode(&request)
+	err := d.Decode(request)
 	if err != nil {
 		return nil, &rpc.Error{
 			Code:  code.InvalidRequest,
