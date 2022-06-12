@@ -16,8 +16,10 @@ type mathService struct {
 }
 
 func (*mathService) Increase(c *rpc.Context, request *int32) (*int32, *rpc.Error) {
+	fmt.Println("increase from server")
 	value := *request
 	value++
+	fmt.Println(value)
 	return &value, nil
 }
 
@@ -77,13 +79,13 @@ func TestMarshal(t *testing.T) {
 func TestRpc(t *testing.T) {
 	s := rpc.NewServer()
 	sub.RegisterMathService(s, &mathService{})
-	err := s.Listen(":8080")
+	err := s.Listen(":8888")
 	fmt.Println(err)
 
 	time.Sleep(time.Second)
 
-	c := sub.NewMathServiceClient(rpc.Dial("localhost:8080"))
-	value := int32(1)
+	c := sub.NewMathServiceClient(rpc.NewClient("localhost:8888"))
+	value := int32(10)
 	result, rpcErr := c.Increase(rpc.NewContext(), &value)
 	fmt.Println(rpcErr)
 	fmt.Println(*result)

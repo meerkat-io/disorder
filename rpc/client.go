@@ -36,7 +36,7 @@ type Client struct {
 	b Balancer
 }
 
-func Dial(addr string) *Client {
+func NewClient(addr string) *Client {
 	return &Client{
 		b: &balancerImpl{
 			addr: addr,
@@ -44,7 +44,7 @@ func Dial(addr string) *Client {
 	}
 }
 
-func WithBalancer(b Balancer) *Client {
+func NewClientWithBalancer(b Balancer) *Client {
 	return &Client{
 		b: b,
 	}
@@ -86,16 +86,16 @@ func (c *Client) Send(context *Context, serviceName, methodName string, request 
 				Error: err,
 			}
 		}
-		var service title = title(serviceName)
-		err = e.Encode(service)
+		service := title(serviceName)
+		err = e.Encode(&service)
 		if err != nil {
 			return &Error{
 				Code:  code.InvalidRequest,
 				Error: err,
 			}
 		}
-		var method title = title(methodName)
-		err = e.Encode(method)
+		method := title(methodName)
+		err = e.Encode(&method)
 		if err != nil {
 			return &Error{
 				Code:  code.InvalidRequest,
@@ -109,6 +109,8 @@ func (c *Client) Send(context *Context, serviceName, methodName string, request 
 				Error: err,
 			}
 		}
+		fmt.Println("send from client")
+		fmt.Println(writer.Bytes())
 		err = conn.send(writer.Bytes())
 		if err != nil {
 			return &Error{
