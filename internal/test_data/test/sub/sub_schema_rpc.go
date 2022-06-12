@@ -8,6 +8,8 @@ import (
 	"github.com/meerkat-lib/disorder/rpc/code"
 )
 
+type mathServiceHandler func(*rpc.Context, *disorder.Decoder) (interface{}, *rpc.Error)
+
 type MathService interface {
 	Increase(*rpc.Context, *int32) (*int32, *rpc.Error)
 }
@@ -33,36 +35,43 @@ func (c *mathServiceClient) Increase(context *rpc.Context, request *int32) (*int
 type mathServiceServer struct {
 	name    string
 	service MathService
+	methods map[string]mathServiceHandler
 }
 
 func RegisterMathService(s *rpc.Server, service MathService) {
-	s.RegisterService("math_service", &mathServiceServer{
+	server := &mathServiceServer{
 		name:    "math_service",
 		service: service,
-	})
+	}
+	server.methods = map[string]mathServiceHandler{
+		"increase": server.increase,
+	}
+	s.RegisterService("math_service", server)
 }
 
 func (s *mathServiceServer) Handle(context *rpc.Context, method string, d *disorder.Decoder) (interface{}, *rpc.Error) {
-	switch {
-	case method == "increase":
-		var request int32
-		err := d.Decode(&request)
-		if err != nil {
-			return nil, &rpc.Error{
-				Code:  code.InvalidRequest,
-				Error: err,
-			}
-		}
-		response, rpcErr := s.service.Increase(context, &request)
-		if rpcErr != nil {
-			return nil, rpcErr
-		}
-		return response, nil
+	handler, ok := s.methods[method]
+	if ok {
+		return handler(context, d)
+	}
+	return nil, &rpc.Error{
+		Code:  code.Unimplemented,
+		Error: fmt.Errorf("Unimplemented method \"%s\" under service \"%s\"", method, s.name),
+	}
+}
 
-	default:
+func (s *mathServiceServer) increase(context *rpc.Context, d *disorder.Decoder) (interface{}, *rpc.Error) {
+	var request int32
+	err := d.Decode(&request)
+	if err != nil {
 		return nil, &rpc.Error{
-			Code:  code.Unimplemented,
-			Error: fmt.Errorf("Unimplemented method \"%s\" under service \"%s\"", method, s.name),
+			Code:  code.InvalidRequest,
+			Error: err,
 		}
 	}
+	response, rpcErr := s.service.Increase(context, &request)
+	if rpcErr != nil {
+		return nil, rpcErr
+	}
+	return response, nil
 }

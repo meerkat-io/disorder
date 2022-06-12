@@ -59,17 +59,9 @@ func TestLoadTomlFile(t *testing.T) {
 	t.Fail()
 }
 
-type S struct {
-	Value uint8
-}
-
 func TestMarshal(t *testing.T) {
 
 	input := map[string]string{}
-	/*
-		input := S{
-			Value: 123,
-		}*/
 	data, err := disorder.Marshal(input)
 	fmt.Println(err)
 	fmt.Println(input)
