@@ -57,7 +57,7 @@ func (c *primaryServiceClient) PrintArray(context *rpc.Context, request []int32)
 }
 
 func (c *primaryServiceClient) PrintEnum(context *rpc.Context, request *Color) (*Color, *rpc.Error) {
-	var response *Color
+	var response *Color = new(Color)
 	err := c.client.Send(context, c.name, "print_enum", request, response)
 	return response, err
 }
@@ -159,7 +159,7 @@ func (s *primaryServiceServer) printArray(context *rpc.Context, d *disorder.Deco
 }
 
 func (s *primaryServiceServer) printEnum(context *rpc.Context, d *disorder.Decoder) (interface{}, *rpc.Error) {
-	var request *Color
+	var request *Color = new(Color)
 	err := d.Decode(request)
 	if err != nil {
 		return nil, &rpc.Error{

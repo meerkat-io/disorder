@@ -109,6 +109,8 @@ func (c *Client) Send(context *Context, serviceName, methodName string, request 
 				Error: err,
 			}
 		}
+		fmt.Println("send data from client")
+		fmt.Println(writer.Bytes())
 		err = conn.send(writer.Bytes())
 		if err != nil {
 			return &Error{

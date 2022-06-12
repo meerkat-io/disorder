@@ -130,25 +130,25 @@ func TestRpc2(t *testing.T) {
 	time.Sleep(time.Second)
 
 	c := test.NewPrimaryServiceClient(rpc.NewClient("localhost:8888"))
+	/*
+		result1, rpcErr := c.GetAnotherObject(rpc.NewContext(), "foo.bar")
+		fmt.Println(rpcErr)
+		fmt.Println(*result1)
 
-	result1, rpcErr := c.GetAnotherObject(rpc.NewContext(), "foo.bar")
-	fmt.Println(rpcErr)
-	fmt.Println(*result1)
+		result2, rpcErr := c.PrintSubObject(rpc.NewContext(), &sub.SubObject{
+			Value: 789,
+		})
+		fmt.Println(rpcErr)
+		fmt.Println(result2)
 
-	result2, rpcErr := c.PrintSubObject(rpc.NewContext(), &sub.SubObject{
-		Value: 789,
-	})
-	fmt.Println(rpcErr)
-	fmt.Println(result2)
+		tt := time.Now()
+		result3, rpcErr := c.PrintTime(rpc.NewContext(), &tt)
+		fmt.Println(rpcErr)
+		fmt.Println(*result3)
 
-	tt := time.Now()
-	result3, rpcErr := c.PrintTime(rpc.NewContext(), &tt)
-	fmt.Println(rpcErr)
-	fmt.Println(*result3)
-
-	result4, rpcErr := c.PrintArray(rpc.NewContext(), []int32{1, 2, 3})
-	fmt.Println(rpcErr)
-	fmt.Println(result4)
+		result4, rpcErr := c.PrintArray(rpc.NewContext(), []int32{1, 2, 3})
+		fmt.Println(rpcErr)
+		fmt.Println(result4)*/
 
 	color := test.ColorRed
 	result5, rpcErr := c.PrintEnum(rpc.NewContext(), &color)
