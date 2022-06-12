@@ -77,10 +77,6 @@ func (enum *Animal) ToString() (string, error) {
 	}
 }
 
-type AnotherObject struct {
-	Value int32 `disorder:"value"`
-}
-
 type Object struct {
 	StringField string                    `disorder:"string_field"`
 	EnumField   *Color                    `disorder:"enum_field"`
@@ -90,4 +86,8 @@ type Object struct {
 	ObjMap      map[string]*sub.SubObject `disorder:"obj_map"`
 	Time        *time.Time                `disorder:"time"`
 	IntField    int32                     `disorder:"int_field"`
+}
+
+type AnotherObject struct {
+	Value int32 `disorder:"value"`
 }

@@ -46,6 +46,9 @@ func (g *goGenerator) Generate(dir string, files map[string]*schema.File) error 
 			file.DefineImports = append(file.DefineImports, "time")
 		}
 		file.RpcImports = append(file.RpcImports, "fmt")
+		if file.HasTimestampRpc {
+			file.RpcImports = append(file.RpcImports, "time")
+		}
 		for importPath := range resolvedImports {
 			file.DefineImports = append(file.DefineImports, importPath)
 			file.RpcImports = append(file.RpcImports, importPath)
@@ -53,9 +56,6 @@ func (g *goGenerator) Generate(dir string, files map[string]*schema.File) error 
 		file.RpcImports = append(file.RpcImports, "github.com/meerkat-lib/disorder")
 		file.RpcImports = append(file.RpcImports, "github.com/meerkat-lib/disorder/rpc")
 		file.RpcImports = append(file.RpcImports, "github.com/meerkat-lib/disorder/rpc/code")
-		if file.HasTimestampRpc {
-			file.RpcImports = append(file.RpcImports, "time")
-		}
 
 		schemaDir, err := filepath.Abs(filepath.Join(dir, g.packageFolder(file.Package)))
 		if err != nil {

@@ -33,29 +33,15 @@ func (*testService) PrintSubObject(c *rpc.Context, request *sub.SubObject) (int3
 	return 123, nil
 }
 
+func (*testService) PrintTime(c *rpc.Context, request *time.Time) (*time.Time, *rpc.Error) {
+	fmt.Printf("%v\n", *request)
+	t := time.Now()
+	return &t, nil
+}
+
 func TestLoadYamlFile(t *testing.T) {
 	loader := loader.NewYamlLoader()
 	files, err := loader.Load("./internal/test_data/schema.yaml")
-	fmt.Println(err)
-	generator := golang.NewGoGenerator()
-	err = generator.Generate("./internal", files)
-	fmt.Println(err)
-	t.Fail()
-}
-
-func TestLoadJsonFile(t *testing.T) {
-	loader := loader.NewJsonLoader()
-	files, err := loader.Load("./internal/test_data/schema.json")
-	fmt.Println(err)
-	generator := golang.NewGoGenerator()
-	err = generator.Generate("./internal", files)
-	fmt.Println(err)
-	t.Fail()
-}
-
-func TestLoadTomlFile(t *testing.T) {
-	loader := loader.NewTomlLoader()
-	files, err := loader.Load("./internal/test_data/schema.toml")
 	fmt.Println(err)
 	generator := golang.NewGoGenerator()
 	err = generator.Generate("./internal", files)
