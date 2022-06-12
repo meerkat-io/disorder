@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net"
 
+	"github.com/meerkat-lib/disorder"
 	"github.com/meerkat-lib/disorder/rpc/code"
 )
 
@@ -89,11 +90,14 @@ func (c *connection) writePacketSize(length int) error {
 }
 
 func (c *connection) writeError(code code.Code, err error) error {
-	data := make([]byte, 5)
-	data[0] = byte(code)
-	message := err.Error()
-	binary.LittleEndian.PutUint32(data[1:], uint32(len(message)))
-	data = append(data, []byte(message)...)
+	e := c.writeCode(code)
+	if e != nil {
+		return e
+	}
+	data, e := disorder.Marshal(err.Error())
+	if e != nil {
+		return e
+	}
 	return c.send(data)
 }
 

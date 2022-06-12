@@ -3,11 +3,23 @@ package disorder_test
 import (
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/meerkat-lib/disorder"
 	"github.com/meerkat-lib/disorder/internal/generator/golang"
 	"github.com/meerkat-lib/disorder/internal/loader"
+	"github.com/meerkat-lib/disorder/internal/test_data/test/sub"
+	"github.com/meerkat-lib/disorder/rpc"
 )
+
+type mathService struct {
+}
+
+func (*mathService) Increase(c *rpc.Context, request *int32) (*int32, *rpc.Error) {
+	value := *request
+	value++
+	return &value, nil
+}
 
 func TestLoadYamlFile(t *testing.T) {
 	loader := loader.NewYamlLoader()
@@ -60,4 +72,12 @@ func TestMarshal(t *testing.T) {
 	fmt.Println(output)
 
 	t.Fail()
+}
+
+func TestRpc(t *testing.T) {
+	s := rpc.NewServer()
+	sub.RegisterMathService(s, &mathService{})
+	s.Listen(":8080")
+
+	time.Sleep(time.Second * 3)
 }

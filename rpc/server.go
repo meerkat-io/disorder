@@ -6,12 +6,11 @@ import (
 	"net"
 
 	"github.com/meerkat-lib/disorder"
-	"github.com/meerkat-lib/disorder/internal/utils/logger"
 	"github.com/meerkat-lib/disorder/rpc/code"
 )
 
 type Service interface {
-	Handle(*Context, *disorder.Decoder) interface{}
+	Handle(*Context, string, *disorder.Decoder) (interface{}, *Error)
 }
 
 type Server struct {
@@ -20,29 +19,26 @@ type Server struct {
 }
 
 func NewServer() *Server {
-	return &Server{}
+	return &Server{
+		services: make(map[string]Service),
+	}
 }
 
 func (s *Server) Listen(addr string) error {
-	logger.Infof("listening %s", addr)
 	tcpAddr, err := net.ResolveTCPAddr("tcp", addr)
 	if err != nil {
-		logger.Errorf("listen %s failed: %s", addr, err.Error())
 		return err
 	}
 	socket, err := net.ListenTCP("tcp", tcpAddr)
 	if err != nil {
-		logger.Errorf("listen %s failed: %s", addr, err.Error())
 		return err
 	}
 	s.socket = socket
 	go s.listen()
-	logger.Infof("started listen on %s ", socket.Addr())
 	return nil
 }
 
 func (s *Server) Close() {
-	logger.Infof("stopped listen on %s ", s.socket.Addr())
 	s.socket.Close()
 }
 
@@ -63,7 +59,6 @@ func (s *Server) listen() {
 
 func (s *Server) handle(c *connection) {
 	defer c.close()
-
 	data, err := c.receive()
 	if err != nil {
 		return
@@ -77,23 +72,27 @@ func (s *Server) handle(c *connection) {
 		_ = c.writeError(code.InvalidRequest, err)
 		return
 	}
-
 	serviceName := ""
 	err = d.Decode(serviceName)
 	if err != nil {
 		_ = c.writeError(code.InvalidRequest, err)
 		return
 	}
-
+	methodName := ""
+	err = d.Decode(methodName)
+	if err != nil {
+		_ = c.writeError(code.InvalidRequest, err)
+		return
+	}
 	service, exists := s.services[serviceName]
 	if !exists {
 		_ = c.writeError(code.Unavailable, fmt.Errorf("service \"%s\" not found", serviceName))
 		return
 	}
 
-	response := service.Handle(context, d)
-	if context.errorCode != code.OK {
-		_ = c.writeError(context.errorCode, context.err)
+	response, status := service.Handle(context, methodName, d)
+	if status.Code != code.OK {
+		_ = c.writeError(status.Code, status.Error)
 		return
 	}
 

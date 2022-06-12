@@ -4,9 +4,6 @@ import "github.com/meerkat-lib/disorder/rpc/code"
 
 type Context struct {
 	Headers map[string]string
-
-	errorCode code.Code
-	err       error
 }
 
 func NewContext() *Context {
@@ -15,10 +12,15 @@ func NewContext() *Context {
 	}
 }
 
-func (c *Context) Error(code code.Code, err error) {
-	c.errorCode = code
-	c.err = err
-	if err.Error() == "" {
-		panic("empty error content")
-	}
+func (c *Context) AddHeader(key, value string) {
+	c.Headers[key] = value
+}
+
+func (c *Context) RemoveHeader(key string) {
+	delete(c.Headers, key)
+}
+
+type Error struct {
+	Code  code.Code
+	Error error
 }
