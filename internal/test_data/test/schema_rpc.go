@@ -29,7 +29,7 @@ type primaryServiceClient struct {
 }
 
 func (c *primaryServiceClient) GetAnotherObject(context *rpc.Context, request string) (*AnotherObject, *rpc.Error) {
-	var response *AnotherObject
+	var response *AnotherObject = &AnotherObject{}
 	err := c.client.Send(context, c.name, "get_another_object", request, response)
 	return response, err
 }
