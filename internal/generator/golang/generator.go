@@ -42,6 +42,9 @@ func (g *goGenerator) Generate(dir string, files map[string]*schema.File) error 
 		if len(file.Enums) > 0 {
 			file.DefineImports = append(file.DefineImports, "fmt")
 		}
+		if file.HasTimestampDefine {
+			file.DefineImports = append(file.DefineImports, "time")
+		}
 		file.RpcImports = append(file.RpcImports, "fmt")
 		for importPath := range resolvedImports {
 			file.DefineImports = append(file.DefineImports, importPath)
@@ -50,6 +53,9 @@ func (g *goGenerator) Generate(dir string, files map[string]*schema.File) error 
 		file.RpcImports = append(file.RpcImports, "github.com/meerkat-lib/disorder")
 		file.RpcImports = append(file.RpcImports, "github.com/meerkat-lib/disorder/rpc")
 		file.RpcImports = append(file.RpcImports, "github.com/meerkat-lib/disorder/rpc/code")
+		if file.HasTimestampRpc {
+			file.RpcImports = append(file.RpcImports, "time")
+		}
 
 		schemaDir, err := filepath.Abs(filepath.Join(dir, g.packageFolder(file.Package)))
 		if err != nil {
@@ -179,7 +185,7 @@ var goTypes = map[schema.Type]string{
 	schema.TypeF32:       "float32",
 	schema.TypeF64:       "float64",
 	schema.TypeString:    "string",
-	schema.TypeTimestamp: "int64",
+	schema.TypeTimestamp: "*time.Time",
 }
 
 func goType(typ schema.Type, ref string) string {

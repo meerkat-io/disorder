@@ -60,6 +60,9 @@ func (r *resolver) resolve(files map[string]*schema.File) error {
 				if err := r.resolveType(file.Package, field.Type); err != nil {
 					return fmt.Errorf("resolve type in file [%s] failed: %s", file.FilePath, err.Error())
 				}
+				if field.Type.Type == schema.TypeTimestamp {
+					file.HasTimestampDefine = true
+				}
 			}
 		}
 		for _, service := range file.Services {
@@ -69,6 +72,12 @@ func (r *resolver) resolve(files map[string]*schema.File) error {
 				}
 				if err := r.resolveType(file.Package, rpc.Output); err != nil {
 					return fmt.Errorf("resolve rpc output type in file [%s] failed: %s", file.FilePath, err.Error())
+				}
+				if rpc.Input.Type == schema.TypeTimestamp {
+					file.HasTimestampRpc = true
+				}
+				if rpc.Output.Type == schema.TypeTimestamp {
+					file.HasTimestampRpc = true
 				}
 			}
 		}

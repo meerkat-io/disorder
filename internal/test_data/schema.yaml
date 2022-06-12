@@ -15,6 +15,7 @@ messages:
     int_map: map[i32]
     obj_array: array[test_data.test.sub.sub_object]
     obj_map: map[test_data.test.sub.sub_object]
+    time: timestamp
 
   another_object:
     value: i32
@@ -38,3 +39,7 @@ services:
     print_sub_object:
       input: test_data.test.sub.sub_object
       output: i32
+
+    print_time:
+      input: timestamp
+      output: timestamp

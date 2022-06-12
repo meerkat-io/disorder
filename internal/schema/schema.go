@@ -5,29 +5,28 @@ type Type byte
 const (
 	TypeUndefined Type = 0
 
-	TypeBool   Type = 1
-	TypeI8     Type = 2
-	TypeU8     Type = 3
-	TypeI16    Type = 4
-	TypeU16    Type = 5
-	TypeI32    Type = 6
-	TypeU32    Type = 7
-	TypeI64    Type = 8
-	TypeU64    Type = 9
-	TypeF32    Type = 10
-	TypeF64    Type = 11
-	TypeString Type = 12
+	TypeBool      Type = 1
+	TypeI8        Type = 2
+	TypeU8        Type = 3
+	TypeI16       Type = 4
+	TypeU16       Type = 5
+	TypeI32       Type = 6
+	TypeU32       Type = 7
+	TypeI64       Type = 8
+	TypeU64       Type = 9
+	TypeF32       Type = 10
+	TypeF64       Type = 11
+	TypeString    Type = 12
+	TypeTimestamp Type = 13
 
-	TypeEnum      Type = 13
-	TypeTimestamp Type = 14
-
+	TypeEnum   Type = 14
 	TypeArray  Type = 15
 	TypeMap    Type = 16
 	TypeObject Type = 17
 )
 
 func (t Type) IsPrimary() bool {
-	return t >= TypeBool && t <= TypeString
+	return t >= TypeBool && t <= TypeTimestamp
 }
 
 var (
@@ -93,4 +92,7 @@ type File struct {
 	AbsImports    []string
 	DefineImports []string
 	RpcImports    []string
+
+	HasTimestampDefine bool
+	HasTimestampRpc    bool
 }
