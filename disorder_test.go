@@ -5,53 +5,72 @@ import (
 	"testing"
 	"time"
 
-	"github.com/meerkat-lib/disorder"
 	"github.com/meerkat-lib/disorder/internal/generator/golang"
 	"github.com/meerkat-lib/disorder/internal/loader"
 	"github.com/meerkat-lib/disorder/internal/test_data/test"
 	"github.com/meerkat-lib/disorder/internal/test_data/test/sub"
 	"github.com/meerkat-lib/disorder/rpc"
+	"github.com/stretchr/testify/assert"
 )
 
 type testService struct {
 }
 
 func (*testService) Increase(c *rpc.Context, request int32) (int32, *rpc.Error) {
+	fmt.Printf("input value: %d\n", request)
 	request++
 	return request, nil
 }
 
-func (*testService) GetAnotherObject(c *rpc.Context, request string) (*test.AnotherObject, *rpc.Error) {
-	fmt.Println(request)
-	return &test.AnotherObject{
+func (*testService) PrintObject(c *rpc.Context, request *test.Object) (*test.Object, *rpc.Error) {
+	fmt.Printf("input object: %v\n", *request)
+	t := time.Now()
+	color := test.ColorGreen
+	return &test.Object{
+		Time:        &t,
+		IntField:    456,
+		StringField: "bar",
+		EnumField:   &color,
+		IntArray:    []int32{4, 5, 6},
+		IntMap: map[string]int32{
+			"4": 4,
+			"5": 5,
+			"6": 6,
+		},
+		ObjArray: []*sub.SubObject{{Value: 456}},
+		ObjMap: map[string]*sub.SubObject{
+			"bar": {Value: 456},
+		},
+	}, nil
+}
+
+func (*testService) PrintSubObject(c *rpc.Context, request *sub.SubObject) (*sub.SubObject, *rpc.Error) {
+	fmt.Printf("input sub object: %v\n", *request)
+	return &sub.SubObject{
 		Value: 456,
 	}, nil
 }
 
-func (*testService) PrintSubObject(c *rpc.Context, request *sub.SubObject) (int32, *rpc.Error) {
-	fmt.Printf("%v\n", *request)
-	return 123, nil
-}
-
 func (*testService) PrintTime(c *rpc.Context, request *time.Time) (*time.Time, *rpc.Error) {
-	fmt.Printf("%v\n", *request)
+	fmt.Printf("input time: %v\n", *request)
 	t := time.Now()
 	return &t, nil
 }
 
 func (*testService) PrintArray(c *rpc.Context, request []int32) ([]int32, *rpc.Error) {
-	fmt.Println(request)
+	fmt.Printf("input array: %v\n", request)
 	return []int32{4, 5, 6}, nil
 }
 
 func (*testService) PrintEnum(c *rpc.Context, request *test.Color) (*test.Color, *rpc.Error) {
-	fmt.Println(request.ToString())
+	reqColor, _ := request.ToString()
+	fmt.Printf("input enum: %s\n", reqColor)
 	color := test.ColorGreen
 	return &color, nil
 }
 
 func (*testService) PrintMap(c *rpc.Context, request map[string]string) (map[string]string, *rpc.Error) {
-	fmt.Println(request)
+	fmt.Printf("input map: %s\n", request)
 	return map[string]string{
 		"bar": "foo",
 	}, nil
@@ -60,113 +79,85 @@ func (*testService) PrintMap(c *rpc.Context, request map[string]string) (map[str
 func TestLoadYamlFile(t *testing.T) {
 	loader := loader.NewYamlLoader()
 	files, err := loader.Load("./internal/test_data/schema.yaml")
-	fmt.Println(err)
+	assert.Nil(t, err)
+
 	generator := golang.NewGoGenerator()
 	err = generator.Generate("./internal", files)
-	fmt.Println(err)
-	t.Fail()
+	assert.Nil(t, err)
 }
 
-func TestMarshal(t *testing.T) {
-
-	input := map[string]string{
-		"foo": "bar",
-	}
-	data, err := disorder.Marshal(input)
-	fmt.Println(err)
-	fmt.Println(input)
-	fmt.Println(data)
-	output := make(map[string]string)
-	err = disorder.Unmarshal(data, &output)
-	fmt.Println(err)
-	fmt.Println(output)
-
-	t.Fail()
-}
-
-func TestMarshalTime(t *testing.T) {
-
-	input := time.Now()
-	data, err := disorder.Marshal(&input)
-	fmt.Println(err)
-	fmt.Println(input)
-	fmt.Println(data)
-	output := &time.Time{}
-	err = disorder.Unmarshal(data, output)
-	fmt.Println(err)
-	fmt.Println(output)
-
-	t.Fail()
-}
-
-func TestMarshalEnum(t *testing.T) {
-
-	input := test.ColorRed
-	data, err := disorder.Marshal(&input)
-	fmt.Println(err)
-	fmt.Println(input.ToString())
-	fmt.Println(data)
-	output := test.ColorGreen
-	err = disorder.Unmarshal(data, &output)
-	fmt.Println(err)
-	fmt.Println(output.ToString())
-
-	t.Fail()
-}
-
-func TestRpc(t *testing.T) {
+func TestRpcMath(t *testing.T) {
 	s := rpc.NewServer()
 	sub.RegisterMathServiceServer(s, &testService{})
 	_ = s.Listen(":8888")
 
-	time.Sleep(time.Second)
-
 	c := sub.NewMathServiceClient(rpc.NewClient("localhost:8888"))
 	result, rpcErr := c.Increase(rpc.NewContext(), 17)
-	fmt.Println(rpcErr)
-	fmt.Println(result)
 
-	t.Fail()
+	assert.Nil(t, rpcErr)
+	assert.Equal(t, int32(18), result)
 }
 
-func TestRpc2(t *testing.T) {
+func TestRpcPrimary(t *testing.T) {
 	s := rpc.NewServer()
 	test.RegisterPrimaryServiceServer(s, &testService{})
 	_ = s.Listen(":8888")
 
-	time.Sleep(time.Second)
-
 	c := test.NewPrimaryServiceClient(rpc.NewClient("localhost:8888"))
-	/*
-		result1, rpcErr := c.GetAnotherObject(rpc.NewContext(), "foo.bar")
-		fmt.Println(rpcErr)
-		fmt.Println(*result1)
 
-		result2, rpcErr := c.PrintSubObject(rpc.NewContext(), &sub.SubObject{
-			Value: 789,
-		})
-		fmt.Println(rpcErr)
-		fmt.Println(result2)
+	tt := time.Now()
+	color := test.ColorRed
+	result1, rpcErr := c.PrintObject(rpc.NewContext(), &test.Object{
+		Time:        &tt,
+		IntField:    123,
+		StringField: "foo",
+		EnumField:   &color,
+		IntArray:    []int32{1, 2, 3},
+		IntMap: map[string]int32{
+			"1": 1,
+			"2": 2,
+			"3": 3,
+		},
+		ObjArray: []*sub.SubObject{{Value: 123}},
+		ObjMap: map[string]*sub.SubObject{
+			"foo": {Value: 123},
+		},
+	})
+	assert.Nil(t, rpcErr)
+	assert.Equal(t, int32(456), result1.IntField)
+	assert.Equal(t, "bar", result1.StringField)
+	newColor, err := result1.EnumField.ToString()
+	assert.Nil(t, err)
+	assert.Equal(t, "green", newColor)
+	assert.Equal(t, int32(4), result1.IntArray[0])
+	assert.Equal(t, int32(4), result1.IntMap["4"])
+	assert.Equal(t, int32(456), result1.ObjArray[0].Value)
+	assert.Equal(t, int32(456), result1.ObjMap["bar"].Value)
 
-		tt := time.Now()
-		result3, rpcErr := c.PrintTime(rpc.NewContext(), &tt)
-		fmt.Println(rpcErr)
-		fmt.Println(*result3)
+	result2, rpcErr := c.PrintSubObject(rpc.NewContext(), &sub.SubObject{
+		Value: 123,
+	})
+	assert.Nil(t, rpcErr)
+	assert.Equal(t, int32(456), result2.Value)
 
-		result4, rpcErr := c.PrintArray(rpc.NewContext(), []int32{1, 2, 3})
-		fmt.Println(rpcErr)
-		fmt.Println(result4)
+	result3, rpcErr := c.PrintTime(rpc.NewContext(), &tt)
+	assert.Nil(t, rpcErr)
+	fmt.Printf("output time: %v", *result3)
 
-		color := test.ColorRed
-		result5, rpcErr := c.PrintEnum(rpc.NewContext(), &color)
-		fmt.Println(rpcErr)
-		fmt.Println(result5.ToString())*/
+	result4, rpcErr := c.PrintArray(rpc.NewContext(), []int32{1, 2, 3})
+	assert.Nil(t, rpcErr)
+	assert.Equal(t, 3, len(result4))
+	assert.Equal(t, int32(4), result4[0])
+
+	result5, rpcErr := c.PrintEnum(rpc.NewContext(), &color)
+	assert.Nil(t, rpcErr)
+	newColor, err = result5.ToString()
+	assert.Nil(t, err)
+	assert.Equal(t, "green", newColor)
 
 	result6, rpcErr := c.PrintMap(rpc.NewContext(), map[string]string{
 		"foo": "bar",
 	})
-	fmt.Println(rpcErr)
-	fmt.Println(result6)
-
-	t.Fail()
+	assert.Nil(t, rpcErr)
+	assert.Equal(t, "foo", result6["bar"])
 }

@@ -17,9 +17,6 @@ messages:
     obj_map: map[test_data.test.sub.sub_object]
     time: timestamp
 
-  another_object:
-    value: i32
-
 enums:
   color:
     - red
@@ -32,13 +29,13 @@ enums:
 
 services:
   primary_service:
-    get_another_object:
-      input: string
-      output: another_object
+    print_object:
+      input: object
+      output: object
 
     print_sub_object:
       input: test_data.test.sub.sub_object
-      output: i32
+      output: test_data.test.sub.sub_object
 
     print_time:
       input: timestamp
