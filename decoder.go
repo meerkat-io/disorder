@@ -285,6 +285,10 @@ func (d *Decoder) readArray(value reflect.Value) error {
 	values := []reflect.Value{}
 	for t != tagEndArray {
 		element := reflect.New(elementType).Elem()
+		if element.Kind() == reflect.Ptr && element.IsNil() {
+			elementValue := reflect.New(element.Type().Elem())
+			element.Set(elementValue)
+		}
 		err = d.read(t, element)
 		if err != nil {
 			return err
@@ -296,7 +300,6 @@ func (d *Decoder) readArray(value reflect.Value) error {
 		values = append(values, element)
 	}
 	count := len(values)
-
 	switch value.Kind() {
 	case reflect.Slice:
 		value.Set(reflect.MakeSlice(value.Type(), count, count))
@@ -334,6 +337,10 @@ func (d *Decoder) readObject(value reflect.Value) error {
 			}
 			if fieldInfo, exists := info.fieldsMap[name]; exists {
 				field := value.Field(fieldInfo.index)
+				if field.Kind() == reflect.Ptr && field.IsNil() {
+					fieldValue := reflect.New(field.Type().Elem())
+					field.Set(fieldValue)
+				}
 				err = d.read(t, field)
 				if err != nil {
 					return fmt.Errorf("assign \"%s\" to field \"%s\" in struct \"%s\" failed: %s", field.Type(), name, value.Type(), err.Error())
@@ -381,6 +388,10 @@ func (d *Decoder) readObject(value reflect.Value) error {
 			return err
 		}
 		element := reflect.New(elementType).Elem()
+		if element.Kind() == reflect.Ptr && element.IsNil() {
+			elementValue := reflect.New(element.Type().Elem())
+			element.Set(elementValue)
+		}
 		err = d.read(t, element)
 		if err != nil {
 			return err

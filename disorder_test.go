@@ -5,6 +5,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/meerkat-lib/disorder"
 	"github.com/meerkat-lib/disorder/internal/generator/golang"
 	"github.com/meerkat-lib/disorder/internal/loader"
 	"github.com/meerkat-lib/disorder/internal/test_data/test"
@@ -86,12 +87,45 @@ func TestLoadYamlFile(t *testing.T) {
 	assert.Nil(t, err)
 }
 
+func TestMarshal(t *testing.T) {
+	tt := time.Now()
+	color := test.ColorRed
+	data, err := disorder.Marshal(&test.Object{
+		Time:        &tt,
+		IntField:    123,
+		StringField: "foo",
+		EnumField:   &color,
+		IntArray:    []int32{1, 2, 3},
+		IntMap: map[string]int32{
+			"1": 1,
+			"2": 2,
+			"3": 3,
+		},
+		ObjArray: []*sub.SubObject{{Value: 123}},
+		ObjMap: map[string]*sub.SubObject{
+			"foo": {Value: 123},
+		},
+	})
+	fmt.Println(data)
+	assert.Nil(t, err)
+
+	var result interface{}
+	err = disorder.Unmarshal(data, &result)
+	fmt.Printf("%v\n", result)
+	assert.Nil(t, err)
+
+	result2 := test.Object{}
+	err = disorder.Unmarshal(data, &result2)
+	fmt.Printf("%v\n", result2)
+	assert.Nil(t, err)
+}
+
 func TestRpcMath(t *testing.T) {
 	s := rpc.NewServer()
 	sub.RegisterMathServiceServer(s, &testService{})
-	_ = s.Listen(":8888")
+	_ = s.Listen(":9999")
 
-	c := sub.NewMathServiceClient(rpc.NewClient("localhost:8888"))
+	c := sub.NewMathServiceClient(rpc.NewClient("localhost:9999"))
 	result, rpcErr := c.Increase(rpc.NewContext(), 17)
 
 	assert.Nil(t, rpcErr)
