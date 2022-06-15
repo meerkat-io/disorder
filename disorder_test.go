@@ -123,7 +123,8 @@ func TestMarshal(t *testing.T) {
 func TestRpcMath(t *testing.T) {
 	s := rpc.NewServer()
 	sub.RegisterMathServiceServer(s, &testService{})
-	_ = s.Listen(":9999")
+	err := s.Listen(":9999")
+	assert.Nil(t, err)
 
 	c := sub.NewMathServiceClient(rpc.NewClient("localhost:9999"))
 	result, rpcErr := c.Increase(rpc.NewContext(), 17)

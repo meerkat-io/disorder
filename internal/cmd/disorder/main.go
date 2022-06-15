@@ -15,13 +15,13 @@ import (
 type flags struct {
 	Help bool `flag:"h" usage:"help"`
 	//Lang   string `flag:"t" usage:"language template" tip:"go|cs|java" required:"true"`
-	Input  string `flag:"i" usage:"input schema file" tip:"input" required:"true"`
+	Input  string `flag:"i" usage:"input schema (yaml, json or toml)" tip:"input" required:"true"`
 	Output string `flag:"o" usage:"output folder" tip:"output" default:"."`
 }
 
 func main() {
 	f := &flags{}
-	err := flag.Parse(f)
+	err := flag.ParseCommandLine(f)
 	if f.Help {
 		flag.Usage()
 		os.Exit(0)

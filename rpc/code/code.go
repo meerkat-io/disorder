@@ -18,4 +18,5 @@ const (
 	Unavailable         Code = 11
 	Unauthenticated     Code = 12
 	NetworkDisconnected Code = 13
+	InvalidHost         Code = 14
 )

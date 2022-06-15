@@ -3,7 +3,8 @@ package rpc
 import (
 	"bytes"
 	"fmt"
-	"net"
+
+	"github.com/meerkat-io/bloom/tcp"
 
 	"github.com/meerkat-io/disorder"
 	"github.com/meerkat-io/disorder/rpc/code"
@@ -14,7 +15,7 @@ type Service interface {
 }
 
 type Server struct {
-	socket   *net.TCPListener
+	listener *tcp.Listener
 	services map[string]Service
 }
 
@@ -25,74 +26,54 @@ func NewServer() *Server {
 }
 
 func (s *Server) Listen(addr string) error {
-	tcpAddr, err := net.ResolveTCPAddr("tcp", addr)
-	if err != nil {
-		return err
-	}
-	socket, err := net.ListenTCP("tcp", tcpAddr)
-	if err != nil {
-		return err
-	}
-	s.socket = socket
-	go s.listen()
-	return nil
+	l, err := tcp.Listen(addr, s)
+	s.listener = l
+	return err
 }
 
 func (s *Server) Close() {
-	s.socket.Close()
+	s.listener.Close()
 }
 
 func (s *Server) RegisterService(serviceName string, service Service) {
 	s.services[serviceName] = service
 }
 
-func (s *Server) listen() {
-	for {
-		if socket, err := s.socket.AcceptTCP(); err == nil {
-			conn := newConnection(socket)
-			go s.handle(conn)
-		} else {
-			return
-		}
-	}
-}
-
-func (s *Server) handle(c *connection) {
-	defer c.close()
-	data, err := c.receive()
+func (s *Server) Accept(conn *tcp.Connection) {
+	defer conn.Close()
+	data, err := conn.Receive()
 	if err != nil {
 		return
 	}
-
 	context := NewContext()
 	reader := bytes.NewBuffer(data)
 	d := disorder.NewDecoder(reader)
 	err = d.Decode(context.Headers)
 	if err != nil {
-		s.writeError(c, code.InvalidRequest, err)
+		s.writeError(conn, code.InvalidRequest, err)
 		return
 	}
 	var serviceName title
 	err = d.Decode(&serviceName)
 	if err != nil {
-		s.writeError(c, code.InvalidRequest, err)
+		s.writeError(conn, code.InvalidRequest, err)
 		return
 	}
 	var methodName title
 	err = d.Decode(&methodName)
 	if err != nil {
-		s.writeError(c, code.InvalidRequest, err)
+		s.writeError(conn, code.InvalidRequest, err)
 		return
 	}
 	service, exists := s.services[string(serviceName)]
 	if !exists {
-		s.writeError(c, code.Unavailable, fmt.Errorf("service \"%s\" not found", serviceName))
+		s.writeError(conn, code.Unavailable, fmt.Errorf("service \"%s\" not found", serviceName))
 		return
 	}
-
+	fmt.Println("+++++++=")
 	response, status := service.Handle(context, string(methodName), d)
 	if status != nil && status.Code != code.OK {
-		s.writeError(c, status.Code, status.Error)
+		s.writeError(conn, status.Code, status.Error)
 		return
 	}
 	writer := &bytes.Buffer{}
@@ -100,13 +81,13 @@ func (s *Server) handle(c *connection) {
 	_ = e.Encode(byte(code.OK))
 	err = e.Encode(response)
 	if err != nil {
-		s.writeError(c, code.Internal, err)
+		s.writeError(conn, code.Internal, err)
 		return
 	}
-	_ = c.send(writer.Bytes())
+	_ = conn.Send(writer.Bytes())
 }
 
-func (s *Server) writeError(c *connection, code code.Code, err error) {
+func (s *Server) writeError(conn *tcp.Connection, code code.Code, err error) {
 	writer := &bytes.Buffer{}
 	e := disorder.NewEncoder(writer)
 	status := byte(code)
@@ -115,5 +96,5 @@ func (s *Server) writeError(c *connection, code code.Code, err error) {
 	if err != nil {
 		return
 	}
-	_ = c.send(writer.Bytes())
+	_ = conn.Send(writer.Bytes())
 }
