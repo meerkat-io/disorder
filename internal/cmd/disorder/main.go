@@ -5,10 +5,11 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/meerkat-lib/disorder/internal/generator/golang"
-	"github.com/meerkat-lib/disorder/internal/loader"
-	"github.com/meerkat-lib/disorder/internal/utils/flag"
-	"github.com/meerkat-lib/disorder/internal/utils/folder"
+	"github.com/meerkat-io/bloom/flag"
+	"github.com/meerkat-io/bloom/folder"
+
+	"github.com/meerkat-io/disorder/internal/generator/golang"
+	"github.com/meerkat-io/disorder/internal/loader"
 )
 
 type flags struct {
@@ -31,7 +32,7 @@ func main() {
 		os.Exit(0)
 	}
 
-	if exists := folder.Exist(f.Output); !exists {
+	if exists := folder.Exists(f.Output); !exists {
 		fmt.Printf("folder \"%s\" does not exist\n", f.Output)
 		os.Exit(0)
 	}

@@ -7,10 +7,6 @@ import (
 	"sync"
 )
 
-type IsZeroer interface {
-	IsZero() bool
-}
-
 var (
 	structsMap      = make(map[reflect.Type]*structInfo)
 	structsMapMutex sync.RWMutex
@@ -88,12 +84,6 @@ func getStructInfo(typ reflect.Type) (*structInfo, error) {
 
 func isZero(value reflect.Value) bool {
 	kind := value.Kind()
-	if z, ok := value.Interface().(IsZeroer); ok {
-		if (kind == reflect.Ptr || kind == reflect.Interface) && value.IsNil() {
-			return true
-		}
-		return z.IsZero()
-	}
 	switch kind {
 	case reflect.String:
 		return len(value.String()) == 0

@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"net"
 
-	"github.com/meerkat-lib/disorder"
-	"github.com/meerkat-lib/disorder/rpc/code"
+	"github.com/meerkat-io/disorder"
+	"github.com/meerkat-io/disorder/rpc/code"
 )
 
 type Service interface {

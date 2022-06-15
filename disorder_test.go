@@ -5,12 +5,12 @@ import (
 	"testing"
 	"time"
 
-	"github.com/meerkat-lib/disorder"
-	"github.com/meerkat-lib/disorder/internal/generator/golang"
-	"github.com/meerkat-lib/disorder/internal/loader"
-	"github.com/meerkat-lib/disorder/internal/test_data/test"
-	"github.com/meerkat-lib/disorder/internal/test_data/test/sub"
-	"github.com/meerkat-lib/disorder/rpc"
+	"github.com/meerkat-io/disorder"
+	"github.com/meerkat-io/disorder/internal/generator/golang"
+	"github.com/meerkat-io/disorder/internal/loader"
+	"github.com/meerkat-io/disorder/internal/test_data/test"
+	"github.com/meerkat-io/disorder/internal/test_data/test/sub"
+	"github.com/meerkat-io/disorder/rpc"
 	"github.com/stretchr/testify/assert"
 )
 

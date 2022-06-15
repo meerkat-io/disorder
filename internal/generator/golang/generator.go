@@ -9,10 +9,11 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/meerkat-lib/disorder/internal/generator"
-	"github.com/meerkat-lib/disorder/internal/schema"
-	"github.com/meerkat-lib/disorder/internal/utils/folder"
-	"github.com/meerkat-lib/disorder/internal/utils/strcase"
+	"github.com/meerkat-io/bloom/folder"
+	"github.com/meerkat-io/bloom/format/strcase"
+
+	"github.com/meerkat-io/disorder/internal/generator"
+	"github.com/meerkat-io/disorder/internal/schema"
 )
 
 const (
@@ -53,9 +54,9 @@ func (g *goGenerator) Generate(dir string, files map[string]*schema.File) error 
 			file.DefineImports = append(file.DefineImports, importPath)
 			file.RpcImports = append(file.RpcImports, importPath)
 		}
-		file.RpcImports = append(file.RpcImports, "github.com/meerkat-lib/disorder")
-		file.RpcImports = append(file.RpcImports, "github.com/meerkat-lib/disorder/rpc")
-		file.RpcImports = append(file.RpcImports, "github.com/meerkat-lib/disorder/rpc/code")
+		file.RpcImports = append(file.RpcImports, "github.com/meerkat-io/disorder")
+		file.RpcImports = append(file.RpcImports, "github.com/meerkat-io/disorder/rpc")
+		file.RpcImports = append(file.RpcImports, "github.com/meerkat-io/disorder/rpc/code")
 
 		schemaDir, err := filepath.Abs(filepath.Join(dir, g.packageFolder(file.Package)))
 		if err != nil {

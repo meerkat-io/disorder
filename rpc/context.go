@@ -1,6 +1,6 @@
 package rpc
 
-import "github.com/meerkat-lib/disorder/rpc/code"
+import "github.com/meerkat-io/disorder/rpc/code"
 
 type Context struct {
 	Headers map[string]string

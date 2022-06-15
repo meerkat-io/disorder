@@ -3,7 +3,7 @@ package loader
 import (
 	"regexp"
 
-	"github.com/meerkat-lib/disorder/internal/schema"
+	"github.com/meerkat-io/disorder/internal/schema"
 )
 
 type validator struct {
