@@ -72,17 +72,17 @@ func (e *Encoder) write(value reflect.Value) error {
 	case reflect.Uint16:
 		bytes = make([]byte, 3)
 		bytes[0] = byte(tagU16)
-		binary.LittleEndian.PutUint16(bytes[1:], uint16(value.Uint()))
+		binary.BigEndian.PutUint16(bytes[1:], uint16(value.Uint()))
 
 	case reflect.Uint32, reflect.Uint:
 		bytes = make([]byte, 5)
 		bytes[0] = byte(tagU32)
-		binary.LittleEndian.PutUint32(bytes[1:], uint32(value.Uint()))
+		binary.BigEndian.PutUint32(bytes[1:], uint32(value.Uint()))
 
 	case reflect.Uint64:
 		bytes = make([]byte, 9)
 		bytes[0] = byte(tagU64)
-		binary.LittleEndian.PutUint64(bytes[1:], uint64(value.Uint()))
+		binary.BigEndian.PutUint64(bytes[1:], uint64(value.Uint()))
 
 	case reflect.Int8:
 		bytes = make([]byte, 2)
@@ -92,33 +92,33 @@ func (e *Encoder) write(value reflect.Value) error {
 	case reflect.Int16:
 		bytes = make([]byte, 3)
 		bytes[0] = byte(tagI16)
-		binary.LittleEndian.PutUint16(bytes[1:], uint16(value.Int()))
+		binary.BigEndian.PutUint16(bytes[1:], uint16(value.Int()))
 
 	case reflect.Int32, reflect.Int:
 		bytes = make([]byte, 5)
 		bytes[0] = byte(tagI32)
-		binary.LittleEndian.PutUint32(bytes[1:], uint32(value.Int()))
+		binary.BigEndian.PutUint32(bytes[1:], uint32(value.Int()))
 
 	case reflect.Int64:
 		bytes = make([]byte, 9)
 		bytes[0] = byte(tagI64)
-		binary.LittleEndian.PutUint64(bytes[1:], uint64(value.Int()))
+		binary.BigEndian.PutUint64(bytes[1:], uint64(value.Int()))
 
 	case reflect.Float32:
 		bytes = make([]byte, 5)
 		bytes[0] = byte(tagF32)
-		binary.LittleEndian.PutUint32(bytes[1:], math.Float32bits(float32(value.Float())))
+		binary.BigEndian.PutUint32(bytes[1:], math.Float32bits(float32(value.Float())))
 
 	case reflect.Float64:
 		bytes = make([]byte, 9)
 		bytes[0] = byte(tagF64)
-		binary.LittleEndian.PutUint64(bytes[1:], math.Float64bits(value.Float()))
+		binary.BigEndian.PutUint64(bytes[1:], math.Float64bits(value.Float()))
 
 	case reflect.String:
 		bytes = make([]byte, 5)
 		bytes[0] = byte(tagString)
 		str := value.String()
-		binary.LittleEndian.PutUint32(bytes[1:], uint32(len(str)))
+		binary.BigEndian.PutUint32(bytes[1:], uint32(len(str)))
 		bytes = append(bytes, []byte(str)...)
 
 	case reflect.Slice, reflect.Array:
@@ -214,7 +214,7 @@ func (e *Encoder) writeObject(value reflect.Value) error {
 func (e *Encoder) writeTime(t *time.Time) error {
 	bytes := make([]byte, 9)
 	bytes[0] = byte(tagTimestamp)
-	binary.LittleEndian.PutUint64(bytes[1:], uint64(t.Unix()))
+	binary.BigEndian.PutUint64(bytes[1:], uint64(t.Unix()))
 	_, err := e.writer.Write(bytes)
 	return err
 }

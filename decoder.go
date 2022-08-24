@@ -108,7 +108,7 @@ func (d *Decoder) read(t tag, value reflect.Value) error {
 		if err != nil {
 			return err
 		}
-		resolved = binary.LittleEndian.Uint16(bytes)
+		resolved = binary.BigEndian.Uint16(bytes)
 		if value.Kind() == reflect.Uint16 {
 			value.SetUint(uint64(resolved.(uint16)))
 			return nil
@@ -120,7 +120,7 @@ func (d *Decoder) read(t tag, value reflect.Value) error {
 		if err != nil {
 			return err
 		}
-		resolved = binary.LittleEndian.Uint32(bytes)
+		resolved = binary.BigEndian.Uint32(bytes)
 		if value.Kind() == reflect.Uint32 || value.Kind() == reflect.Int32 {
 			value.SetUint(uint64(resolved.(uint32)))
 			return nil
@@ -132,7 +132,7 @@ func (d *Decoder) read(t tag, value reflect.Value) error {
 		if err != nil {
 			return err
 		}
-		resolved = binary.LittleEndian.Uint64(bytes)
+		resolved = binary.BigEndian.Uint64(bytes)
 		if value.Kind() == reflect.Uint64 {
 			value.SetUint(resolved.(uint64))
 			return nil
@@ -156,7 +156,7 @@ func (d *Decoder) read(t tag, value reflect.Value) error {
 		if err != nil {
 			return err
 		}
-		resolved = int16(binary.LittleEndian.Uint16(bytes))
+		resolved = int16(binary.BigEndian.Uint16(bytes))
 		if value.Kind() == reflect.Int16 {
 			value.SetInt(int64(resolved.(int16)))
 			return nil
@@ -168,7 +168,7 @@ func (d *Decoder) read(t tag, value reflect.Value) error {
 		if err != nil {
 			return err
 		}
-		resolved = int32(binary.LittleEndian.Uint32(bytes))
+		resolved = int32(binary.BigEndian.Uint32(bytes))
 		if value.Kind() == reflect.Int32 || value.Kind() == reflect.Int {
 			value.SetInt(int64(resolved.(int32)))
 			return nil
@@ -180,7 +180,7 @@ func (d *Decoder) read(t tag, value reflect.Value) error {
 		if err != nil {
 			return err
 		}
-		resolved = int64(binary.LittleEndian.Uint64(bytes))
+		resolved = int64(binary.BigEndian.Uint64(bytes))
 		if value.Kind() == reflect.Int64 {
 			value.SetInt(resolved.(int64))
 			return nil
@@ -192,7 +192,7 @@ func (d *Decoder) read(t tag, value reflect.Value) error {
 		if err != nil {
 			return err
 		}
-		resolved = math.Float32frombits(binary.LittleEndian.Uint32(bytes))
+		resolved = math.Float32frombits(binary.BigEndian.Uint32(bytes))
 		if value.Kind() == reflect.Float32 {
 			value.SetFloat(float64(resolved.(float32)))
 			return nil
@@ -204,7 +204,7 @@ func (d *Decoder) read(t tag, value reflect.Value) error {
 		if err != nil {
 			return err
 		}
-		resolved = math.Float64frombits(binary.LittleEndian.Uint64(bytes))
+		resolved = math.Float64frombits(binary.BigEndian.Uint64(bytes))
 		if value.Kind() == reflect.Float64 {
 			value.SetFloat(resolved.(float64))
 			return nil
@@ -216,7 +216,7 @@ func (d *Decoder) read(t tag, value reflect.Value) error {
 		if err != nil {
 			return err
 		}
-		count := binary.LittleEndian.Uint32(bytes)
+		count := binary.BigEndian.Uint32(bytes)
 		resolved = ""
 		if count > 0 {
 			bytes = make([]byte, count)
@@ -406,7 +406,7 @@ func (d *Decoder) readTime() (*time.Time, error) {
 	if err != nil {
 		return nil, err
 	}
-	timestamp := int64(binary.LittleEndian.Uint64(bytes))
+	timestamp := int64(binary.BigEndian.Uint64(bytes))
 	t := time.Unix(timestamp, 0)
 	return &t, nil
 }
@@ -463,7 +463,7 @@ func (d *Decoder) skip(t tag) error {
 		if err != nil {
 			return err
 		}
-		count := binary.LittleEndian.Uint32(bytes)
+		count := binary.BigEndian.Uint32(bytes)
 		return d.skipBytes(int(count))
 
 	case tagEnum:
