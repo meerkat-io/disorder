@@ -22,7 +22,7 @@ const (
 )
 
 func (t Type) IsPrimary() bool {
-	return t >= TypeBool && t <= TypeTimestamp
+	return t >= TypeBool && t <= TypeAny
 }
 
 var (

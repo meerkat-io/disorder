@@ -13,12 +13,12 @@ import (
 type primaryServiceHandler func(*rpc.Context, *disorder.Decoder) (interface{}, *rpc.Error)
 
 type PrimaryService interface {
-	PrintMap(*rpc.Context, map[string]string) (map[string]string, *rpc.Error)
 	PrintObject(*rpc.Context, *Object) (*Object, *rpc.Error)
 	PrintSubObject(*rpc.Context, *sub.SubObject) (*sub.SubObject, *rpc.Error)
 	PrintTime(*rpc.Context, *time.Time) (*time.Time, *rpc.Error)
 	PrintArray(*rpc.Context, []int32) ([]int32, *rpc.Error)
 	PrintEnum(*rpc.Context, *Color) (*Color, *rpc.Error)
+	PrintMap(*rpc.Context, map[string]string) (map[string]string, *rpc.Error)
 }
 
 func NewPrimaryServiceClient(client *rpc.Client) PrimaryService {
@@ -31,12 +31,6 @@ func NewPrimaryServiceClient(client *rpc.Client) PrimaryService {
 type primaryServiceClient struct {
 	name   string
 	client *rpc.Client
-}
-
-func (c *primaryServiceClient) PrintMap(context *rpc.Context, request map[string]string) (map[string]string, *rpc.Error) {
-	var response map[string]string = make(map[string]string)
-	err := c.client.Send(context, c.name, "print_map", request, &response)
-	return response, err
 }
 
 func (c *primaryServiceClient) PrintObject(context *rpc.Context, request *Object) (*Object, *rpc.Error) {
@@ -69,6 +63,12 @@ func (c *primaryServiceClient) PrintEnum(context *rpc.Context, request *Color) (
 	return response, err
 }
 
+func (c *primaryServiceClient) PrintMap(context *rpc.Context, request map[string]string) (map[string]string, *rpc.Error) {
+	var response map[string]string = make(map[string]string)
+	err := c.client.Send(context, c.name, "print_map", request, &response)
+	return response, err
+}
+
 type primaryServiceServer struct {
 	name    string
 	service PrimaryService
@@ -81,12 +81,12 @@ func RegisterPrimaryServiceServer(s *rpc.Server, service PrimaryService) {
 		service: service,
 	}
 	server.methods = map[string]primaryServiceHandler{
-		"print_map":        server.printMap,
 		"print_object":     server.printObject,
 		"print_sub_object": server.printSubObject,
 		"print_time":       server.printTime,
 		"print_array":      server.printArray,
 		"print_enum":       server.printEnum,
+		"print_map":        server.printMap,
 	}
 	s.RegisterService("primary_service", server)
 }
@@ -100,22 +100,6 @@ func (s *primaryServiceServer) Handle(context *rpc.Context, method string, d *di
 		Code:  code.Unimplemented,
 		Error: fmt.Errorf("Unimplemented method \"%s\" under service \"%s\"", method, s.name),
 	}
-}
-
-func (s *primaryServiceServer) printMap(context *rpc.Context, d *disorder.Decoder) (interface{}, *rpc.Error) {
-	var request map[string]string = make(map[string]string)
-	err := d.Decode(&request)
-	if err != nil {
-		return nil, &rpc.Error{
-			Code:  code.InvalidRequest,
-			Error: err,
-		}
-	}
-	response, rpcErr := s.service.PrintMap(context, request)
-	if rpcErr != nil {
-		return nil, rpcErr
-	}
-	return response, nil
 }
 
 func (s *primaryServiceServer) printObject(context *rpc.Context, d *disorder.Decoder) (interface{}, *rpc.Error) {
@@ -192,6 +176,22 @@ func (s *primaryServiceServer) printEnum(context *rpc.Context, d *disorder.Decod
 		}
 	}
 	response, rpcErr := s.service.PrintEnum(context, request)
+	if rpcErr != nil {
+		return nil, rpcErr
+	}
+	return response, nil
+}
+
+func (s *primaryServiceServer) printMap(context *rpc.Context, d *disorder.Decoder) (interface{}, *rpc.Error) {
+	var request map[string]string = make(map[string]string)
+	err := d.Decode(&request)
+	if err != nil {
+		return nil, &rpc.Error{
+			Code:  code.InvalidRequest,
+			Error: err,
+		}
+	}
+	response, rpcErr := s.service.PrintMap(context, request)
 	if rpcErr != nil {
 		return nil, rpcErr
 	}
