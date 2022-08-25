@@ -3,6 +3,8 @@ package schema
 type Type byte
 
 const (
+	TypeUndefined Type = 0
+
 	TypeBool      Type = 1
 	TypeInt       Type = 2
 	TypeLong      Type = 3
