@@ -103,7 +103,6 @@ func (d *Decoder) read(t tag, value reflect.Value) error {
 			return nil
 
 		case reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int:
-			resolved = int32(binary.BigEndian.Uint32(bytes))
 			value.SetInt(int64(int32(resolved.(uint32))))
 			return nil
 		}
