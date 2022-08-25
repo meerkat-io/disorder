@@ -31,7 +31,6 @@ func getStructInfo(typ reflect.Type) (*structInfo, error) {
 		return s, nil
 	}
 
-	fmt.Println("create new struct info:", typ.String())
 	count := typ.NumField()
 	s = &structInfo{
 		fieldsMap:  map[string]*fieldInfo{},

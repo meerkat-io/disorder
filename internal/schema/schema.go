@@ -3,26 +3,20 @@ package schema
 type Type byte
 
 const (
-	TypeUndefined Type = 0
-
 	TypeBool      Type = 1
-	TypeI8        Type = 2
-	TypeU8        Type = 3
-	TypeI16       Type = 4
-	TypeU16       Type = 5
-	TypeI32       Type = 6
-	TypeU32       Type = 7
-	TypeI64       Type = 8
-	TypeU64       Type = 9
-	TypeF32       Type = 10
-	TypeF64       Type = 11
-	TypeString    Type = 12
-	TypeTimestamp Type = 13
+	TypeInt       Type = 2
+	TypeLong      Type = 3
+	TypeFloat     Type = 4
+	TypeDouble    Type = 5
+	TypeString    Type = 6
+	TypeBytes     Type = 7
+	TypeTimestamp Type = 8
+	TypeAny       Type = 9
 
-	TypeEnum   Type = 14
-	TypeArray  Type = 15
-	TypeMap    Type = 16
-	TypeObject Type = 17
+	TypeEnum   Type = 10
+	TypeArray  Type = 11
+	TypeMap    Type = 12
+	TypeObject Type = 13
 )
 
 func (t Type) IsPrimary() bool {
@@ -32,18 +26,14 @@ func (t Type) IsPrimary() bool {
 var (
 	PrimaryTypes = map[string]Type{
 		"bool":      TypeBool,
-		"i8":        TypeI8,
-		"u8":        TypeU8,
-		"i16":       TypeI16,
-		"u16":       TypeU16,
-		"i32":       TypeI32,
-		"u32":       TypeU32,
-		"i64":       TypeI64,
-		"u64":       TypeU64,
-		"f32":       TypeF32,
-		"f64":       TypeF64,
+		"int":       TypeInt,
+		"long":      TypeLong,
+		"float":     TypeFloat,
+		"double":    TypeDouble,
 		"string":    TypeString,
+		"bytes":     TypeBytes,
 		"timestamp": TypeTimestamp,
+		"any":       TypeAny,
 	}
 )
 

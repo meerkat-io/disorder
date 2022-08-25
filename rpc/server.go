@@ -70,7 +70,6 @@ func (s *Server) Accept(conn *tcp.Connection) {
 		s.writeError(conn, code.Unavailable, fmt.Errorf("service \"%s\" not found", serviceName))
 		return
 	}
-	fmt.Println("+++++++=")
 	response, status := service.Handle(context, string(methodName), d)
 	if status != nil && status.Code != code.OK {
 		s.writeError(conn, status.Code, status.Error)

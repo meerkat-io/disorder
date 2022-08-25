@@ -64,54 +64,34 @@ func (e *Encoder) write(value reflect.Value) error {
 			bytes[1] = 0
 		}
 
-	case reflect.Uint8:
-		bytes = make([]byte, 2)
-		bytes[0] = byte(tagU8)
-		bytes[1] = byte(uint8(value.Uint()))
-
-	case reflect.Uint16:
-		bytes = make([]byte, 3)
-		bytes[0] = byte(tagU16)
-		binary.BigEndian.PutUint16(bytes[1:], uint16(value.Uint()))
-
-	case reflect.Uint32, reflect.Uint:
+	case reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint:
 		bytes = make([]byte, 5)
-		bytes[0] = byte(tagU32)
+		bytes[0] = byte(tagInt)
 		binary.BigEndian.PutUint32(bytes[1:], uint32(value.Uint()))
 
 	case reflect.Uint64:
 		bytes = make([]byte, 9)
-		bytes[0] = byte(tagU64)
-		binary.BigEndian.PutUint64(bytes[1:], uint64(value.Uint()))
+		bytes[0] = byte(tagLong)
+		binary.BigEndian.PutUint64(bytes[1:], value.Uint())
 
-	case reflect.Int8:
-		bytes = make([]byte, 2)
-		bytes[0] = byte(tagI8)
-		bytes[1] = byte(int8(value.Int()))
-
-	case reflect.Int16:
-		bytes = make([]byte, 3)
-		bytes[0] = byte(tagI16)
-		binary.BigEndian.PutUint16(bytes[1:], uint16(value.Int()))
-
-	case reflect.Int32, reflect.Int:
+	case reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int:
 		bytes = make([]byte, 5)
-		bytes[0] = byte(tagI32)
+		bytes[0] = byte(tagInt)
 		binary.BigEndian.PutUint32(bytes[1:], uint32(value.Int()))
 
 	case reflect.Int64:
 		bytes = make([]byte, 9)
-		bytes[0] = byte(tagI64)
+		bytes[0] = byte(tagLong)
 		binary.BigEndian.PutUint64(bytes[1:], uint64(value.Int()))
 
 	case reflect.Float32:
 		bytes = make([]byte, 5)
-		bytes[0] = byte(tagF32)
+		bytes[0] = byte(tagFloat)
 		binary.BigEndian.PutUint32(bytes[1:], math.Float32bits(float32(value.Float())))
 
 	case reflect.Float64:
 		bytes = make([]byte, 9)
-		bytes[0] = byte(tagF64)
+		bytes[0] = byte(tagDouble)
 		binary.BigEndian.PutUint64(bytes[1:], math.Float64bits(value.Float()))
 
 	case reflect.String:
@@ -122,6 +102,7 @@ func (e *Encoder) write(value reflect.Value) error {
 		bytes = append(bytes, []byte(str)...)
 
 	case reflect.Slice, reflect.Array:
+		//TO-DO check bytes
 		return e.writeArray(value)
 
 	case reflect.Map:

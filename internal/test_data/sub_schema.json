@@ -5,14 +5,14 @@
   },
   "messages": {
     "sub_object": {
-      "value": "i32"
+      "value": "int"
     }
   },
   "services": {
     "math_service": {
       "increase": {
-        "input":"i32",
-        "output":"i32"
+        "input":"int",
+        "output":"int"
       }
     }
   }

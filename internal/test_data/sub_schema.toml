@@ -6,12 +6,12 @@ package = "test_data.test.sub"
 [messages]
 
 [messages.sub_object]
-  value = "i32"
+  value = "int"
 
 [services]
 
 [services.math_service]
     
 [services.math_service.increase]
-  input = "i32"
-  output = "i32"
+  input = "int"
+  output = "int"

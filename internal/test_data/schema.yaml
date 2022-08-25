@@ -8,24 +8,23 @@ option:
 
 messages:
   object:
-    int_field: i32
+    int_field: int
     string_field: string
     enum_field: color
-    int_array: array[i32]
-    int_map: map[i32]
+    int_array: array[int]
+    int_map: map[int]
     obj_array: array[test_data.test.sub.sub_object]
     obj_map: map[test_data.test.sub.sub_object]
     time: timestamp
+    # any_field: any
+    # any_array: array[any]
+    # any_map: map[any]
 
 enums:
   color:
     - red
     - green
     - blue
-
-  animal:
-    - dog
-    - cat
 
 services:
   primary_service:
@@ -42,8 +41,8 @@ services:
       output: timestamp
 
     print_array:
-      input: array[i32]
-      output: array[i32]
+      input: array[int]
+      output: array[int]
 
     print_enum:
       input: color
@@ -52,3 +51,7 @@ services:
     print_map:
       input: map[string]
       output: map[string]
+
+    # print_any:
+      # input: any
+      # output: any

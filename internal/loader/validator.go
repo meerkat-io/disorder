@@ -30,10 +30,7 @@ func (v *validator) isPrimary(typ string) bool {
 }
 
 func (v *validator) primaryType(typ string) schema.Type {
-	if t, ok := schema.PrimaryTypes[typ]; ok {
-		return t
-	}
-	return schema.TypeUndefined
+	return schema.PrimaryTypes[typ]
 }
 
 func (v *validator) validateEnumName(name string) bool {

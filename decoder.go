@@ -90,43 +90,25 @@ func (d *Decoder) read(t tag, value reflect.Value) error {
 			return nil
 		}
 
-	case tagU8:
-		bytes = make([]byte, 1)
-		_, err := d.reader.Read(bytes)
-		if err != nil {
-			return err
-		}
-		resolved = uint8(bytes[0])
-		if value.Kind() == reflect.Uint8 {
-			value.SetUint(uint64(resolved.(uint8)))
-			return nil
-		}
-
-	case tagU16:
-		bytes = make([]byte, 2)
-		_, err := d.reader.Read(bytes)
-		if err != nil {
-			return err
-		}
-		resolved = binary.BigEndian.Uint16(bytes)
-		if value.Kind() == reflect.Uint16 {
-			value.SetUint(uint64(resolved.(uint16)))
-			return nil
-		}
-
-	case tagU32:
+	case tagInt:
 		bytes = make([]byte, 4)
 		_, err := d.reader.Read(bytes)
 		if err != nil {
 			return err
 		}
 		resolved = binary.BigEndian.Uint32(bytes)
-		if value.Kind() == reflect.Uint32 || value.Kind() == reflect.Int32 {
+		switch value.Kind() {
+		case reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint:
 			value.SetUint(uint64(resolved.(uint32)))
+			return nil
+
+		case reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int:
+			resolved = int32(binary.BigEndian.Uint32(bytes))
+			value.SetInt(int64(int32(resolved.(uint32))))
 			return nil
 		}
 
-	case tagU64:
+	case tagLong:
 		bytes = make([]byte, 8)
 		_, err := d.reader.Read(bytes)
 		if err != nil {
@@ -136,57 +118,12 @@ func (d *Decoder) read(t tag, value reflect.Value) error {
 		if value.Kind() == reflect.Uint64 {
 			value.SetUint(resolved.(uint64))
 			return nil
-		}
-
-	case tagI8:
-		bytes = make([]byte, 1)
-		_, err := d.reader.Read(bytes)
-		if err != nil {
-			return err
-		}
-		resolved = int8(bytes[0])
-		if value.Kind() == reflect.Int8 {
-			value.SetInt(int64(resolved.(int8)))
+		} else if value.Kind() == reflect.Int64 {
+			value.SetInt(int64(resolved.(uint64)))
 			return nil
 		}
 
-	case tagI16:
-		bytes = make([]byte, 2)
-		_, err := d.reader.Read(bytes)
-		if err != nil {
-			return err
-		}
-		resolved = int16(binary.BigEndian.Uint16(bytes))
-		if value.Kind() == reflect.Int16 {
-			value.SetInt(int64(resolved.(int16)))
-			return nil
-		}
-
-	case tagI32:
-		bytes = make([]byte, 4)
-		_, err := d.reader.Read(bytes)
-		if err != nil {
-			return err
-		}
-		resolved = int32(binary.BigEndian.Uint32(bytes))
-		if value.Kind() == reflect.Int32 || value.Kind() == reflect.Int {
-			value.SetInt(int64(resolved.(int32)))
-			return nil
-		}
-
-	case tagI64:
-		bytes = make([]byte, 8)
-		_, err := d.reader.Read(bytes)
-		if err != nil {
-			return err
-		}
-		resolved = int64(binary.BigEndian.Uint64(bytes))
-		if value.Kind() == reflect.Int64 {
-			value.SetInt(resolved.(int64))
-			return nil
-		}
-
-	case tagF32:
+	case tagFloat:
 		bytes = make([]byte, 4)
 		_, err := d.reader.Read(bytes)
 		if err != nil {
@@ -198,7 +135,7 @@ func (d *Decoder) read(t tag, value reflect.Value) error {
 			return nil
 		}
 
-	case tagF64:
+	case tagDouble:
 		bytes = make([]byte, 8)
 		_, err := d.reader.Read(bytes)
 		if err != nil {
@@ -209,6 +146,10 @@ func (d *Decoder) read(t tag, value reflect.Value) error {
 			value.SetFloat(resolved.(float64))
 			return nil
 		}
+
+	case tagBytes:
+		//TO-DO
+		return nil
 
 	case tagString:
 		bytes = make([]byte, 4)
@@ -445,19 +386,16 @@ func (d *Decoder) createValue(i interface{}) reflect.Value {
 func (d *Decoder) skip(t tag) error {
 	var bytes []byte
 	switch t {
-	case tagBool, tagU8, tagI8:
+	case tagBool:
 		return d.skipBytes(1)
 
-	case tagU16, tagI16:
-		return d.skipBytes(2)
-
-	case tagU32, tagI32, tagF32:
+	case tagInt, tagFloat:
 		return d.skipBytes(4)
 
-	case tagU64, tagI64, tagF64, tagTimestamp:
+	case tagLong, tagDouble, tagTimestamp:
 		return d.skipBytes(8)
 
-	case tagString:
+	case tagString, tagBytes:
 		bytes = make([]byte, 4)
 		_, err := d.reader.Read(bytes)
 		if err != nil {

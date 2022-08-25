@@ -179,18 +179,14 @@ func (g *goGenerator) resolveImport(file *schema.File) string {
 
 var goTypes = map[schema.Type]string{
 	schema.TypeBool:      "bool",
-	schema.TypeI8:        "int8",
-	schema.TypeU8:        "uint8",
-	schema.TypeI16:       "int16",
-	schema.TypeU16:       "uint16",
-	schema.TypeI32:       "int32",
-	schema.TypeU32:       "uint32",
-	schema.TypeI64:       "int64",
-	schema.TypeU64:       "uint64",
-	schema.TypeF32:       "float32",
-	schema.TypeF64:       "float64",
+	schema.TypeInt:       "int32",
+	schema.TypeLong:      "int64",
+	schema.TypeFloat:     "float32",
+	schema.TypeDouble:    "float64",
 	schema.TypeString:    "string",
+	schema.TypeBytes:     "[]byte",
 	schema.TypeTimestamp: "*time.Time",
+	schema.TypeAny:       "interface{}",
 }
 
 func goType(typ schema.Type, ref string) string {

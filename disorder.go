@@ -38,24 +38,18 @@ func Unmarshal(data []byte, value interface{}) error {
 type tag byte
 
 const (
-	tagBool   tag = 1
-	tagI8     tag = 2
-	tagU8     tag = 3
-	tagI16    tag = 4
-	tagU16    tag = 5
-	tagI32    tag = 6
-	tagU32    tag = 7
-	tagI64    tag = 8
-	tagU64    tag = 9
-	tagF32    tag = 10
-	tagF64    tag = 11
-	tagString tag = 12
+	tagBool      tag = 1
+	tagInt       tag = 2
+	tagLong      tag = 3
+	tagFloat     tag = 4
+	tagDouble    tag = 5
+	tagString    tag = 6
+	tagBytes     tag = 7
+	tagTimestamp tag = 8
 
-	tagEnum      tag = 13
-	tagTimestamp tag = 14
-
-	tagStartArray  tag = 15
-	tagEndArray    tag = 16
-	tagStartObject tag = 17
+	tagEnum        tag = 10
+	tagStartArray  tag = 11
+	tagEndArray    tag = 12
+	tagStartObject tag = 13
 	tagEndObject   tag = 0
 )

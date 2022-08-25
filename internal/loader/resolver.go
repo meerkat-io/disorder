@@ -86,16 +86,7 @@ func (r *resolver) resolve(files map[string]*schema.File) error {
 }
 
 func (r *resolver) resolveType(pkg string, info *schema.TypeInfo) error {
-	if info.Type == schema.TypeUndefined {
-		qualified := r.qualifiedName(pkg, info.TypeRef)
-		if r.isEnum(qualified) {
-			info.Type = schema.TypeEnum
-		} else if r.isObject(qualified) {
-			info.Type = schema.TypeObject
-		} else {
-			return fmt.Errorf("undefine type \"%s\"", info.TypeRef)
-		}
-	} else if info.TypeRef != "" {
+	if info.TypeRef != "" {
 		qualified := r.qualifiedName(pkg, info.TypeRef)
 		if r.isEnum(qualified) {
 			info.SubType = schema.TypeEnum
