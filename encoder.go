@@ -20,14 +20,14 @@ func NewEncoder(w io.Writer) *Encoder {
 }
 
 func (e *Encoder) Encode(value interface{}) error {
+	v := reflect.ValueOf(value)
+	if isNull(v) {
+		return fmt.Errorf("invalid value or type")
+	}
 	return e.write(reflect.ValueOf(value))
 }
 
 func (e *Encoder) write(value reflect.Value) error {
-	if !value.IsValid() || (value.Kind() == reflect.Ptr && value.IsNil()) {
-		return fmt.Errorf("invalid value or type")
-	}
-
 	switch i := value.Interface().(type) {
 	case time.Time:
 		return e.writeTime(&i)
@@ -175,16 +175,15 @@ func (e *Encoder) writeObject(value reflect.Value) error {
 
 	for _, field := range info.fieldsList {
 		fieldValue := value.Field(field.index)
-		if field.omitEmpty && isZero(fieldValue) {
-			continue
-		}
-		err = e.writeName(field.key)
-		if err != nil {
-			return err
-		}
-		err = e.write(fieldValue)
-		if err != nil {
-			return err
+		if !isNull(fieldValue) {
+			err = e.writeName(field.key)
+			if err != nil {
+				return err
+			}
+			err = e.write(fieldValue)
+			if err != nil {
+				return err
+			}
 		}
 	}
 

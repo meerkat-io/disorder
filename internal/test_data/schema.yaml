@@ -16,7 +16,8 @@ messages:
     obj_array: array[test_data.test.sub.sub_object]
     obj_map: map[test_data.test.sub.sub_object]
     time: timestamp
-    any_field: any
+    null_obj: test_data.test.sub.sub_object
+    # any_field: any
     # any_array: array[any]
     # any_map: map[any]
 

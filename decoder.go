@@ -39,10 +39,6 @@ func (d *Decoder) Warnings() []error {
 }
 
 func (d *Decoder) read(t tag, value reflect.Value) error {
-	if !value.IsValid() || value.Kind() == reflect.Ptr && value.IsNil() {
-		return fmt.Errorf("invalid value or type")
-	}
-
 	switch i := value.Interface().(type) {
 	case *time.Time:
 		if t == tagTimestamp {

@@ -18,9 +18,8 @@ type structInfo struct {
 }
 
 type fieldInfo struct {
-	key       string
-	index     int
-	omitEmpty bool
+	key   string
+	index int
 }
 
 func getStructInfo(typ reflect.Type) (*structInfo, error) {
@@ -53,16 +52,11 @@ func getStructInfo(typ reflect.Type) (*structInfo, error) {
 			continue
 		}
 		fields := strings.Split(tag, ",")
-		if len(fields) > 1 {
-			for _, flag := range fields[1:] {
-				switch flag {
-				case "omitempty":
-					f.omitEmpty = true
-				default:
-					return nil, fmt.Errorf("unsupported flag %s in tag %s", flag, tag)
-				}
-			}
+		if len(fields) > 0 {
 			tag = fields[0]
+			if len(fields) > 1 {
+				return nil, fmt.Errorf("unsupported flag %s in tag %s", fields[1], tag)
+			}
 		}
 		if tag != "" {
 			f.key = tag
@@ -81,44 +75,14 @@ func getStructInfo(typ reflect.Type) (*structInfo, error) {
 	return s, nil
 }
 
-func isZero(value reflect.Value) bool {
-	kind := value.Kind()
-	switch kind {
-	case reflect.String:
-		return len(value.String()) == 0
-
-	case reflect.Interface, reflect.Ptr:
-		return value.IsNil()
-
-	case reflect.Slice:
-		return value.Len() == 0
-
-	case reflect.Map:
-		return value.Len() == 0
-
-	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-		return value.Int() == 0
-
-	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
-		return value.Uint() == 0
-
-	case reflect.Float32, reflect.Float64:
-		return value.Float() == 0
-
-	case reflect.Bool:
-		return !value.Bool()
-
-	case reflect.Struct:
-		typ := value.Type()
-		for i := value.NumField() - 1; i >= 0; i-- {
-			if typ.Field(i).PkgPath != "" {
-				continue // Private field
-			}
-			if !isZero(value.Field(i)) {
-				return false
-			}
-		}
+func isNull(value reflect.Value) bool {
+	if !value.IsValid() {
 		return true
+	}
+	if value.Kind() == reflect.Interface || value.Kind() == reflect.Ptr {
+		if value.IsNil() {
+			return true
+		}
 	}
 	return false
 }
