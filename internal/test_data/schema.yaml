@@ -17,9 +17,9 @@ messages:
     obj_map: map[test_data.test.sub.sub_object]
     time: timestamp
     null_obj: test_data.test.sub.sub_object
-    # any_field: any
-    # any_array: array[any]
-    # any_map: map[any]
+    any_field: any
+    any_array: array[any]
+    any_map: map[any]
 
 enums:
   color:

@@ -90,7 +90,7 @@ func TestLoadYamlFile(t *testing.T) {
 func TestMarshal(t *testing.T) {
 	tt := time.Now()
 	color := test.ColorRed
-	data, err := disorder.Marshal(&test.Object{
+	target := test.Object{
 		Time:        &tt,
 		IntField:    123,
 		StringField: "foo",
@@ -105,19 +105,26 @@ func TestMarshal(t *testing.T) {
 		ObjMap: map[string]*sub.SubObject{
 			"foo": {Value: 123},
 		},
-	})
+		AnyField: "some text",
+		AnyArray: []interface{}{"abc", 123, 3.14},
+		AnyMap:   map[string]interface{}{"a": "abc", "b": "123", "c": 3.14},
+	}
+	data, err := disorder.Marshal(&target)
 	fmt.Println(data)
 	assert.Nil(t, err)
 
-	var result interface{}
-	err = disorder.Unmarshal(data, &result)
-	fmt.Printf("%v\n", result)
+	var result1 interface{}
+	err = disorder.Unmarshal(data, &result1)
+	fmt.Printf("%v\n", result1)
 	assert.Nil(t, err)
 
+	data, err = disorder.Marshal(&result1)
+	assert.Nil(t, err)
 	result2 := test.Object{}
 	err = disorder.Unmarshal(data, &result2)
 	fmt.Printf("%v\n", result2)
 	assert.Nil(t, err)
+	assert.Equal(t, target, result2)
 }
 
 func TestRpcMath(t *testing.T) {
