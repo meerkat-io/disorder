@@ -22,7 +22,7 @@ func NewEncoder(w io.Writer) *Encoder {
 func (e *Encoder) Encode(value interface{}) error {
 	v := reflect.ValueOf(value)
 	if isNull(v) {
-		return fmt.Errorf("invalid value or type")
+		return fmt.Errorf("null value cannot be marshal")
 	}
 	return e.write(reflect.ValueOf(value))
 }
@@ -112,7 +112,7 @@ func (e *Encoder) write(value reflect.Value) error {
 		return e.writeObject(value)
 
 	default:
-		return fmt.Errorf("invalid type: %s", value.Type().String())
+		return fmt.Errorf("unsupported type: %s", value.Type().String())
 	}
 
 	_, err := e.writer.Write(bytes)
@@ -121,6 +121,9 @@ func (e *Encoder) write(value reflect.Value) error {
 
 func (e *Encoder) writeArray(value reflect.Value) error {
 	count := value.Len()
+	if count == 0 {
+		return nil
+	}
 	_, err := e.writer.Write([]byte{byte(tagStartArray)})
 	if err != nil {
 		return err
@@ -138,6 +141,9 @@ func (e *Encoder) writeArray(value reflect.Value) error {
 }
 
 func (e *Encoder) writeMap(value reflect.Value) error {
+	if value.Len() == 0 {
+		return nil
+	}
 	_, err := e.writer.Write([]byte{byte(tagStartObject)})
 	if err != nil {
 		return err
@@ -175,15 +181,16 @@ func (e *Encoder) writeObject(value reflect.Value) error {
 
 	for _, field := range info.fieldsList {
 		fieldValue := value.Field(field.index)
-		if !isNull(fieldValue) {
-			err = e.writeName(field.key)
-			if err != nil {
-				return err
-			}
-			err = e.write(fieldValue)
-			if err != nil {
-				return err
-			}
+		if isNull(fieldValue) {
+			continue
+		}
+		err = e.writeName(field.key)
+		if err != nil {
+			return err
+		}
+		err = e.write(fieldValue)
+		if err != nil {
+			return err
 		}
 	}
 

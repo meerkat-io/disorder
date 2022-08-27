@@ -154,8 +154,10 @@ func (g *goGenerator) initTemplete() {
 				return ""
 			}
 		},
-		"Tag": func(name string) string {
-			return fmt.Sprintf("`disorder:\"%s\" json:\"%s\"`", name, name)
+		"Tag": func(typ *schema.TypeInfo, name string) string {
+			omitEmpty := ""
+
+			return fmt.Sprintf("`disorder:\"%s\" json:\"%s%s\"`", name, name, omitEmpty)
 		},
 	}
 	g.define = template.New(fmt.Sprintf("%s_define", golang)).Funcs(funcMap)

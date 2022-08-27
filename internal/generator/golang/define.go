@@ -48,7 +48,7 @@ func (enum *{{PascalCase $enum.Name}}) Encode() (string, error) {
 
 type {{PascalCase .Name}} struct {
 	{{- range .Fields}}
-	{{PascalCase .Name}} {{Type .Type}} {{Tag .Name}}
+	{{PascalCase .Name}} {{Type .Type}} {{Tag .Type .Name}}
 	{{- end}}
 }
 {{- end}}`

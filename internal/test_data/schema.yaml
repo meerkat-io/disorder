@@ -20,6 +20,12 @@ messages:
     any_field: any
     any_array: array[any]
     any_map: map[any]
+    empty_array: array[any]
+    empty_map: map[any]
+    empty_int_array: array[int]
+    empty_int_map: map[int]
+    empty_time: timestamp
+    empty_enum: color
 
 enums:
   color:
