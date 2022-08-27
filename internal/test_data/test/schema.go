@@ -15,18 +15,17 @@ const (
 	ColorBlue = Color("blue")
 )
 
+var colorEnumMap = map[string]Color {
+	"red":ColorRed,
+	"green":ColorGreen,
+	"blue":ColorBlue,
+}
+
 func (*Color) Enum() {}
 
 func (enum *Color) Decode(value string) error {
-	switch {
-	case value == "red":
-		*enum = ColorRed
-		return nil
-	case value == "green":
-		*enum = ColorGreen
-		return nil
-	case value == "blue":
-		*enum = ColorBlue
+	if color, ok := colorEnumMap[value]; ok {
+		*enum = color
 		return nil
 	}
 	return fmt.Errorf("invalid enum value")
