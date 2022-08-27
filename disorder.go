@@ -11,6 +11,19 @@ type Enum interface {
 	ToString() (string, error)
 }
 
+type EnumBase string
+
+func (*EnumBase) Enum() {}
+
+func (enum *EnumBase) FromString(value string) error {
+	*enum = EnumBase(value)
+	return nil
+}
+
+func (enum *EnumBase) ToString() (string, error) {
+	return string(*enum), nil
+}
+
 type Marshaler interface {
 	MarshalDO(w io.Writer) error
 }

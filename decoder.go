@@ -176,7 +176,7 @@ func (d *Decoder) read(t tag, value reflect.Value) error {
 
 	case tagEnum:
 		var err error
-		resolved, _, err = d.readName()
+		resolved, err = d.readEnum()
 		if err != nil {
 			return err
 		}
@@ -345,6 +345,15 @@ func (d *Decoder) readTime() (*time.Time, error) {
 	timestamp := int64(binary.BigEndian.Uint64(bytes))
 	t := time.Unix(timestamp, 0)
 	return &t, nil
+}
+
+func (d *Decoder) readEnum() (*EnumBase, error) {
+	name, _, err := d.readName()
+	if err != nil {
+		return nil, err
+	}
+	enum := EnumBase(name)
+	return &enum, nil
 }
 
 func (d *Decoder) readName() (string, bool, error) {

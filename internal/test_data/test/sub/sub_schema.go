@@ -2,5 +2,5 @@
 package sub
 
 type SubObject struct {
-	Value int32 `disorder:"value"`
+	Value int32 `disorder:"value" json:"value"`
 }

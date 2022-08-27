@@ -152,7 +152,7 @@ func (g *goGenerator) initTemplete() {
 			}
 		},
 		"Tag": func(name string) string {
-			return fmt.Sprintf("`disorder:\"%s\"`", name)
+			return fmt.Sprintf("`disorder:\"%s\" json:\"%s\"`", name, name)
 		},
 	}
 	g.define = template.New(fmt.Sprintf("%s_define", golang)).Funcs(funcMap)

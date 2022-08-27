@@ -46,16 +46,16 @@ func (enum *Color) ToString() (string, error) {
 }
 
 type Object struct {
-	IntField    int32                     `disorder:"int_field"`
-	EnumField   *Color                    `disorder:"enum_field"`
-	ObjMap      map[string]*sub.SubObject `disorder:"obj_map"`
-	Time        *time.Time                `disorder:"time"`
-	AnyMap      map[string]interface{}    `disorder:"any_map"`
-	AnyArray    []interface{}             `disorder:"any_array"`
-	StringField string                    `disorder:"string_field"`
-	IntArray    []int32                   `disorder:"int_array"`
-	IntMap      map[string]int32          `disorder:"int_map"`
-	ObjArray    []*sub.SubObject          `disorder:"obj_array"`
-	NullObj     *sub.SubObject            `disorder:"null_obj"`
-	AnyField    interface{}               `disorder:"any_field"`
+	StringField string                    `disorder:"string_field" json:"string_field"`
+	EnumField   *Color                    `disorder:"enum_field" json:"enum_field"`
+	IntArray    []int32                   `disorder:"int_array" json:"int_array"`
+	IntMap      map[string]int32          `disorder:"int_map" json:"int_map"`
+	AnyField    interface{}               `disorder:"any_field" json:"any_field"`
+	AnyArray    []interface{}             `disorder:"any_array" json:"any_array"`
+	AnyMap      map[string]interface{}    `disorder:"any_map" json:"any_map"`
+	IntField    int32                     `disorder:"int_field" json:"int_field"`
+	ObjMap      map[string]*sub.SubObject `disorder:"obj_map" json:"obj_map"`
+	Time        *time.Time                `disorder:"time" json:"time"`
+	NullObj     *sub.SubObject            `disorder:"null_obj" json:"null_obj"`
+	ObjArray    []*sub.SubObject          `disorder:"obj_array" json:"obj_array"`
 }

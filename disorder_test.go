@@ -1,6 +1,7 @@
 package disorder_test
 
 import (
+	"encoding/json"
 	"fmt"
 	"testing"
 	"time"
@@ -124,7 +125,14 @@ func TestMarshal(t *testing.T) {
 	err = disorder.Unmarshal(data, &result2)
 	fmt.Printf("%v\n", result2)
 	assert.Nil(t, err)
-	assert.Equal(t, target, result2)
+	assert.EqualValues(t, target, result2)
+
+	json1, err := json.Marshal(result1)
+	assert.Nil(t, err)
+	json2, err := json.Marshal(result2)
+	assert.Nil(t, err)
+
+	assert.JSONEq(t, string(json1), string(json2))
 }
 
 func TestRpcMath(t *testing.T) {
