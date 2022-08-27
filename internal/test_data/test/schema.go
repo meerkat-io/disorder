@@ -32,7 +32,10 @@ func (enum *Color) Decode(value string) error {
 }
 
 func (enum *Color) Encode() (string, error) {
-	return string(*enum), nil
+	if _, ok := colorEnumMap[string(*enum)]; ok {
+		return string(*enum), nil
+	}
+	return "", fmt.Errorf("invalid enum value")
 }
 
 type Object struct {

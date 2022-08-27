@@ -11,38 +11,37 @@ import (
 {{- end}}
 )
 {{- end}}
-{{- range $index, $enum := .Enums}}
+{{- range $i, $enum := .Enums}}
 
-type {{PascalCase $enum.Name}} int
+type {{PascalCase $enum.Name}} string
 
 const (
-{{- range $i, $v := .Values}}
-	{{PascalCase $enum.Name}}{{PascalCase .}} {{if eq $i 0}}{{PascalCase $enum.Name}} = iota{{end}}
+{{- range .Values}}
+	{{PascalCase $enum.Name}}{{PascalCase .}} = {{PascalCase $enum.Name}}("{{.}}")
 {{- end}}
 )
 
+var {{CamelCase $enum.Name}}EnumMap = map[string]Color {
+{{- range .Values}}
+	"{{.}}":{{PascalCase $enum.Name}}{{PascalCase .}},
+{{- end}}
+}
+
 func (*{{PascalCase $enum.Name}}) Enum() {}
 
-func (enum *{{PascalCase $enum.Name}}) FromString(value string) error {
-	switch {
-{{- range .Values}}
-	case value == "{{.}}":
-		*enum = {{PascalCase $enum.Name}}{{PascalCase .}}
+func (enum *{{PascalCase $enum.Name}}) Decode(value string) error {
+	if {{CamelCase $enum.Name}}, ok := {{CamelCase $enum.Name}}EnumMap[value]; ok {
+		*enum = {{CamelCase $enum.Name}}
 		return nil
-{{- end}}
 	}
 	return fmt.Errorf("invalid enum value")
 }
 
-func (enum *{{PascalCase $enum.Name}}) ToString() (string, error) {
-	switch *enum {
-{{- range .Values}}
-	case {{PascalCase $enum.Name}}{{PascalCase .}}:
-		return "{{.}}", nil
-{{- end}}
-	default:
-		return "", fmt.Errorf("invalid enum value")
+func (enum *{{PascalCase $enum.Name}}) Encode() (string, error) {
+	if _, ok := {{CamelCase $enum.Name}}EnumMap[string(*enum)]; ok {
+		return string(*enum), nil
 	}
+	return "", fmt.Errorf("invalid enum value")
 }
 {{- end}}
 {{- range .Messages}}
