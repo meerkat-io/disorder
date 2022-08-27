@@ -7,20 +7,20 @@ import (
 
 type Enum interface {
 	Enum()
-	FromString(enum string) error
-	ToString() (string, error)
+	Decode(enum string) error
+	Encode() (string, error)
 }
 
 type EnumBase string
 
 func (*EnumBase) Enum() {}
 
-func (enum *EnumBase) FromString(value string) error {
+func (enum *EnumBase) Decode(value string) error {
 	*enum = EnumBase(value)
 	return nil
 }
 
-func (enum *EnumBase) ToString() (string, error) {
+func (enum *EnumBase) Encode() (string, error) {
 	return string(*enum), nil
 }
 

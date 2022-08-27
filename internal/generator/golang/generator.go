@@ -16,6 +16,9 @@ import (
 	"github.com/meerkat-io/disorder/internal/schema"
 )
 
+//TO-DO enum generator
+//TO-DO omitempty for json tag
+
 const (
 	golang          = "golang"
 	goPackagePrefix = "go_package_prefix"

@@ -65,7 +65,7 @@ func (*testService) PrintArray(c *rpc.Context, request []int32) ([]int32, *rpc.E
 }
 
 func (*testService) PrintEnum(c *rpc.Context, request *test.Color) (*test.Color, *rpc.Error) {
-	reqColor, _ := request.ToString()
+	reqColor, _ := request.Encode()
 	fmt.Printf("input enum: %s\n", reqColor)
 	color := test.ColorGreen
 	return &color, nil
@@ -89,9 +89,9 @@ func TestLoadYamlFile(t *testing.T) {
 }
 
 func TestMarshal(t *testing.T) {
-	tt := time.Now()
-	color := test.ColorRed
-	target := test.Object{
+	tt := time.Unix(time.Now().Unix(), 0)
+	color := test.ColorBlue
+	object0 := test.Object{
 		Time:        &tt,
 		IntField:    123,
 		StringField: "foo",
@@ -108,31 +108,42 @@ func TestMarshal(t *testing.T) {
 		},
 		AnyField: "some text",
 		AnyArray: []interface{}{"abc", 123, 3.14},
-		AnyMap:   map[string]interface{}{"a": "abc", "b": "123", "c": 3.14},
+		AnyMap:   map[string]interface{}{"a": "a", "b": 456, "c": color},
 	}
-	data, err := disorder.Marshal(&target)
-	fmt.Println(data)
+	fmt.Printf("%v\n", object0)
+	json0, err := json.Marshal(object0)
 	assert.Nil(t, err)
 
-	var result1 interface{}
-	err = disorder.Unmarshal(data, &result1)
-	fmt.Printf("%v\n", result1)
+	data0, err := disorder.Marshal(&object0)
 	assert.Nil(t, err)
 
-	data, err = disorder.Marshal(&result1)
+	var object1 interface{}
+	err = disorder.Unmarshal(data0, &object1)
 	assert.Nil(t, err)
-	result2 := test.Object{}
-	err = disorder.Unmarshal(data, &result2)
-	fmt.Printf("%v\n", result2)
-	assert.Nil(t, err)
-	assert.EqualValues(t, target, result2)
-
-	json1, err := json.Marshal(result1)
-	assert.Nil(t, err)
-	json2, err := json.Marshal(result2)
+	json1, err := json.Marshal(object1)
 	assert.Nil(t, err)
 
-	assert.JSONEq(t, string(json1), string(json2))
+	data1, err := disorder.Marshal(&object1)
+	assert.Nil(t, err)
+
+	var object2 interface{}
+	err = disorder.Unmarshal(data1, &object2)
+	assert.Nil(t, err)
+	json2, err := json.Marshal(object2)
+	assert.Nil(t, err)
+
+	data2, err := disorder.Marshal(&object2)
+	assert.Nil(t, err)
+
+	object3 := test.Object{}
+	err = disorder.Unmarshal(data2, &object3)
+	assert.Nil(t, err)
+	json3, err := json.Marshal(object3)
+	assert.Nil(t, err)
+
+	assert.JSONEq(t, string(json0), string(json1))
+	assert.JSONEq(t, string(json0), string(json2))
+	assert.JSONEq(t, string(json0), string(json3))
 }
 
 func TestRpcMath(t *testing.T) {
@@ -176,7 +187,7 @@ func TestRpcPrimary(t *testing.T) {
 	assert.Nil(t, rpcErr)
 	assert.Equal(t, int32(456), result1.IntField)
 	assert.Equal(t, "bar", result1.StringField)
-	newColor, err := result1.EnumField.ToString()
+	newColor, err := result1.EnumField.Encode()
 	assert.Nil(t, err)
 	assert.Equal(t, "green", newColor)
 	assert.Equal(t, int32(4), result1.IntArray[0])
@@ -201,7 +212,7 @@ func TestRpcPrimary(t *testing.T) {
 
 	result5, rpcErr := c.PrintEnum(rpc.NewContext(), &color)
 	assert.Nil(t, rpcErr)
-	newColor, err = result5.ToString()
+	newColor, err = result5.Encode()
 	assert.Nil(t, err)
 	assert.Equal(t, "green", newColor)
 

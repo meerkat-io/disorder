@@ -40,7 +40,7 @@ func (e *Encoder) write(value reflect.Value) error {
 		if err != nil {
 			return err
 		}
-		name, err := i.ToString()
+		name, err := i.Encode()
 		if err != nil {
 			return err
 		}

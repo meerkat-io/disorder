@@ -7,17 +7,17 @@ import (
 	"time"
 )
 
-type Color int
+type Color string
 
 const (
-	ColorRed Color = iota
-	ColorGreen
-	ColorBlue
+	ColorRed = Color("red")
+	ColorGreen = Color("green")
+	ColorBlue = Color("blue")
 )
 
 func (*Color) Enum() {}
 
-func (enum *Color) FromString(value string) error {
+func (enum *Color) Decode(value string) error {
 	switch {
 	case value == "red":
 		*enum = ColorRed
@@ -32,17 +32,8 @@ func (enum *Color) FromString(value string) error {
 	return fmt.Errorf("invalid enum value")
 }
 
-func (enum *Color) ToString() (string, error) {
-	switch *enum {
-	case ColorRed:
-		return "red", nil
-	case ColorGreen:
-		return "green", nil
-	case ColorBlue:
-		return "blue", nil
-	default:
-		return "", fmt.Errorf("invalid enum value")
-	}
+func (enum *Color) Encode() (string, error) {
+	return string(*enum), nil
 }
 
 type Object struct {

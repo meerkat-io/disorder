@@ -58,7 +58,7 @@ func (d *Decoder) read(t tag, value reflect.Value) error {
 			if err != nil {
 				return err
 			}
-			return i.FromString(enum)
+			return i.Decode(enum)
 		} else {
 			return fmt.Errorf("type mismatch: assign enum to %s", value.Type())
 		}
