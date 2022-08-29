@@ -2,7 +2,7 @@ package disorder
 
 import (
 	"bytes"
-	"io"
+	"fmt"
 )
 
 type Enum interface {
@@ -16,20 +16,18 @@ type EnumBase string
 func (*EnumBase) Enum() {}
 
 func (enum *EnumBase) Decode(value string) error {
+	if value == "" {
+		return fmt.Errorf("invalid enum value")
+	}
 	*enum = EnumBase(value)
 	return nil
 }
 
 func (enum *EnumBase) Encode() (string, error) {
+	if string(*enum) == "" {
+		return "", fmt.Errorf("invalid enum value")
+	}
 	return string(*enum), nil
-}
-
-type Marshaler interface {
-	MarshalDO(w io.Writer) error
-}
-
-type Unmarshaler interface {
-	UnmarshalDO(r io.Reader) error
 }
 
 func Marshal(value interface{}) ([]byte, error) {
@@ -51,6 +49,8 @@ func Unmarshal(data []byte, value interface{}) error {
 type tag byte
 
 const (
+	tagUndefined tag = 0
+
 	tagBool      tag = 1
 	tagInt       tag = 2
 	tagLong      tag = 3
@@ -60,9 +60,8 @@ const (
 	tagBytes     tag = 7
 	tagTimestamp tag = 8
 
-	tagEnum        tag = 10
-	tagStartArray  tag = 11
-	tagEndArray    tag = 12
-	tagStartObject tag = 13
-	tagEndObject   tag = 0
+	tagEnum   tag = 10
+	tagArray  tag = 11
+	tagMap    tag = 12
+	tagObject tag = 13
 )

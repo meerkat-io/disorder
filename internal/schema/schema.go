@@ -13,7 +13,6 @@ const (
 	TypeString    Type = 6
 	TypeBytes     Type = 7
 	TypeTimestamp Type = 8
-	TypeAny       Type = 9
 
 	TypeEnum   Type = 10
 	TypeArray  Type = 11
@@ -22,7 +21,7 @@ const (
 )
 
 func (t Type) IsPrimary() bool {
-	return t >= TypeBool && t <= TypeAny
+	return t >= TypeBool && t <= TypeTimestamp
 }
 
 var (
@@ -35,7 +34,6 @@ var (
 		"string":    TypeString,
 		"bytes":     TypeBytes,
 		"timestamp": TypeTimestamp,
-		"any":       TypeAny,
 	}
 )
 

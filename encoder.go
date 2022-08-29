@@ -27,89 +27,131 @@ func (e *Encoder) Encode(value interface{}) error {
 	return e.write(reflect.ValueOf(value))
 }
 
-func (e *Encoder) write(value reflect.Value) error {
-	switch i := value.Interface().(type) {
+func (e *Encoder) writeTag(value reflect.Value) error {
+	t := tagUndefined
+
+	switch value.Interface().(type) {
 	case time.Time:
-		return e.writeTime(&i)
+		t = tagTimestamp
 
 	case *time.Time:
-		return e.writeTime(i)
+		t = tagTimestamp
 
 	case Enum:
-		_, err := e.writer.Write([]byte{byte(tagEnum)})
-		if err != nil {
-			return err
-		}
+		t = tagEnum
+	}
+
+	switch value.Kind() {
+	case reflect.Ptr, reflect.Interface:
+		return e.writeTag(value.Elem())
+
+	case reflect.Bool:
+		t = tagBool
+
+	case reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint,
+		reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int:
+		t = tagInt
+
+	case reflect.Uint64, reflect.Int64:
+		t = tagLong
+
+	case reflect.Float32:
+		t = tagFloat
+
+	case reflect.Float64:
+		t = tagDouble
+
+	case reflect.String:
+		t = tagString
+
+	case reflect.Slice, reflect.Array:
+		//TO-DO check bytes
+		t = tagArray
+
+	case reflect.Map:
+		t = tagMap
+
+	case reflect.Struct:
+		t = tagObject
+	}
+
+	if t == tagUndefined {
+		return fmt.Errorf("unsupported type: %s", value.Type().String())
+	}
+
+	_, err := e.writer.Write([]byte{byte(t)})
+	return err
+}
+
+func (e *Encoder) writeValue(value reflect.Value) error {
+	switch i := value.Interface().(type) {
+	case time.Time:
+		return e.writeTimeValue(&i)
+
+	case *time.Time:
+		return e.writeTimeValue(i)
+
+	case Enum:
 		name, err := i.Encode()
 		if err != nil {
 			return err
 		}
 		return e.writeName(name)
-
-	case Marshaler:
-		return i.MarshalDO(e.writer)
 	}
 
 	var bytes []byte
 	switch value.Kind() {
 	case reflect.Ptr, reflect.Interface:
-		return e.write(value.Elem())
+		return e.writeValue(value.Elem())
 
 	case reflect.Bool:
-		bytes = make([]byte, 2)
-		bytes[0] = byte(tagBool)
+		bytes = make([]byte, 1)
 		if value.Bool() {
-			bytes[1] = 1
+			bytes[0] = 1
 		} else {
-			bytes[1] = 0
+			bytes[0] = 0
 		}
 
 	case reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint:
-		bytes = make([]byte, 5)
-		bytes[0] = byte(tagInt)
-		binary.BigEndian.PutUint32(bytes[1:], uint32(value.Uint()))
+		bytes = make([]byte, 4)
+		binary.BigEndian.PutUint32(bytes, uint32(value.Uint()))
 
 	case reflect.Uint64:
-		bytes = make([]byte, 9)
+		bytes = make([]byte, 8)
 		bytes[0] = byte(tagLong)
-		binary.BigEndian.PutUint64(bytes[1:], value.Uint())
+		binary.BigEndian.PutUint64(bytes, value.Uint())
 
 	case reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int:
-		bytes = make([]byte, 5)
-		bytes[0] = byte(tagInt)
-		binary.BigEndian.PutUint32(bytes[1:], uint32(value.Int()))
+		bytes = make([]byte, 4)
+		binary.BigEndian.PutUint32(bytes, uint32(value.Int()))
 
 	case reflect.Int64:
-		bytes = make([]byte, 9)
-		bytes[0] = byte(tagLong)
-		binary.BigEndian.PutUint64(bytes[1:], uint64(value.Int()))
+		bytes = make([]byte, 8)
+		binary.BigEndian.PutUint64(bytes, uint64(value.Int()))
 
 	case reflect.Float32:
-		bytes = make([]byte, 5)
-		bytes[0] = byte(tagFloat)
-		binary.BigEndian.PutUint32(bytes[1:], math.Float32bits(float32(value.Float())))
+		bytes = make([]byte, 4)
+		binary.BigEndian.PutUint32(bytes, math.Float32bits(float32(value.Float())))
 
 	case reflect.Float64:
-		bytes = make([]byte, 9)
-		bytes[0] = byte(tagDouble)
-		binary.BigEndian.PutUint64(bytes[1:], math.Float64bits(value.Float()))
+		bytes = make([]byte, 8)
+		binary.BigEndian.PutUint64(bytes, math.Float64bits(value.Float()))
 
 	case reflect.String:
-		bytes = make([]byte, 5)
-		bytes[0] = byte(tagString)
+		bytes = make([]byte, 4)
 		str := value.String()
-		binary.BigEndian.PutUint32(bytes[1:], uint32(len(str)))
+		binary.BigEndian.PutUint32(bytes, uint32(len(str)))
 		bytes = append(bytes, []byte(str)...)
 
 	case reflect.Slice, reflect.Array:
 		//TO-DO check bytes
-		return e.writeArray(value)
+		return e.writeArrayValue(value)
 
 	case reflect.Map:
-		return e.writeMap(value)
+		return e.writeMapValue(value)
 
 	case reflect.Struct:
-		return e.writeObject(value)
+		return e.writeObjectValue(value)
 
 	default:
 		return fmt.Errorf("unsupported type: %s", value.Type().String())
@@ -119,29 +161,35 @@ func (e *Encoder) write(value reflect.Value) error {
 	return err
 }
 
-func (e *Encoder) writeArray(value reflect.Value) error {
+func (e *Encoder) writeArrayValue(value reflect.Value) error {
 	count := value.Len()
 	if count == 0 {
 		return nil
 	}
-	_, err := e.writer.Write([]byte{byte(tagStartArray)})
+
+	err := e.writeTag(value.Index(0))
+	if err != nil {
+		return err
+	}
+	bytes := make([]byte, 4)
+	binary.BigEndian.PutUint32(bytes, uint32(count))
+	_, err = e.writer.Write(bytes)
 	if err != nil {
 		return err
 	}
 
 	for i := 0; i < count; i++ {
-		err = e.write(value.Index(i))
+		err = e.writeValue(value.Index(i))
 		if err != nil {
 			return err
 		}
 	}
-
-	_, err = e.writer.Write([]byte{byte(tagEndArray)})
-	return err
+	return nil
 }
 
-func (e *Encoder) writeMap(value reflect.Value) error {
-	if value.Len() == 0 {
+func (e *Encoder) writeMapValue(value reflect.Value) error {
+	count := value.Len()
+	if count == 0 {
 		return nil
 	}
 	_, err := e.writer.Write([]byte{byte(tagStartObject)})
@@ -168,7 +216,7 @@ func (e *Encoder) writeMap(value reflect.Value) error {
 	return err
 }
 
-func (e *Encoder) writeObject(value reflect.Value) error {
+func (e *Encoder) writeObjectValue(value reflect.Value) error {
 	info, err := getStructInfo(value.Type())
 	if err != nil {
 		return err
@@ -198,10 +246,9 @@ func (e *Encoder) writeObject(value reflect.Value) error {
 	return err
 }
 
-func (e *Encoder) writeTime(t *time.Time) error {
-	bytes := make([]byte, 9)
-	bytes[0] = byte(tagTimestamp)
-	binary.BigEndian.PutUint64(bytes[1:], uint64(t.Unix()))
+func (e *Encoder) writeTimeValue(t *time.Time) error {
+	bytes := make([]byte, 8)
+	binary.BigEndian.PutUint64(bytes, uint64(t.Unix()))
 	_, err := e.writer.Write(bytes)
 	return err
 }
