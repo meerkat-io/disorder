@@ -31,30 +31,25 @@ func (enum *Color) Decode(value string) error {
 	return fmt.Errorf("invalid enum value")
 }
 
-func (enum *Color) Encode() (string, error) {
+func (enum *Color) Encode() ([]byte, error) {
 	if _, ok := colorEnumMap[string(*enum)]; ok {
-		return string(*enum), nil
+		return []byte(*enum), nil
 	}
-	return "", fmt.Errorf("invalid enum value")
+	return nil, fmt.Errorf("invalid enum value")
 }
 
 type Object struct {
-	IntMap        map[string]int32          `disorder:"int_map" json:"int_map"`
-	Time          *time.Time                `disorder:"time" json:"time"`
-	NullObj       *sub.SubObject            `disorder:"null_obj" json:"null_obj"`
-	AnyArray      []interface{}             `disorder:"any_array" json:"any_array"`
-	AnyMap        map[string]interface{}    `disorder:"any_map" json:"any_map"`
-	EmptyTime     *time.Time                `disorder:"empty_time" json:"empty_time"`
-	IntField      int32                     `disorder:"int_field" json:"int_field"`
-	EnumField     *Color                    `disorder:"enum_field" json:"enum_field"`
-	IntArray      []int32                   `disorder:"int_array" json:"int_array"`
-	ObjMap        map[string]*sub.SubObject `disorder:"obj_map" json:"obj_map"`
-	EmptyArray    []interface{}             `disorder:"empty_array" json:"empty_array"`
-	EmptyIntArray []int32                   `disorder:"empty_int_array" json:"empty_int_array"`
-	StringField   string                    `disorder:"string_field" json:"string_field"`
-	AnyField      interface{}               `disorder:"any_field" json:"any_field"`
-	EmptyMap      map[string]interface{}    `disorder:"empty_map" json:"empty_map"`
-	ObjArray      []*sub.SubObject          `disorder:"obj_array" json:"obj_array"`
-	EmptyIntMap   map[string]int32          `disorder:"empty_int_map" json:"empty_int_map"`
-	EmptyEnum     *Color                    `disorder:"empty_enum" json:"empty_enum"`
+	EmptyEnum   *Color                    `disorder:"empty_enum" json:"empty_enum"`
+	IntField    int32                     `disorder:"int_field" json:"int_field"`
+	StringField string                    `disorder:"string_field" json:"string_field"`
+	IntMap      map[string]int32          `disorder:"int_map" json:"int_map"`
+	ObjArray    []*sub.SubObject          `disorder:"obj_array" json:"obj_array"`
+	ObjMap      map[string]*sub.SubObject `disorder:"obj_map" json:"obj_map"`
+	Time        *time.Time                `disorder:"time" json:"time"`
+	EmptyObj    *sub.SubObject            `disorder:"empty_obj" json:"empty_obj"`
+	EnumField   *Color                    `disorder:"enum_field" json:"enum_field"`
+	IntArray    []int32                   `disorder:"int_array" json:"int_array"`
+	EmptyArray  []int32                   `disorder:"empty_array" json:"empty_array"`
+	EmptyMap    map[string]int32          `disorder:"empty_map" json:"empty_map"`
+	EmptyTime   *time.Time                `disorder:"empty_time" json:"empty_time"`
 }

@@ -106,9 +106,6 @@ func TestMarshal(t *testing.T) {
 		ObjMap: map[string]*sub.SubObject{
 			"foo": {Value: 123},
 		},
-		AnyField: "some text",
-		AnyArray: []interface{}{"abc", 123, 3.14},
-		AnyMap:   map[string]interface{}{"a": "a", "b": 456, "c": color},
 	}
 	fmt.Printf("%v\n", object0)
 	json0, err := json.Marshal(object0)

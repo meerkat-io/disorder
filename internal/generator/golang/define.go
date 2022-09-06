@@ -37,11 +37,11 @@ func (enum *{{PascalCase $enum.Name}}) Decode(value string) error {
 	return fmt.Errorf("invalid enum value")
 }
 
-func (enum *{{PascalCase $enum.Name}}) Encode() (string, error) {
+func (enum *{{PascalCase $enum.Name}}) Encode() ([]byte, error) {
 	if _, ok := {{CamelCase $enum.Name}}EnumMap[string(*enum)]; ok {
-		return string(*enum), nil
+		return []byte(*enum), nil
 	}
-	return "", fmt.Errorf("invalid enum value")
+	return nil, fmt.Errorf("invalid enum value")
 }
 {{- end}}
 {{- range .Messages}}

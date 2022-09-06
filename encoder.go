@@ -112,10 +112,13 @@ func (e *Encoder) write(name string, value reflect.Value) error {
 		}
 	}
 
+	if err != nil {
+		return err
+	}
 	if t == tagUndefined {
 		return fmt.Errorf("unsupported type: %s", value.Type().String())
 	}
-	_, err = e.writer.Write([]byte{byte(t)})
+	err = e.writeTag(t)
 	if err != nil {
 		return err
 	}
@@ -128,7 +131,7 @@ func (e *Encoder) write(name string, value reflect.Value) error {
 }
 
 func (e *Encoder) writeArray(name string, value reflect.Value) error {
-	_, err := e.writer.Write([]byte{byte(tagArrayStart)})
+	err := e.writeTag(tagArrayStart)
 	if err != nil {
 		return err
 	}
@@ -145,12 +148,12 @@ func (e *Encoder) writeArray(name string, value reflect.Value) error {
 		}
 	}
 
-	_, err = e.writer.Write([]byte{byte(tagArrayEnd)})
+	err = e.writeTag(tagArrayEnd)
 	return err
 }
 
 func (e *Encoder) writeMap(name string, value reflect.Value) error {
-	_, err := e.writer.Write([]byte{byte(tagObjectStart)})
+	err := e.writeTag(tagObjectStart)
 	if err != nil {
 		return err
 	}
@@ -173,12 +176,12 @@ func (e *Encoder) writeMap(name string, value reflect.Value) error {
 		}
 	}
 
-	_, err = e.writer.Write([]byte{byte(tagObjectEnd)})
+	err = e.writeTag(tagObjectEnd)
 	return err
 }
 
 func (e *Encoder) writeObject(name string, value reflect.Value) error {
-	_, err := e.writer.Write([]byte{byte(tagObjectStart)})
+	err := e.writeTag(tagObjectStart)
 	if err != nil {
 		return err
 	}
@@ -202,7 +205,7 @@ func (e *Encoder) writeObject(name string, value reflect.Value) error {
 		}
 	}
 
-	_, err = e.writer.Write([]byte{byte(tagObjectEnd)})
+	err = e.writeTag(tagObjectEnd)
 	return err
 }
 
@@ -218,6 +221,11 @@ func (e *Encoder) writeName(value string) error {
 		return err
 	}
 	_, err = e.writer.Write([]byte(value))
+	return err
+}
+
+func (e *Encoder) writeTag(t tag) error {
+	_, err := e.writer.Write([]byte{byte(tagObjectStart)})
 	return err
 }
 
