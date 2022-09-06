@@ -8,7 +8,7 @@ import (
 type Enum interface {
 	Enum()
 	Decode(enum string) error
-	Encode() (string, error)
+	Encode() ([]byte, error)
 }
 
 type EnumBase string
@@ -23,11 +23,11 @@ func (enum *EnumBase) Decode(value string) error {
 	return nil
 }
 
-func (enum *EnumBase) Encode() (string, error) {
+func (enum *EnumBase) Encode() ([]byte, error) {
 	if string(*enum) == "" {
-		return "", fmt.Errorf("invalid enum value")
+		return nil, fmt.Errorf("invalid enum value")
 	}
-	return string(*enum), nil
+	return []byte(*enum), nil
 }
 
 func Marshal(value interface{}) ([]byte, error) {
@@ -51,17 +51,19 @@ type tag byte
 const (
 	tagUndefined tag = 0
 
-	tagBool      tag = 1
-	tagInt       tag = 2
-	tagLong      tag = 3
-	tagFloat     tag = 4
-	tagDouble    tag = 5
-	tagString    tag = 6
+	tagBool   tag = 1
+	tagInt    tag = 2
+	tagLong   tag = 3
+	tagFloat  tag = 4
+	tagDouble tag = 5
+	tagString tag = 6
+
 	tagBytes     tag = 7
 	tagTimestamp tag = 8
+	tagEnum      tag = 9
 
-	tagEnum   tag = 10
-	tagArray  tag = 11
-	tagMap    tag = 12
-	tagObject tag = 13
+	tagArrayStart  tag = 10
+	tagArrayEnd    tag = 11
+	tagObjectStart tag = 12
+	tagObjectEnd   tag = 13
 )
