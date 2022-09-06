@@ -14,10 +14,10 @@ const (
 	TypeBytes     Type = 7
 	TypeTimestamp Type = 8
 
-	TypeEnum   Type = 10
-	TypeArray  Type = 11
-	TypeMap    Type = 12
-	TypeObject Type = 13
+	TypeEnum   Type = 9
+	TypeArray  Type = 10
+	TypeMap    Type = 11
+	TypeObject Type = 12
 )
 
 func (t Type) IsPrimary() bool {

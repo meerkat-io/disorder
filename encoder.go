@@ -24,10 +24,10 @@ func (e *Encoder) Encode(value interface{}) error {
 	if isNull(v) {
 		return fmt.Errorf("null value cannot be marshal")
 	}
-	return e.writeValue("", v)
+	return e.write("", v)
 }
 
-func (e *Encoder) writeValue(name string, value reflect.Value) error {
+func (e *Encoder) write(name string, value reflect.Value) error {
 	if isNull(value) {
 		return nil
 	}
@@ -52,7 +52,7 @@ func (e *Encoder) writeValue(name string, value reflect.Value) error {
 	default:
 		switch value.Kind() {
 		case reflect.Ptr, reflect.Interface:
-			return e.writeValue(name, value.Elem())
+			return e.write(name, value.Elem())
 
 		case reflect.Bool:
 			t = tagBool
@@ -102,13 +102,13 @@ func (e *Encoder) writeValue(name string, value reflect.Value) error {
 
 		case reflect.Slice, reflect.Array:
 			//TO-DO check bytes
-			return e.writeArrayValue(name, value)
+			return e.writeArray(name, value)
 
 		case reflect.Map:
-			return e.writeMapValue(name, value)
+			return e.writeMap(name, value)
 
 		case reflect.Struct:
-			return e.writeObjectValue(name, value)
+			return e.writeObject(name, value)
 		}
 	}
 
@@ -127,7 +127,7 @@ func (e *Encoder) writeValue(name string, value reflect.Value) error {
 	return err
 }
 
-func (e *Encoder) writeArrayValue(name string, value reflect.Value) error {
+func (e *Encoder) writeArray(name string, value reflect.Value) error {
 	_, err := e.writer.Write([]byte{byte(tagArrayStart)})
 	if err != nil {
 		return err
@@ -139,7 +139,7 @@ func (e *Encoder) writeArrayValue(name string, value reflect.Value) error {
 
 	count := value.Len()
 	for i := 0; i < count; i++ {
-		err = e.writeValue("", value.Index(i))
+		err = e.write("", value.Index(i))
 		if err != nil {
 			return err
 		}
@@ -149,7 +149,7 @@ func (e *Encoder) writeArrayValue(name string, value reflect.Value) error {
 	return err
 }
 
-func (e *Encoder) writeMapValue(name string, value reflect.Value) error {
+func (e *Encoder) writeMap(name string, value reflect.Value) error {
 	_, err := e.writer.Write([]byte{byte(tagObjectStart)})
 	if err != nil {
 		return err
@@ -167,7 +167,7 @@ func (e *Encoder) writeMapValue(name string, value reflect.Value) error {
 		if isNull(value.MapIndex(key)) {
 			continue
 		}
-		err = e.writeValue(key.String(), value.MapIndex(key))
+		err = e.write(key.String(), value.MapIndex(key))
 		if err != nil {
 			return err
 		}
@@ -177,7 +177,7 @@ func (e *Encoder) writeMapValue(name string, value reflect.Value) error {
 	return err
 }
 
-func (e *Encoder) writeObjectValue(name string, value reflect.Value) error {
+func (e *Encoder) writeObject(name string, value reflect.Value) error {
 	_, err := e.writer.Write([]byte{byte(tagObjectStart)})
 	if err != nil {
 		return err
@@ -196,7 +196,7 @@ func (e *Encoder) writeObjectValue(name string, value reflect.Value) error {
 		if isNull(fieldValue) {
 			continue
 		}
-		err = e.writeValue(field.key, fieldValue)
+		err = e.write(field.key, fieldValue)
 		if err != nil {
 			return err
 		}

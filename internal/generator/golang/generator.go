@@ -191,7 +191,6 @@ var goTypes = map[schema.Type]string{
 	schema.TypeString:    "string",
 	schema.TypeBytes:     "[]byte",
 	schema.TypeTimestamp: "*time.Time",
-	schema.TypeAny:       "interface{}",
 }
 
 func goType(typ schema.Type, ref string) string {
