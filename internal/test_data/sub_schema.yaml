@@ -1,3 +1,7 @@
+schema: disorder
+
+version: v1.0.0
+
 package: test_data.test.sub
 
 option:
