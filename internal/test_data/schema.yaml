@@ -24,7 +24,7 @@ messages:
     empty_obj: test_data.test.sub.sub_object
     empty_array: array[int]
     empty_map: map[int]
-    #nested: map[map[array[array[map[color]]]]]
+    nested: map[map[array[array[map[color]]]]]
 
   zero:
     zero_array: array[int]
@@ -61,3 +61,5 @@ services:
     print_map:
       input: map[string]
       output: map[string]
+
+    # print_nested:

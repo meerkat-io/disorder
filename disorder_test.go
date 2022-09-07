@@ -128,6 +128,17 @@ func TestAllTypes(t *testing.T) {
 		ObjMap: map[string]*sub.SubObject{
 			"789": {Value: 789},
 		},
+		Nested: map[string]map[string][][]map[string]*test.Color{
+			"key0": {
+				"key1": {
+					{
+						{
+							"key2": &color,
+						},
+					},
+				},
+			},
+		},
 	}
 	fmt.Printf("%v\n", object0)
 	json0, err := json.Marshal(object0)
