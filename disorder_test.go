@@ -12,11 +12,9 @@ import (
 	"github.com/meerkat-io/disorder/internal/test_data/test"
 	"github.com/meerkat-io/disorder/internal/test_data/test/sub"
 	"github.com/meerkat-io/disorder/rpc"
+	"github.com/meerkat-io/disorder/rpc/code"
 	"github.com/stretchr/testify/assert"
 )
-
-//TO-DO test skip
-//TO-DO test error response
 
 func TestLoadYamlFile(t *testing.T) {
 	loader := loader.NewYamlLoader()
@@ -165,6 +163,11 @@ func TestAllTypes(t *testing.T) {
 	assert.JSONEq(t, string(json0), string(json1))
 	assert.JSONEq(t, string(json0), string(json2))
 	assert.JSONEq(t, string(json0), string(json3))
+
+	miniObject := MiniObject{}
+	err = disorder.Unmarshal(data0, &miniObject)
+	assert.Nil(t, err)
+	assert.Equal(t, object0.IntField, miniObject.IntField)
 }
 
 func TestZero(t *testing.T) {
@@ -212,9 +215,12 @@ func TestRpcMath(t *testing.T) {
 
 	c := sub.NewMathServiceClient(rpc.NewClient("localhost:9999"))
 	result, rpcErr := c.Increase(rpc.NewContext(), int32(17))
-
 	assert.Nil(t, rpcErr)
 	assert.Equal(t, int32(18), result)
+
+	_, rpcErr = c.Increase(rpc.NewContext(), int32(9))
+	assert.NotNil(t, rpcErr)
+	fmt.Println(rpcErr.Error)
 }
 
 func TestRpcPrimary(t *testing.T) {
@@ -283,6 +289,12 @@ type testService struct {
 func (*testService) Increase(c *rpc.Context, request int32) (int32, *rpc.Error) {
 	fmt.Printf("input value: %d\n", request)
 	request++
+	if request == 10 {
+		return 0, &rpc.Error{
+			Code:  code.Internal,
+			Error: fmt.Errorf("special number found"),
+		}
+	}
 	return request, nil
 }
 
@@ -338,4 +350,8 @@ func (*testService) PrintMap(c *rpc.Context, request map[string]string) (map[str
 	return map[string]string{
 		"bar": "foo",
 	}, nil
+}
+
+type MiniObject struct {
+	IntField int32 `disorder:"int_field" json:"int_field"`
 }
