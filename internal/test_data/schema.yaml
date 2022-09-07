@@ -10,6 +10,7 @@ messages:
   object:
     int_field: int
     string_field: string
+    bytes_fields: bytes
     enum_field: color
     time_field: timestamp
     obj_field: test_data.test.sub.sub_object

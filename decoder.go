@@ -149,9 +149,8 @@ func (d *Decoder) read(t tag, value reflect.Value) error {
 			}
 			resolved = bytes
 		}
-		//TO-DO check bytes type
-		if value.Kind() == reflect.String {
-			value.SetString(resolved.(string))
+		if value.Kind() == reflect.Slice && value.Type().Elem().Kind() == reflect.Uint8 {
+			value.Set(reflect.ValueOf(resolved))
 			return nil
 		}
 

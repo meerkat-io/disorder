@@ -45,11 +45,25 @@ func TestPrimaryType(t *testing.T) {
 	assert.Nil(t, err)
 	err = disorder.Unmarshal(data, &i3)
 	assert.Nil(t, err)
-	assert.Equal(t, i2, i3)
+	assert.Equal(t, i0, i3)
 
-	bytes0 := []byte{1, 2, 3}
+	bytes0 := []byte{1, 2, 3, 4, 5}
 	data, err = disorder.Marshal(bytes0)
 	assert.Nil(t, err)
+	bytes1 := []byte{}
+	err = disorder.Unmarshal(data, &bytes1)
+	assert.Nil(t, err)
+	assert.Equal(t, bytes0, bytes1)
+	var bytes2 interface{}
+	err = disorder.Unmarshal(data, &bytes2)
+	assert.Nil(t, err)
+	assert.Equal(t, bytes0, bytes2)
+	var bytes3 interface{}
+	data, err = disorder.Marshal(bytes2)
+	assert.Nil(t, err)
+	err = disorder.Unmarshal(data, &bytes3)
+	assert.Nil(t, err)
+	assert.Equal(t, bytes0, bytes3)
 }
 
 func TestObjectType(t *testing.T) {
@@ -100,6 +114,7 @@ func TestAllTypes(t *testing.T) {
 	object0 := test.Object{
 		IntField:    123,
 		StringField: "foo",
+		BytesFields: []byte{7, 8, 9},
 		EnumField:   &color,
 		TimeField:   &timestamp,
 		ObjField: &sub.SubObject{
@@ -111,7 +126,6 @@ func TestAllTypes(t *testing.T) {
 			"5": 5,
 			"6": 6,
 		},
-
 		ObjArray: []*sub.SubObject{{Value: 789}},
 		ObjMap: map[string]*sub.SubObject{
 			"789": {Value: 789},
