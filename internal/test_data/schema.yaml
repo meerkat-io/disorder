@@ -11,16 +11,16 @@ messages:
     int_field: int
     string_field: string
     enum_field: color
+    time_field: timestamp
     int_array: array[int]
     int_map: map[int]
     obj_array: array[test_data.test.sub.sub_object]
     obj_map: map[test_data.test.sub.sub_object]
-    time: timestamp
+    empty_time: timestamp
+    empty_enum: color
     empty_obj: test_data.test.sub.sub_object
     empty_array: array[int]
     empty_map: map[int]
-    empty_time: timestamp
-    empty_enum: color
 
 enums:
   color:

@@ -39,17 +39,17 @@ func (enum *Color) Encode() ([]byte, error) {
 }
 
 type Object struct {
-	IntField    int32                     `disorder:"int_field" json:"int_field"`
-	StringField string                    `disorder:"string_field" json:"string_field"`
+	ObjArray    []*sub.SubObject          `disorder:"obj_array" json:"obj_array"`
+	EmptyTime   *time.Time                `disorder:"empty_time" json:"empty_time"`
+	EmptyArray  []int32                   `disorder:"empty_array" json:"empty_array"`
 	EnumField   *Color                    `disorder:"enum_field" json:"enum_field"`
 	IntMap      map[string]int32          `disorder:"int_map" json:"int_map"`
-	ObjArray    []*sub.SubObject          `disorder:"obj_array" json:"obj_array"`
-	ObjMap      map[string]*sub.SubObject `disorder:"obj_map" json:"obj_map"`
-	EmptyArray  []int32                   `disorder:"empty_array" json:"empty_array"`
-	EmptyMap    map[string]int32          `disorder:"empty_map" json:"empty_map"`
+	TimeField   *time.Time                `disorder:"time_field" json:"time_field"`
 	IntArray    []int32                   `disorder:"int_array" json:"int_array"`
-	Time        *time.Time                `disorder:"time" json:"time"`
-	EmptyObj    *sub.SubObject            `disorder:"empty_obj" json:"empty_obj"`
-	EmptyTime   *time.Time                `disorder:"empty_time" json:"empty_time"`
+	ObjMap      map[string]*sub.SubObject `disorder:"obj_map" json:"obj_map"`
 	EmptyEnum   *Color                    `disorder:"empty_enum" json:"empty_enum"`
+	EmptyObj    *sub.SubObject            `disorder:"empty_obj" json:"empty_obj"`
+	EmptyMap    map[string]int32          `disorder:"empty_map" json:"empty_map"`
+	IntField    int32                     `disorder:"int_field" json:"int_field"`
+	StringField string                    `disorder:"string_field" json:"string_field"`
 }

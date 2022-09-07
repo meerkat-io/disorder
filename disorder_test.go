@@ -52,19 +52,19 @@ func TestAllTypes(t *testing.T) {
 	tt := time.Unix(time.Now().Unix(), 0)
 	color := test.ColorBlue
 	object0 := test.Object{
-		Time:        &tt,
 		IntField:    123,
 		StringField: "foo",
 		EnumField:   &color,
+		TimeField:   &tt,
 		IntArray:    []int32{1, 2, 3},
 		IntMap: map[string]int32{
-			"1": 1,
-			"2": 2,
-			"3": 3,
+			"4": 4,
+			"5": 5,
+			"6": 6,
 		},
-		ObjArray: []*sub.SubObject{{Value: 123}},
+		ObjArray: []*sub.SubObject{{Value: 789}},
 		ObjMap: map[string]*sub.SubObject{
-			"foo": {Value: 123},
+			"789": {Value: 789},
 		},
 	}
 	fmt.Printf("%v\n", object0)
@@ -126,7 +126,7 @@ func TestRpcPrimary(t *testing.T) {
 	tt := time.Now()
 	color := test.ColorRed
 	result1, rpcErr := c.PrintObject(rpc.NewContext(), &test.Object{
-		Time:        &tt,
+		TimeField:   &tt,
 		IntField:    123,
 		StringField: "foo",
 		EnumField:   &color,
@@ -194,7 +194,7 @@ func (*testService) PrintObject(c *rpc.Context, request *test.Object) (*test.Obj
 	t := time.Now()
 	color := test.ColorGreen
 	return &test.Object{
-		Time:        &t,
+		TimeField:   &t,
 		IntField:    456,
 		StringField: "bar",
 		EnumField:   &color,
