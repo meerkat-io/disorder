@@ -225,7 +225,7 @@ func (e *Encoder) writeName(value string) error {
 }
 
 func (e *Encoder) writeTag(t tag) error {
-	_, err := e.writer.Write([]byte{byte(tagObjectStart)})
+	_, err := e.writer.Write([]byte{byte(t)})
 	return err
 }
 

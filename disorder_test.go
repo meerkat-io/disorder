@@ -15,69 +15,6 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-type testService struct {
-}
-
-func (*testService) Increase(c *rpc.Context, request int32) (int32, *rpc.Error) {
-	fmt.Printf("input value: %d\n", request)
-	request++
-	return request, nil
-}
-
-func (*testService) PrintObject(c *rpc.Context, request *test.Object) (*test.Object, *rpc.Error) {
-	fmt.Printf("input object: %v\n", *request)
-	t := time.Now()
-	color := test.ColorGreen
-	return &test.Object{
-		Time:        &t,
-		IntField:    456,
-		StringField: "bar",
-		EnumField:   &color,
-		IntArray:    []int32{4, 5, 6},
-		IntMap: map[string]int32{
-			"4": 4,
-			"5": 5,
-			"6": 6,
-		},
-		ObjArray: []*sub.SubObject{{Value: 456}},
-		ObjMap: map[string]*sub.SubObject{
-			"bar": {Value: 456},
-		},
-	}, nil
-}
-
-func (*testService) PrintSubObject(c *rpc.Context, request *sub.SubObject) (*sub.SubObject, *rpc.Error) {
-	fmt.Printf("input sub object: %v\n", *request)
-	return &sub.SubObject{
-		Value: 456,
-	}, nil
-}
-
-func (*testService) PrintTime(c *rpc.Context, request *time.Time) (*time.Time, *rpc.Error) {
-	fmt.Printf("input time: %v\n", *request)
-	t := time.Now()
-	return &t, nil
-}
-
-func (*testService) PrintArray(c *rpc.Context, request []int32) ([]int32, *rpc.Error) {
-	fmt.Printf("input array: %v\n", request)
-	return []int32{4, 5, 6}, nil
-}
-
-func (*testService) PrintEnum(c *rpc.Context, request *test.Color) (*test.Color, *rpc.Error) {
-	reqColor, _ := request.Encode()
-	fmt.Printf("input enum: %s\n", reqColor)
-	color := test.ColorGreen
-	return &color, nil
-}
-
-func (*testService) PrintMap(c *rpc.Context, request map[string]string) (map[string]string, *rpc.Error) {
-	fmt.Printf("input map: %s\n", request)
-	return map[string]string{
-		"bar": "foo",
-	}, nil
-}
-
 func TestLoadYamlFile(t *testing.T) {
 	loader := loader.NewYamlLoader()
 	files, err := loader.Load("./internal/test_data/schema.yaml")
@@ -88,7 +25,30 @@ func TestLoadYamlFile(t *testing.T) {
 	assert.Nil(t, err)
 }
 
-func TestMarshal(t *testing.T) {
+func TestPrimaryType(t *testing.T) {
+	var i0 int32 = 123
+	var i1 int32
+	data, err := disorder.Marshal(i0)
+	assert.Nil(t, err)
+	err = disorder.Unmarshal(data, i1)
+	assert.Nil(t, err)
+	assert.Equal(t, int32(0), i1)
+	err = disorder.Unmarshal(data, &i1)
+	assert.Nil(t, err)
+	assert.Equal(t, i0, i1)
+	var i2 interface{}
+	err = disorder.Unmarshal(data, &i2)
+	assert.Nil(t, err)
+	assert.Equal(t, i0, i2)
+	var i3 interface{}
+	data, err = disorder.Marshal(i2)
+	assert.Nil(t, err)
+	err = disorder.Unmarshal(data, &i3)
+	assert.Nil(t, err)
+	assert.Equal(t, i2, i3)
+}
+
+func TestAllTypes(t *testing.T) {
 	tt := time.Unix(time.Now().Unix(), 0)
 	color := test.ColorBlue
 	object0 := test.Object{
@@ -218,4 +178,67 @@ func TestRpcPrimary(t *testing.T) {
 	})
 	assert.Nil(t, rpcErr)
 	assert.Equal(t, "foo", result6["bar"])
+}
+
+type testService struct {
+}
+
+func (*testService) Increase(c *rpc.Context, request int32) (int32, *rpc.Error) {
+	fmt.Printf("input value: %d\n", request)
+	request++
+	return request, nil
+}
+
+func (*testService) PrintObject(c *rpc.Context, request *test.Object) (*test.Object, *rpc.Error) {
+	fmt.Printf("input object: %v\n", *request)
+	t := time.Now()
+	color := test.ColorGreen
+	return &test.Object{
+		Time:        &t,
+		IntField:    456,
+		StringField: "bar",
+		EnumField:   &color,
+		IntArray:    []int32{4, 5, 6},
+		IntMap: map[string]int32{
+			"4": 4,
+			"5": 5,
+			"6": 6,
+		},
+		ObjArray: []*sub.SubObject{{Value: 456}},
+		ObjMap: map[string]*sub.SubObject{
+			"bar": {Value: 456},
+		},
+	}, nil
+}
+
+func (*testService) PrintSubObject(c *rpc.Context, request *sub.SubObject) (*sub.SubObject, *rpc.Error) {
+	fmt.Printf("input sub object: %v\n", *request)
+	return &sub.SubObject{
+		Value: 456,
+	}, nil
+}
+
+func (*testService) PrintTime(c *rpc.Context, request *time.Time) (*time.Time, *rpc.Error) {
+	fmt.Printf("input time: %v\n", *request)
+	t := time.Now()
+	return &t, nil
+}
+
+func (*testService) PrintArray(c *rpc.Context, request []int32) ([]int32, *rpc.Error) {
+	fmt.Printf("input array: %v\n", request)
+	return []int32{4, 5, 6}, nil
+}
+
+func (*testService) PrintEnum(c *rpc.Context, request *test.Color) (*test.Color, *rpc.Error) {
+	reqColor, _ := request.Encode()
+	fmt.Printf("input enum: %s\n", reqColor)
+	color := test.ColorGreen
+	return &color, nil
+}
+
+func (*testService) PrintMap(c *rpc.Context, request map[string]string) (map[string]string, *rpc.Error) {
+	fmt.Printf("input map: %s\n", request)
+	return map[string]string{
+		"bar": "foo",
+	}, nil
 }
