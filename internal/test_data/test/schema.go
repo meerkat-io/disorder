@@ -48,12 +48,13 @@ func (enum *Color) Encode() ([]byte, error) {
 }
 
 type Object struct {
-	ObjMap      map[string]*sub.SubObject `disorder:"obj_map" json:"obj_map"`
-	IntField    int32                     `disorder:"int_field" json:"int_field"`
 	StringField string                    `disorder:"string_field" json:"string_field"`
+	ObjField    *sub.SubObject            `disorder:"obj_field" json:"obj_field"`
+	ObjArray    []*sub.SubObject          `disorder:"obj_array" json:"obj_array"`
+	ObjMap      map[string]*sub.SubObject `disorder:"obj_map" json:"obj_map"`
+	IntMap      map[string]int32          `disorder:"int_map" json:"int_map"`
+	IntField    int32                     `disorder:"int_field" json:"int_field"`
 	EnumField   *Color                    `disorder:"enum_field" json:"enum_field"`
 	TimeField   *time.Time                `disorder:"time_field" json:"time_field"`
 	IntArray    []int32                   `disorder:"int_array" json:"int_array"`
-	IntMap      map[string]int32          `disorder:"int_map" json:"int_map"`
-	ObjArray    []*sub.SubObject          `disorder:"obj_array" json:"obj_array"`
 }

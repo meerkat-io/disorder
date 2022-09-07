@@ -176,8 +176,7 @@ func (e *Encoder) writeMap(name string, value reflect.Value) error {
 		}
 	}
 
-	err = e.writeTag(tagObjectEnd)
-	return err
+	return e.writeTag(tagObjectEnd)
 }
 
 func (e *Encoder) writeObject(name string, value reflect.Value) error {
@@ -205,8 +204,7 @@ func (e *Encoder) writeObject(name string, value reflect.Value) error {
 		}
 	}
 
-	err = e.writeTag(tagObjectEnd)
-	return err
+	return e.writeTag(tagObjectEnd)
 }
 
 func (e *Encoder) writeName(value string) error {

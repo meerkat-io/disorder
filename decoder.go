@@ -23,8 +23,7 @@ func NewDecoder(r io.Reader) *Decoder {
 	}
 }
 
-func (d *Decoder) Decode(value interface{}) error {
-	var err error
+func (d *Decoder) Decode(value interface{}) (err error) {
 	defer func() {
 		if r := recover(); r != nil {
 			err = fmt.Errorf("recover panic when decoding disorder data: %s", r)
@@ -291,6 +290,7 @@ func (d *Decoder) readObject(value reflect.Value) error {
 				return err
 			}
 		}
+		return nil
 
 	case reflect.Map:
 		if value.Type().Key().Kind() != reflect.String {

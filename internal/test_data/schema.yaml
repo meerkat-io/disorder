@@ -12,6 +12,7 @@ messages:
     string_field: string
     enum_field: color
     time_field: timestamp
+    obj_field: test_data.test.sub.sub_object
     int_array: array[int]
     int_map: map[int]
     obj_array: array[test_data.test.sub.sub_object]

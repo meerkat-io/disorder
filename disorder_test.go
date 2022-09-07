@@ -15,6 +15,8 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+//TO-DO test skip
+
 func TestLoadYamlFile(t *testing.T) {
 	loader := loader.NewYamlLoader()
 	files, err := loader.Load("./internal/test_data/schema.yaml")
@@ -98,12 +100,16 @@ func TestAllTypes(t *testing.T) {
 		StringField: "foo",
 		EnumField:   &color,
 		TimeField:   &timestamp,
-		IntArray:    []int32{1, 2, 3},
+		ObjField: &sub.SubObject{
+			Value: 789,
+		},
+		IntArray: []int32{1, 2, 3},
 		IntMap: map[string]int32{
 			"4": 4,
 			"5": 5,
 			"6": 6,
 		},
+
 		ObjArray: []*sub.SubObject{{Value: 789}},
 		ObjMap: map[string]*sub.SubObject{
 			"789": {Value: 789},
