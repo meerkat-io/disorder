@@ -16,9 +16,6 @@ import (
 	"github.com/meerkat-io/disorder/internal/schema"
 )
 
-//TO-DO enum generator
-//TO-DO omitempty for json tag
-
 const (
 	golang          = "golang"
 	goPackagePrefix = "go_package_prefix"
@@ -155,6 +152,7 @@ func (g *goGenerator) initTemplete() {
 			}
 		},
 		"Tag": func(typ *schema.TypeInfo, name string) string {
+			//TO-DO use "omitnil" in the future
 			omitEmpty := ""
 			switch typ.Type {
 			case schema.TypeTimestamp, schema.TypeEnum, schema.TypeObject, schema.TypeArray, schema.TypeMap:

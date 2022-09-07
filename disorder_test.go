@@ -32,9 +32,6 @@ func TestPrimaryType(t *testing.T) {
 	var i1 int32
 	data, err := disorder.Marshal(i0)
 	assert.Nil(t, err)
-	err = disorder.Unmarshal(data, i1)
-	assert.Nil(t, err)
-	assert.Equal(t, int32(0), i1)
 	err = disorder.Unmarshal(data, &i1)
 	assert.Nil(t, err)
 	assert.Equal(t, i0, i1)

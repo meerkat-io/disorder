@@ -10,7 +10,6 @@ import (
 )
 
 //TO-DO nested array, map
-//TO-DO check naked value
 
 type Decoder struct {
 	reader   io.Reader
@@ -143,8 +142,26 @@ func (d *Decoder) read(t tag, value reflect.Value) error {
 		}
 
 	case tagBytes:
+		bytes = make([]byte, 4)
+		_, err := d.reader.Read(bytes)
+		if err != nil {
+			return err
+		}
+		count := binary.BigEndian.Uint32(bytes)
+		resolved = []byte{}
+		if count > 0 {
+			bytes = make([]byte, count)
+			_, err := d.reader.Read(bytes)
+			if err != nil {
+				return err
+			}
+			resolved = bytes
+		}
 		//TO-DO
-		return nil
+		if value.Kind() == reflect.String {
+			value.SetString(resolved.(string))
+			return nil
+		}
 
 	case tagString:
 		bytes = make([]byte, 4)
