@@ -51,6 +51,7 @@ func (g *goGenerator) Generate(dir string, files map[string]*schema.File) error 
 			file.RpcImports = append(file.RpcImports, "time")
 		}
 		for importPath := range resolvedImports {
+			//TO-DO check if used
 			file.DefineImports = append(file.DefineImports, importPath)
 			file.RpcImports = append(file.RpcImports, importPath)
 		}

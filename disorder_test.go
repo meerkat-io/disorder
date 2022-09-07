@@ -292,6 +292,20 @@ func TestRpcPrimary(t *testing.T) {
 	})
 	assert.Nil(t, rpcErr)
 	assert.Equal(t, "foo", result6["bar"])
+
+	result7, rpcErr := c.PrintNested(rpc.NewContext(), map[string]map[string][][]map[string]*test.Color{
+		"key0": {
+			"key1": {
+				{
+					{
+						"key2": &color,
+					},
+				},
+			},
+		},
+	})
+	assert.Nil(t, rpcErr)
+	assert.Equal(t, test.ColorRed, *result7["key0"]["key1"][0][0]["key2"])
 }
 
 type testService struct {
@@ -361,6 +375,12 @@ func (*testService) PrintMap(c *rpc.Context, request map[string]string) (map[str
 	return map[string]string{
 		"bar": "foo",
 	}, nil
+}
+
+func (*testService) PrintNested(c *rpc.Context, request map[string]map[string][][]map[string]*test.Color) (map[string]map[string][][]map[string]*test.Color, *rpc.Error) {
+	fmt.Printf("input nested color: %s\n", *request["key0"]["key1"][0][0]["key2"])
+	*request["key0"]["key1"][0][0]["key2"] = test.ColorRed
+	return request, nil
 }
 
 type MiniObject struct {

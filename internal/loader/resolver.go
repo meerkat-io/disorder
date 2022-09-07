@@ -74,7 +74,7 @@ func (r *resolver) resolve(files map[string]*schema.File) error {
 					return fmt.Errorf("resolve rpc output type in file [%s] failed: %s", file.FilePath, err.Error())
 				}
 				if rpc.Input.Type == schema.TypeTimestamp {
-					//TO-DO separate rpc and define
+					//TO-DO separate rpc and define to set HasTImestamp
 					file.HasTimestampRpc = true
 				}
 				if rpc.Output.Type == schema.TypeTimestamp {

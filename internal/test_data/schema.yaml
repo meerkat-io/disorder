@@ -62,4 +62,6 @@ services:
       input: map[string]
       output: map[string]
 
-    # print_nested:
+    print_nested:
+      input: map[map[array[array[map[color]]]]]
+      output: map[map[array[array[map[color]]]]]

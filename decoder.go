@@ -9,8 +9,6 @@ import (
 	"time"
 )
 
-//TO-DO nested array, map
-
 type Decoder struct {
 	reader   io.Reader
 	warnings []error
