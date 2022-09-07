@@ -48,6 +48,48 @@ func TestPrimaryType(t *testing.T) {
 	assert.Equal(t, i2, i3)
 }
 
+func TestObjectType(t *testing.T) {
+	object0 := sub.SubObject{
+		Value: 123,
+	}
+
+	json0, err := json.Marshal(&object0)
+	assert.Nil(t, err)
+
+	data0, err := disorder.Marshal(&object0)
+	assert.Nil(t, err)
+
+	var object1 interface{}
+	err = disorder.Unmarshal(data0, &object1)
+	assert.Nil(t, err)
+	json1, err := json.Marshal(object1)
+	assert.Nil(t, err)
+
+	data1, err := disorder.Marshal(&object1)
+	assert.Nil(t, err)
+
+	var object2 interface{}
+	err = disorder.Unmarshal(data1, &object2)
+	assert.Nil(t, err)
+	json2, err := json.Marshal(object2)
+	assert.Nil(t, err)
+
+	data2, err := disorder.Marshal(&object2)
+	assert.Nil(t, err)
+
+	object3 := sub.SubObject{}
+	err = disorder.Unmarshal(data2, &object3)
+	assert.Nil(t, err)
+	json3, err := json.Marshal(object3)
+	assert.Nil(t, err)
+
+	assert.Equal(t, object0, object3)
+	assert.Equal(t, object1, object2)
+	assert.JSONEq(t, string(json0), string(json1))
+	assert.JSONEq(t, string(json0), string(json2))
+	assert.JSONEq(t, string(json0), string(json3))
+}
+
 func TestAllTypes(t *testing.T) {
 	tt := time.Unix(time.Now().Unix(), 0)
 	color := test.ColorBlue
