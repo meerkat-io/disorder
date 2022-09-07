@@ -157,7 +157,7 @@ func (g *goGenerator) initTemplete() {
 		"Tag": func(typ *schema.TypeInfo, name string) string {
 			omitEmpty := ""
 			switch typ.Type {
-			case schema.TypeTimestamp, schema.TypeEnum, schema.TypeObject:
+			case schema.TypeTimestamp, schema.TypeEnum, schema.TypeObject, schema.TypeArray, schema.TypeMap:
 				omitEmpty = ",omitempty"
 			}
 			return fmt.Sprintf("`disorder:\"%s\" json:\"%s%s\"`", name, name, omitEmpty)

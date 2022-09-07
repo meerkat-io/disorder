@@ -79,7 +79,8 @@ func isNull(value reflect.Value) bool {
 	if !value.IsValid() {
 		return true
 	}
-	if value.Kind() == reflect.Interface || value.Kind() == reflect.Ptr {
+	switch value.Kind() {
+	case reflect.Interface, reflect.Ptr, reflect.Slice, reflect.Map:
 		if value.IsNil() {
 			return true
 		}

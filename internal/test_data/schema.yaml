@@ -21,8 +21,9 @@ messages:
     empty_enum: color
     empty_time: timestamp
     empty_obj: test_data.test.sub.sub_object
-    #empty_array: array[int]
-    #empty_map: map[int]
+    empty_array: array[int]
+    empty_map: map[int]
+    #test zero array, zero map
 
 enums:
   color:
