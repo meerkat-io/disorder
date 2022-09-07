@@ -151,6 +151,43 @@ func TestAllTypes(t *testing.T) {
 	assert.JSONEq(t, string(json0), string(json3))
 }
 
+func TestZero(t *testing.T) {
+	object0 := test.Zero{
+		ZeroArray: []int32{},
+		ZeroMap:   map[string]int32{},
+	}
+	assert.NotNil(t, object0.ZeroArray)
+	assert.NotNil(t, object0.ZeroMap)
+	assert.Equal(t, 0, len(object0.ZeroArray))
+	assert.Equal(t, 0, len(object0.ZeroMap))
+
+	data0, err := disorder.Marshal(&object0)
+	assert.Nil(t, err)
+	var object1 interface{}
+	err = disorder.Unmarshal(data0, &object1)
+	assert.Nil(t, err)
+	assert.NotNil(t, object1.(map[string]interface{})["zero_array"])
+	assert.NotNil(t, object1.(map[string]interface{})["zero_map"])
+
+	data1, err := disorder.Marshal(&object1)
+	assert.Nil(t, err)
+	var object2 interface{}
+	err = disorder.Unmarshal(data1, &object2)
+	assert.Nil(t, err)
+	assert.NotNil(t, object2.(map[string]interface{})["zero_array"])
+	assert.NotNil(t, object2.(map[string]interface{})["zero_map"])
+
+	data2, err := disorder.Marshal(&object2)
+	assert.Nil(t, err)
+	object3 := test.Zero{}
+	err = disorder.Unmarshal(data2, &object3)
+	assert.Nil(t, err)
+	assert.NotNil(t, object3.ZeroArray)
+	assert.NotNil(t, object3.ZeroMap)
+	assert.Equal(t, 0, len(object3.ZeroArray))
+	assert.Equal(t, 0, len(object3.ZeroMap))
+}
+
 func TestRpcMath(t *testing.T) {
 	s := rpc.NewServer()
 	sub.RegisterMathServiceServer(s, &testService{})

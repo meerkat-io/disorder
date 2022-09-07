@@ -23,7 +23,10 @@ messages:
     empty_obj: test_data.test.sub.sub_object
     empty_array: array[int]
     empty_map: map[int]
-    #test zero array, zero map
+
+  zero:
+    zero_array: array[int]
+    zero_map: map[int]
 
 enums:
   color:
