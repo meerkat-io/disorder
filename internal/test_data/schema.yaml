@@ -17,9 +17,10 @@ messages:
     int_map: map[int]
     obj_array: array[test_data.test.sub.sub_object]
     obj_map: map[test_data.test.sub.sub_object]
-    #empty_time: timestamp
-    #empty_enum: color
-    #empty_obj: test_data.test.sub.sub_object
+    empty_string: string
+    empty_enum: color
+    empty_time: timestamp
+    empty_obj: test_data.test.sub.sub_object
     #empty_array: array[int]
     #empty_map: map[int]
 
