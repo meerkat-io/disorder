@@ -16,6 +16,7 @@ import (
 )
 
 //TO-DO test skip
+//TO-DO test error response
 
 func TestLoadYamlFile(t *testing.T) {
 	loader := loader.NewYamlLoader()
@@ -45,6 +46,10 @@ func TestPrimaryType(t *testing.T) {
 	err = disorder.Unmarshal(data, &i3)
 	assert.Nil(t, err)
 	assert.Equal(t, i2, i3)
+
+	bytes0 := []byte{1, 2, 3}
+	data, err = disorder.Marshal(bytes0)
+	assert.Nil(t, err)
 }
 
 func TestObjectType(t *testing.T) {
@@ -192,7 +197,7 @@ func TestRpcMath(t *testing.T) {
 	assert.Nil(t, err)
 
 	c := sub.NewMathServiceClient(rpc.NewClient("localhost:9999"))
-	result, rpcErr := c.Increase(rpc.NewContext(), 17)
+	result, rpcErr := c.Increase(rpc.NewContext(), int32(17))
 
 	assert.Nil(t, rpcErr)
 	assert.Equal(t, int32(18), result)

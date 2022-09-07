@@ -106,15 +106,8 @@ func (c *Client) Send(context *Context, serviceName, methodName string, request 
 			Error: err,
 		}
 	}
-	d := disorder.NewDecoder(bytes.NewBuffer(data))
-	var status byte
-	err = d.Decode(&status)
-	if err != nil {
-		return &Error{
-			Code:  code.Internal,
-			Error: err,
-		}
-	}
+	status := data[0]
+	d := disorder.NewDecoder(bytes.NewBuffer(data[1:]))
 	if code.Code(status) != code.OK {
 		var errMsg string
 		err = d.Decode(&errMsg)

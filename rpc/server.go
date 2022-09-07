@@ -76,8 +76,8 @@ func (s *Server) Accept(conn *tcp.Connection) {
 		return
 	}
 	writer := &bytes.Buffer{}
+	_, _ = writer.Write([]byte{byte(code.OK)})
 	e := disorder.NewEncoder(writer)
-	_ = e.Encode(byte(code.OK))
 	err = e.Encode(response)
 	if err != nil {
 		s.writeError(conn, code.Internal, err)

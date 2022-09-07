@@ -92,13 +92,8 @@ func (d *Decoder) read(t tag, value reflect.Value) error {
 			return err
 		}
 		resolved = int32(binary.BigEndian.Uint32(bytes))
-		switch value.Kind() {
-		case reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint:
-			value.SetUint(uint64(resolved.(int32)))
-			return nil
-
-		case reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int:
-			value.SetInt(int64(int32(resolved.(int32))))
+		if value.Kind() == reflect.Int32 {
+			value.SetInt(int64(resolved.(int32)))
 			return nil
 		}
 
@@ -109,10 +104,7 @@ func (d *Decoder) read(t tag, value reflect.Value) error {
 			return err
 		}
 		resolved = int64(binary.BigEndian.Uint64(bytes))
-		if value.Kind() == reflect.Uint64 {
-			value.SetUint(uint64(resolved.(int64)))
-			return nil
-		} else if value.Kind() == reflect.Int64 {
+		if value.Kind() == reflect.Int64 {
 			value.SetInt(resolved.(int64))
 			return nil
 		}
@@ -157,7 +149,7 @@ func (d *Decoder) read(t tag, value reflect.Value) error {
 			}
 			resolved = bytes
 		}
-		//TO-DO
+		//TO-DO check bytes type
 		if value.Kind() == reflect.String {
 			value.SetString(resolved.(string))
 			return nil

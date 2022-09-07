@@ -37,13 +37,10 @@ func (e *Encoder) write(name string, value reflect.Value) error {
 	var err error
 
 	switch i := value.Interface().(type) {
-	case time.Time:
-		t = tagTimestamp
-		bytes = e.timestampBits(&i)
-
 	case *time.Time:
 		t = tagTimestamp
-		bytes = e.timestampBits(i)
+		bytes = make([]byte, 8)
+		binary.BigEndian.PutUint64(bytes, uint64(i.Unix()))
 
 	case Enum:
 		t = tagEnum
@@ -63,17 +60,7 @@ func (e *Encoder) write(name string, value reflect.Value) error {
 				bytes[0] = 0
 			}
 
-		case reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint:
-			t = tagInt
-			bytes = make([]byte, 4)
-			binary.BigEndian.PutUint32(bytes, uint32(value.Uint()))
-
-		case reflect.Uint64:
-			t = tagLong
-			bytes = make([]byte, 8)
-			binary.BigEndian.PutUint64(bytes, value.Uint())
-
-		case reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int:
+		case reflect.Int32:
 			t = tagInt
 			bytes = make([]byte, 4)
 			binary.BigEndian.PutUint32(bytes, uint32(value.Int()))
@@ -100,9 +87,16 @@ func (e *Encoder) write(name string, value reflect.Value) error {
 			binary.BigEndian.PutUint32(bytes, uint32(len(str)))
 			bytes = append(bytes, []byte(str)...)
 
-		case reflect.Slice, reflect.Array:
-			//TO-DO check bytes
-			return e.writeArray(name, value)
+		case reflect.Slice:
+			if value.Type().Elem().Kind() == reflect.Uint8 {
+				t = tagBytes
+				bytes = make([]byte, 4)
+				binary.BigEndian.PutUint32(bytes, uint32(value.Len()))
+				array := value.Interface().([]byte)
+				bytes = append(bytes, array...)
+			} else {
+				return e.writeArray(name, value)
+			}
 
 		case reflect.Map:
 			return e.writeMap(name, value)
@@ -225,10 +219,4 @@ func (e *Encoder) writeName(value string) error {
 func (e *Encoder) writeTag(t tag) error {
 	_, err := e.writer.Write([]byte{byte(t)})
 	return err
-}
-
-func (e *Encoder) timestampBits(t *time.Time) []byte {
-	bytes := make([]byte, 8)
-	binary.BigEndian.PutUint64(bytes, uint64(t.Unix()))
-	return bytes
 }
