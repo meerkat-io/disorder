@@ -38,8 +38,17 @@ func (enum *{{PascalCase $enum.Name}}) Decode(value string) error {
 }
 
 func (enum *{{PascalCase $enum.Name}}) Encode() ([]byte, error) {
-	if _, ok := {{CamelCase $enum.Name}}EnumMap[string(*enum)]; ok {
-		return []byte(*enum), nil
+	name := string(*enum)
+	if len(name) == 0 {
+		return nil, fmt.Errorf("empty enum value")
+	}
+	if len(name) > 255 {
+		return nil, fmt.Errorf("string length overflow. should less than 255")
+	}
+	data := []byte{byte(len(name))}
+	if _, ok := {{CamelCase $enum.Name}}EnumMap[name]; ok {
+		data = append(data, []byte(name)...)
+		return data, nil
 	}
 	return nil, fmt.Errorf("invalid enum value")
 }

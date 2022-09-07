@@ -39,11 +39,11 @@ func (e *Encoder) write(name string, value reflect.Value) error {
 	switch i := value.Interface().(type) {
 	case time.Time:
 		t = tagTimestamp
-		bytes, err = e.timestampBits(&i)
+		bytes = e.timestampBits(&i)
 
 	case *time.Time:
 		t = tagTimestamp
-		bytes, err = e.timestampBits(i)
+		bytes = e.timestampBits(i)
 
 	case Enum:
 		t = tagEnum
@@ -229,9 +229,8 @@ func (e *Encoder) writeTag(t tag) error {
 	return err
 }
 
-func (e *Encoder) timestampBits(t *time.Time) ([]byte, error) {
+func (e *Encoder) timestampBits(t *time.Time) []byte {
 	bytes := make([]byte, 8)
 	binary.BigEndian.PutUint64(bytes, uint64(t.Unix()))
-	_, err := e.writer.Write(bytes)
-	return bytes, err
+	return bytes
 }

@@ -65,7 +65,7 @@ func (s *{{CamelCase $service.Name}}Server) Handle(context *rpc.Context, method 
 	}
 	return nil, &rpc.Error{
 		Code:  code.Unimplemented,
-		Error: fmt.Errorf("Unimplemented method \"%s\" under service \"%s\"", method, s.name),
+		Error: fmt.Errorf("unimplemented method \"%s\" under service \"%s\"", method, s.name),
 	}
 }
 {{- range .Rpc}}

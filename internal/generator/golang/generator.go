@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"go/format"
-	"io/ioutil"
+	"os"
 	"path/filepath"
 	"strings"
 	"text/template"
@@ -80,7 +80,7 @@ func (g *goGenerator) Generate(dir string, files map[string]*schema.File) error 
 		}
 		schemaFile := filepath.Base(file.FilePath)
 		schemaFile = fmt.Sprintf("%s.go", strings.TrimSuffix(schemaFile, filepath.Ext(schemaFile)))
-		err = ioutil.WriteFile(filepath.Join(schemaDir, schemaFile), source, 0666)
+		err = os.WriteFile(filepath.Join(schemaDir, schemaFile), source, 0666)
 		if err != nil {
 			return err
 		}
@@ -96,7 +96,7 @@ func (g *goGenerator) Generate(dir string, files map[string]*schema.File) error 
 			}
 			schemaFile = filepath.Base(file.FilePath)
 			schemaFile = fmt.Sprintf("%s_rpc.go", strings.TrimSuffix(schemaFile, filepath.Ext(schemaFile)))
-			err = ioutil.WriteFile(filepath.Join(schemaDir, schemaFile), source, 0666)
+			err = os.WriteFile(filepath.Join(schemaDir, schemaFile), source, 0666)
 			if err != nil {
 				return err
 			}

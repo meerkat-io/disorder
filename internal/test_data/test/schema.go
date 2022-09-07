@@ -32,24 +32,28 @@ func (enum *Color) Decode(value string) error {
 }
 
 func (enum *Color) Encode() ([]byte, error) {
-	if _, ok := colorEnumMap[string(*enum)]; ok {
-		return []byte(*enum), nil
+	name := string(*enum)
+	if len(name) == 0 {
+		return nil, fmt.Errorf("empty enum value")
+	}
+	if len(name) > 255 {
+		return nil, fmt.Errorf("string length overflow. should less than 255")
+	}
+	data := []byte{byte(len(name))}
+	if _, ok := colorEnumMap[name]; ok {
+		data = append(data, []byte(name)...)
+		return data, nil
 	}
 	return nil, fmt.Errorf("invalid enum value")
 }
 
 type Object struct {
-	ObjArray    []*sub.SubObject          `disorder:"obj_array" json:"obj_array"`
-	EmptyTime   *time.Time                `disorder:"empty_time" json:"empty_time"`
-	EmptyArray  []int32                   `disorder:"empty_array" json:"empty_array"`
-	EnumField   *Color                    `disorder:"enum_field" json:"enum_field"`
-	IntMap      map[string]int32          `disorder:"int_map" json:"int_map"`
-	TimeField   *time.Time                `disorder:"time_field" json:"time_field"`
-	IntArray    []int32                   `disorder:"int_array" json:"int_array"`
 	ObjMap      map[string]*sub.SubObject `disorder:"obj_map" json:"obj_map"`
-	EmptyEnum   *Color                    `disorder:"empty_enum" json:"empty_enum"`
-	EmptyObj    *sub.SubObject            `disorder:"empty_obj" json:"empty_obj"`
-	EmptyMap    map[string]int32          `disorder:"empty_map" json:"empty_map"`
 	IntField    int32                     `disorder:"int_field" json:"int_field"`
 	StringField string                    `disorder:"string_field" json:"string_field"`
+	EnumField   *Color                    `disorder:"enum_field" json:"enum_field"`
+	TimeField   *time.Time                `disorder:"time_field" json:"time_field"`
+	IntArray    []int32                   `disorder:"int_array" json:"int_array"`
+	IntMap      map[string]int32          `disorder:"int_map" json:"int_map"`
+	ObjArray    []*sub.SubObject          `disorder:"obj_array" json:"obj_array"`
 }

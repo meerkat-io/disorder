@@ -38,6 +38,9 @@ func (p *parser) parse(proto *proto) (*schema.File, error) {
 		if !p.validator.validateEnumName(name) {
 			return nil, fmt.Errorf("invalid enum name: %s", name)
 		}
+		if values == nil {
+			continue
+		}
 		valuesSet := map[string]bool{}
 		enum := &schema.Enum{
 			Name: name,
@@ -61,6 +64,9 @@ func (p *parser) parse(proto *proto) (*schema.File, error) {
 	for name, fields := range proto.Messages {
 		if !p.validator.validateMessageName(name) {
 			return nil, fmt.Errorf("invalid message name: %s", name)
+		}
+		if fields == nil {
+			continue
 		}
 		fieldsSet := map[string]bool{}
 		message := &schema.Message{
@@ -90,11 +96,17 @@ func (p *parser) parse(proto *proto) (*schema.File, error) {
 		if !p.validator.validateServiceName(name) {
 			return nil, fmt.Errorf("invalid service name: %s", name)
 		}
+		if rpcs == nil {
+			continue
+		}
 		rpcsSet := map[string]bool{}
 		service := &schema.Service{
 			Name: name,
 		}
 		for rpcName, rpcDefine := range rpcs {
+			if rpcDefine == nil {
+				continue
+			}
 			if _, exists := rpcsSet[rpcName]; exists {
 				return nil, fmt.Errorf("duplicated rpc [%s]", rpcName)
 			}

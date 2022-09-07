@@ -56,7 +56,7 @@ func (s *mathServiceServer) Handle(context *rpc.Context, method string, d *disor
 	}
 	return nil, &rpc.Error{
 		Code:  code.Unimplemented,
-		Error: fmt.Errorf("Unimplemented method \"%s\" under service \"%s\"", method, s.name),
+		Error: fmt.Errorf("unimplemented method \"%s\" under service \"%s\"", method, s.name),
 	}
 }
 

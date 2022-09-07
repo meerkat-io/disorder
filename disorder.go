@@ -5,6 +5,8 @@ import (
 	"fmt"
 )
 
+//TO-DO import not used error (sub yaml) // check define and rpc separately
+
 type Enum interface {
 	Enum()
 	Decode(enum string) error
@@ -17,17 +19,23 @@ func (*EnumBase) Enum() {}
 
 func (enum *EnumBase) Decode(value string) error {
 	if value == "" {
-		return fmt.Errorf("invalid enum value")
+		return fmt.Errorf("empty enum value")
 	}
 	*enum = EnumBase(value)
 	return nil
 }
 
 func (enum *EnumBase) Encode() ([]byte, error) {
-	if string(*enum) == "" {
-		return nil, fmt.Errorf("invalid enum value")
+	name := string(*enum)
+	if len(name) == 0 {
+		return nil, fmt.Errorf("empty enum value")
 	}
-	return []byte(*enum), nil
+	if len(name) > 255 {
+		return nil, fmt.Errorf("string length overflow. should less than 255")
+	}
+	data := []byte{byte(len(name))}
+	data = append(data, []byte(name)...)
+	return data, nil
 }
 
 func Marshal(value interface{}) ([]byte, error) {
