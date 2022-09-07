@@ -2,6 +2,7 @@ package loader
 
 import (
 	"regexp"
+	"strings"
 
 	"github.com/meerkat-io/disorder/internal/schema"
 )
@@ -10,8 +11,6 @@ type validator struct {
 	variableName *regexp.Regexp
 	packageName  *regexp.Regexp
 	singularType *regexp.Regexp
-	arrayType    *regexp.Regexp
-	mapType      *regexp.Regexp
 }
 
 func newValidator() *validator {
@@ -19,8 +18,6 @@ func newValidator() *validator {
 		variableName: regexp.MustCompile(`^[a-zA-Z_][a-zA-Z_0-9]*$`),
 		packageName:  regexp.MustCompile(`^[a-zA-Z_][a-zA-Z_0-9]*(.[a-zA-Z_][a-zA-Z_0-9]*)*$`),
 		singularType: regexp.MustCompile(`^[a-zA-Z_][a-zA-Z_0-9]*(.[a-zA-Z_][a-zA-Z_0-9]*)*$`),
-		arrayType:    regexp.MustCompile(`^array\[[a-zA-Z_][a-zA-Z_0-9]*(.[a-zA-Z_][a-zA-Z_0-9]*)*\]$`),
-		mapType:      regexp.MustCompile(`^map\[[a-zA-Z_][a-zA-Z_0-9]*(.[a-zA-Z_][a-zA-Z_0-9]*)*\]$`),
 	}
 }
 
@@ -81,9 +78,9 @@ func (v *validator) isSingularType(typ string) bool {
 }
 
 func (v *validator) isArrayType(typ string) bool {
-	return v.arrayType.MatchString(typ)
+	return strings.HasPrefix(typ, "array[") && strings.HasSuffix(typ, "]")
 }
 
 func (v *validator) isMapType(typ string) bool {
-	return v.mapType.MatchString(typ)
+	return strings.HasPrefix(typ, "map[") && strings.HasSuffix(typ, "]")
 }

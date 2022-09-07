@@ -38,9 +38,9 @@ var (
 )
 
 type TypeInfo struct {
-	Type    Type
-	SubType Type
-	TypeRef string
+	Type        Type
+	TypeRef     string
+	ElementType *TypeInfo
 }
 
 type Field struct {

@@ -2,7 +2,7 @@ package loader
 
 import (
 	"fmt"
-	"io/ioutil"
+	"os"
 	"path/filepath"
 
 	"github.com/meerkat-io/disorder/internal/schema"
@@ -67,7 +67,7 @@ func (l *loaderImpl) load(file string, files map[string]*schema.File) error {
 	if _, exists := files[file]; exists {
 		return nil
 	}
-	bytes, err := ioutil.ReadFile(file)
+	bytes, err := os.ReadFile(file)
 	if err != nil {
 		return fmt.Errorf("load schema file [%s] failed: %s", file, err.Error())
 	}

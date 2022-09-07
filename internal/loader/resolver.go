@@ -74,6 +74,7 @@ func (r *resolver) resolve(files map[string]*schema.File) error {
 					return fmt.Errorf("resolve rpc output type in file [%s] failed: %s", file.FilePath, err.Error())
 				}
 				if rpc.Input.Type == schema.TypeTimestamp {
+					//TO-DO separate rpc and define
 					file.HasTimestampRpc = true
 				}
 				if rpc.Output.Type == schema.TypeTimestamp {
@@ -87,15 +88,14 @@ func (r *resolver) resolve(files map[string]*schema.File) error {
 
 func (r *resolver) resolveType(pkg string, info *schema.TypeInfo) error {
 	if info.Type == schema.TypeUndefined {
+		// object or enum
 		info.Type = r.resolveTypeRef(pkg, info.TypeRef)
 		if info.Type == schema.TypeUndefined {
 			return fmt.Errorf("undefine type \"%s\"", info.TypeRef)
 		}
-	} else if info.TypeRef != "" {
-		info.SubType = r.resolveTypeRef(pkg, info.TypeRef)
-		if info.SubType == schema.TypeUndefined {
-			return fmt.Errorf("undefine type \"%s\"", info.TypeRef)
-		}
+	} else if info.ElementType != nil {
+		// array or map
+		return r.resolveType(pkg, info.ElementType)
 	}
 	return nil
 }

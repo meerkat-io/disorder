@@ -118,14 +118,7 @@ func (g *goGenerator) initTemplete() {
 			return strcase.SnakeCase(names[len(names)-1])
 		},
 		"Type": func(typ *schema.TypeInfo) string {
-			switch typ.Type {
-			case schema.TypeArray:
-				return fmt.Sprintf("[]%s", goType(typ.SubType, typ.TypeRef))
-			case schema.TypeMap:
-				return fmt.Sprintf("map[string]%s", goType(typ.SubType, typ.TypeRef))
-			default:
-				return goType(typ.Type, typ.TypeRef)
-			}
+			return goType(typ)
 		},
 		"IsPointer": func(typ *schema.TypeInfo) bool {
 			switch typ.Type {
@@ -138,15 +131,13 @@ func (g *goGenerator) initTemplete() {
 		"InitType": func(typ *schema.TypeInfo) string {
 			switch typ.Type {
 			case schema.TypeEnum:
-				typ := goType(typ.SubType, typ.TypeRef)
-				return fmt.Sprintf(" = new(%s)", string([]byte(typ)[1:]))
+				return fmt.Sprintf(" = new(%s)", goType(typ)[1:])
 			case schema.TypeTimestamp:
 				return " = &time.Time{}"
 			case schema.TypeObject:
-				typ := goType(typ.SubType, typ.TypeRef)
-				return fmt.Sprintf(" = &%s{}", string([]byte(typ)[1:]))
+				return fmt.Sprintf(" = &%s{}", goType(typ)[1:])
 			case schema.TypeMap:
-				return fmt.Sprintf(" = make(map[string]%s)", goType(typ.SubType, typ.TypeRef))
+				return fmt.Sprintf(" = make(map[string]%s)", goType(typ.ElementType))
 			default:
 				return ""
 			}
@@ -194,15 +185,22 @@ var goTypes = map[schema.Type]string{
 	schema.TypeTimestamp: "*time.Time",
 }
 
-func goType(typ schema.Type, ref string) string {
-	if typ.IsPrimary() {
-		return goTypes[typ]
+func goType(typ *schema.TypeInfo) string {
+	switch typ.Type {
+	case schema.TypeArray:
+		return fmt.Sprintf("[]%s", goType(typ.ElementType))
+	case schema.TypeMap:
+		return fmt.Sprintf("map[string]%s", goType(typ.ElementType))
+	default:
+		if typ.Type.IsPrimary() {
+			return goTypes[typ.Type]
+		}
 	}
-	if strings.Contains(ref, ".") {
-		names := strings.Split(ref, ".")
+	if strings.Contains(typ.TypeRef, ".") {
+		names := strings.Split(typ.TypeRef, ".")
 		pkg := strcase.SnakeCase(names[len(names)-2])
 		obj := strcase.PascalCase(names[len(names)-1])
 		return fmt.Sprintf("*%s.%s", pkg, obj)
 	}
-	return fmt.Sprintf("*%s", strcase.PascalCase(ref))
+	return fmt.Sprintf("*%s", strcase.PascalCase(typ.TypeRef))
 }

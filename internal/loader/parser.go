@@ -179,24 +179,14 @@ func (p *parser) parseType(pkg, typ string) (t *schema.TypeInfo, err error) {
 		}
 	} else if p.validator.isArrayType(typ) {
 		t.Type = schema.TypeArray
-		subType := typ[6 : len(typ)-1]
-		if p.validator.isPrimary(subType) {
-			t.SubType = p.validator.primaryType(subType)
-			return
-		} else {
-			t.TypeRef = subType
-			return
-		}
+		elementType := typ[6 : len(typ)-1]
+		t.ElementType, err = p.parseType(pkg, elementType)
+		return
 	} else if p.validator.isMapType(typ) {
 		t.Type = schema.TypeMap
-		subType := typ[4 : len(typ)-1]
-		if p.validator.isPrimary(subType) {
-			t.SubType = p.validator.primaryType(subType)
-			return
-		} else {
-			t.TypeRef = subType
-			return
-		}
+		elementType := typ[4 : len(typ)-1]
+		t.ElementType, err = p.parseType(pkg, elementType)
+		return
 	}
 	return nil, fmt.Errorf("invalid type %s", typ)
 }
