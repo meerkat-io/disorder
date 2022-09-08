@@ -34,21 +34,21 @@ type proto struct {
 	Services map[string]map[string]*rpc   `yaml:"services" json:"services" toml:"services"`
 }
 
-type defaultLoader struct {
+type loader struct {
 	parser       *parser
 	unmarshaller unmarshaller
 	resolver     *resolver
 }
 
 func newLoader(unmarshaller unmarshaller) Loader {
-	return &defaultLoader{
+	return &loader{
 		parser:       newParser(),
 		unmarshaller: unmarshaller,
 		resolver:     newResolver(),
 	}
 }
 
-func (l *defaultLoader) Load(file string) (map[string]*schema.File, error) {
+func (l *loader) Load(file string) (map[string]*schema.File, error) {
 	files := map[string]*schema.File{}
 	err := l.load(file, files)
 	if err != nil {
@@ -61,7 +61,7 @@ func (l *defaultLoader) Load(file string) (map[string]*schema.File, error) {
 	return files, nil
 }
 
-func (l *defaultLoader) load(file string, files map[string]*schema.File) error {
+func (l *loader) load(file string, files map[string]*schema.File) error {
 	file, err := filepath.Abs(file)
 	if err != nil {
 		return fmt.Errorf("schema file not found: %s", err.Error())
