@@ -29,28 +29,32 @@ var {{CamelCase $enum.Name}}EnumMap = map[string]Color {
 
 func (*{{PascalCase $enum.Name}}) Enum() {}
 
-func (enum *{{PascalCase $enum.Name}}) Decode(value string) error {
+func (enum *{{PascalCase $enum.Name}}) FromString(value string) error {
+	if value == "" {
+		return fmt.Errorf("empty enum value")
+	}
+	if len(value) > 255 {
+		return fmt.Errorf("enum length overflow. should less than 255")
+	}
 	if {{CamelCase $enum.Name}}, ok := {{CamelCase $enum.Name}}EnumMap[value]; ok {
 		*enum = {{CamelCase $enum.Name}}
 		return nil
 	}
-	return fmt.Errorf("invalid enum value")
+	return fmt.Errorf("invalid enum value: %s", value)
 }
 
-func (enum *{{PascalCase $enum.Name}}) Encode() ([]byte, error) {
+func (enum *{{PascalCase $enum.Name}}) ToString() (string, error) {
 	name := string(*enum)
 	if len(name) == 0 {
-		return nil, fmt.Errorf("empty enum value")
+		return "", fmt.Errorf("empty enum value")
 	}
 	if len(name) > 255 {
-		return nil, fmt.Errorf("string length overflow. should less than 255")
+		return "", fmt.Errorf("enum length overflow. should less than 255")
 	}
-	data := []byte{byte(len(name))}
 	if _, ok := {{CamelCase $enum.Name}}EnumMap[name]; ok {
-		data = append(data, []byte(name)...)
-		return data, nil
+		return name, nil
 	}
-	return nil, fmt.Errorf("invalid enum value")
+	return "", fmt.Errorf("invalid enum value: %s", name)
 }
 {{- end}}
 {{- range .Messages}}

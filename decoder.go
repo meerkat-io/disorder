@@ -58,7 +58,7 @@ func (d *Decoder) read(t tag, value reflect.Value) error {
 			if err != nil {
 				return err
 			}
-			return i.Decode(enum)
+			return i.FromString(enum)
 		} else {
 			return fmt.Errorf("type mismatch: assign enum to %s", value.Type())
 		}
@@ -182,10 +182,12 @@ func (d *Decoder) read(t tag, value reflect.Value) error {
 
 	case tagEnum:
 		var err error
-		resolved, err = d.readEnum()
+		name, err := d.readName()
 		if err != nil {
 			return err
 		}
+		enum := EnumBase(name)
+		resolved = &enum
 
 	case tagArrayStart:
 		return d.readArray(value)
@@ -356,15 +358,6 @@ func (d *Decoder) readTime() (*time.Time, error) {
 	timestamp := int64(binary.BigEndian.Uint64(bytes))
 	t := time.Unix(timestamp, 0)
 	return &t, nil
-}
-
-func (d *Decoder) readEnum() (*EnumBase, error) {
-	name, err := d.readName()
-	if err != nil {
-		return nil, err
-	}
-	enum := EnumBase(name)
-	return &enum, nil
 }
 
 func (d *Decoder) readName() (string, error) {

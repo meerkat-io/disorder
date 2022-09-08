@@ -44,7 +44,13 @@ func (e *Encoder) write(name string, value reflect.Value) error {
 
 	case Enum:
 		t = tagEnum
-		bytes, err = i.Encode()
+		var enum string
+		enum, err = i.ToString()
+		if err != nil {
+			return err
+		}
+		bytes = []byte{byte(len(enum))}
+		bytes = append(bytes, []byte(enum)...)
 
 	default:
 		switch value.Kind() {

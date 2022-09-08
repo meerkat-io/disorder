@@ -9,33 +9,34 @@ import (
 
 type Enum interface {
 	Enum()
-	Decode(enum string) error
-	Encode() ([]byte, error)
+	FromString(enum string) error
+	ToString() (string, error)
 }
 
 type EnumBase string
 
 func (*EnumBase) Enum() {}
 
-func (enum *EnumBase) Decode(value string) error {
+func (enum *EnumBase) FromString(value string) error {
 	if value == "" {
 		return fmt.Errorf("empty enum value")
+	}
+	if len(value) > 255 {
+		return fmt.Errorf("enum length overflow. should less than 255")
 	}
 	*enum = EnumBase(value)
 	return nil
 }
 
-func (enum *EnumBase) Encode() ([]byte, error) {
+func (enum *EnumBase) ToString() (string, error) {
 	name := string(*enum)
 	if len(name) == 0 {
-		return nil, fmt.Errorf("empty enum value")
+		return "", fmt.Errorf("empty enum value")
 	}
 	if len(name) > 255 {
-		return nil, fmt.Errorf("string length overflow. should less than 255")
+		return "", fmt.Errorf("enum length overflow. should less than 255")
 	}
-	data := []byte{byte(len(name))}
-	data = append(data, []byte(name)...)
-	return data, nil
+	return name, nil
 }
 
 func Marshal(value interface{}) ([]byte, error) {

@@ -364,7 +364,7 @@ func (*testService) PrintArray(c *rpc.Context, request []int32) ([]int32, *rpc.E
 }
 
 func (*testService) PrintEnum(c *rpc.Context, request *test.Color) (*test.Color, *rpc.Error) {
-	reqColor, _ := request.Encode()
+	reqColor, _ := request.ToString()
 	fmt.Printf("input enum: %s\n", string(reqColor))
 	color := test.ColorGreen
 	return &color, nil
