@@ -2,8 +2,6 @@ package schema
 
 type Type byte
 
-//TO-DO add meta data and version for config file
-
 const (
 	TypeUndefined Type = 0
 

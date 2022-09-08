@@ -23,6 +23,8 @@ type rpc struct {
 
 type proto struct {
 	FilePath string            `yaml:"-" json:"-" toml:"-"`
+	Schema   string            `yaml:"schema" json:"schema" toml:"schema"`
+	Version  string            `yaml:"version" json:"version" toml:"version"`
 	Package  string            `yaml:"package" json:"package" toml:"package"`
 	Imports  []string          `yaml:"import" json:"import" toml:"import"`
 	Options  map[string]string `yaml:"option" json:"option" toml:"option"`
@@ -79,6 +81,10 @@ func (l *loaderImpl) load(file string, files map[string]*schema.File) error {
 	if err != nil {
 		return fmt.Errorf("unmarshal schema file [%s] failed: %s", file, err.Error())
 	}
+	if p.Schema != "disorder" {
+		return fmt.Errorf("invalid disorder schema file")
+	}
+	//TO-DO support version in the future
 
 	schema, err := l.parser.parse(p)
 	if err != nil {
