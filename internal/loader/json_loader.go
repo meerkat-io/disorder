@@ -3,7 +3,7 @@ package loader
 import "encoding/json"
 
 func NewJsonLoader() Loader {
-	return newLoaderImpl(&jsonUnmarshaller{})
+	return newLoader(&jsonUnmarshaller{})
 }
 
 type jsonUnmarshaller struct {

@@ -14,11 +14,11 @@ type Balancer interface {
 	Address() (string, error)
 }
 
-type balancerImpl struct {
+type dummyBalancer struct {
 	addr string
 }
 
-func (b *balancerImpl) Address() (string, error) {
+func (b *dummyBalancer) Address() (string, error) {
 	return b.addr, nil
 }
 
@@ -28,7 +28,7 @@ type Client struct {
 
 func NewClient(addr string) *Client {
 	return &Client{
-		b: &balancerImpl{
+		b: &dummyBalancer{
 			addr: addr,
 		},
 	}

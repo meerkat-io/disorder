@@ -3,7 +3,7 @@ package loader
 import toml "github.com/pelletier/go-toml/v2"
 
 func NewTomlLoader() Loader {
-	return newLoaderImpl(&tomlUnmarshaller{})
+	return newLoader(&tomlUnmarshaller{})
 }
 
 type tomlUnmarshaller struct {

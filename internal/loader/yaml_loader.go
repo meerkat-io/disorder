@@ -3,7 +3,7 @@ package loader
 import "gopkg.in/yaml.v3"
 
 func NewYamlLoader() Loader {
-	return newLoaderImpl(&yamlUnmarshaller{})
+	return newLoader(&yamlUnmarshaller{})
 }
 
 type yamlUnmarshaller struct {
