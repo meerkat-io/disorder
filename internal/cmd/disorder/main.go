@@ -49,7 +49,7 @@ func main() {
 		fmt.Println("unknow schema type. should be yaml|json|toml file")
 		os.Exit(0)
 	}
-	files, err := l.Load(f.Input)
+	files, qualifiedPath, err := l.Load(f.Input)
 	if err != nil {
 		fmt.Printf("load file %s failed: %s", f.Input, err.Error())
 		os.Exit(0)
@@ -57,7 +57,7 @@ func main() {
 
 	//TO-DO check language
 	generator := golang.NewGoGenerator()
-	err = generator.Generate(f.Output, files)
+	err = generator.Generate(f.Output, files, qualifiedPath)
 	if err != nil {
 		fmt.Printf("generate failed: %s", err.Error())
 	}

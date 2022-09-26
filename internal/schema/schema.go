@@ -40,6 +40,7 @@ var (
 type TypeInfo struct {
 	Type        Type
 	TypeRef     string
+	Qualified   string
 	ElementType *TypeInfo
 }
 
@@ -79,10 +80,5 @@ type File struct {
 	Messages []*Message
 	Services []*Service
 
-	AbsImports    []string
-	DefineImports []string
-	RpcImports    []string
-
-	HasTimestampDefine bool
-	HasTimestampRpc    bool
+	AbsImports map[string]bool
 }

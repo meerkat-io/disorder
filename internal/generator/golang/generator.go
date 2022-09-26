@@ -11,7 +11,6 @@ import (
 
 	"github.com/meerkat-io/bloom/folder"
 	"github.com/meerkat-io/bloom/format/strcase"
-
 	"github.com/meerkat-io/disorder/internal/generator"
 	"github.com/meerkat-io/disorder/internal/schema"
 )
@@ -32,32 +31,34 @@ type goGenerator struct {
 	rpc    *template.Template
 }
 
-func (g *goGenerator) Generate(dir string, files map[string]*schema.File) error {
+func (g *goGenerator) Generate(dir string, files map[string]*schema.File, qualifiedPath map[string]string) error {
 	for _, file := range files {
-		resolvedImports := make(map[string]bool)
-		for _, importPath := range file.AbsImports {
-			resolvedImports[g.resolveImport(files[importPath])] = true
+		defineImports := make(map[string]bool)
+		rpcImports := make(map[string]bool)
+		for _, message := range file.Messages {
+			for _, field := range message.Fields {
+				if field.Type.Type == schema.TypeTimestamp {
+					defineImports["time"] = true
+				}
+				//TO-DO add qualified
+			}
 		}
-		file.DefineImports = file.DefineImports[:0]
-		file.RpcImports = file.RpcImports[:0]
+		for _, service := range file.Services {
+			for _, rpc := range service.Rpc {
+				if rpc.Input.Type == schema.TypeTimestamp || rpc.Output.Type == schema.TypeTimestamp {
+					rpcImports["time"] = true
+				}
+				//TO-DO add qualified
+			}
+		}
+
 		if len(file.Enums) > 0 {
-			file.DefineImports = append(file.DefineImports, "fmt")
+			defineImports["fmt"] = true
 		}
-		if file.HasTimestampDefine {
-			file.DefineImports = append(file.DefineImports, "time")
-		}
-		file.RpcImports = append(file.RpcImports, "fmt")
-		if file.HasTimestampRpc {
-			file.RpcImports = append(file.RpcImports, "time")
-		}
-		for importPath := range resolvedImports {
-			//TO-DO check if used
-			file.DefineImports = append(file.DefineImports, importPath)
-			file.RpcImports = append(file.RpcImports, importPath)
-		}
-		file.RpcImports = append(file.RpcImports, "github.com/meerkat-io/disorder")
-		file.RpcImports = append(file.RpcImports, "github.com/meerkat-io/disorder/rpc")
-		file.RpcImports = append(file.RpcImports, "github.com/meerkat-io/disorder/rpc/code")
+		rpcImports["fmt"] = true
+		rpcImports["github.com/meerkat-io/disorder"] = true
+		rpcImports["github.com/meerkat-io/disorder/rpc"] = true
+		rpcImports["github.com/meerkat-io/disorder/rpc/code"] = true
 
 		schemaDir, err := filepath.Abs(filepath.Join(dir, g.packageFolder(file.Package)))
 		if err != nil {

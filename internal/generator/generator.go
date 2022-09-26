@@ -5,5 +5,5 @@ import (
 )
 
 type Generator interface {
-	Generate(dir string, files map[string]*schema.File) error
+	Generate(dir string, files map[string]*schema.File, qualified map[string]string) error
 }

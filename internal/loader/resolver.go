@@ -8,77 +8,71 @@ import (
 )
 
 type resolver struct {
-	names    map[string]string
-	enums    map[string]bool
-	messages map[string]bool
+	qualified map[string]string
+	enums     map[string]bool
+	messages  map[string]bool
 }
 
 func newResolver() *resolver {
 	return &resolver{
-		names:    map[string]string{},
-		enums:    map[string]bool{},
-		messages: map[string]bool{},
+		qualified: map[string]string{},
+		enums:     map[string]bool{},
+		messages:  map[string]bool{},
 	}
 }
 
 func (r *resolver) qualifiedName(pkg, name string) string {
 	if strings.Contains(name, ".") {
+		//remote
 		return name
 	}
+	//local
 	return fmt.Sprintf("%s.%s", pkg, name)
 }
 
 func (r *resolver) resolve(files map[string]*schema.File) error {
 	for _, file := range files {
 		for _, enum := range file.Enums {
-			if f, exists := r.names[enum.Name]; exists {
+			if f, exists := r.qualified[enum.Name]; exists {
 				return fmt.Errorf("duplicate enum define [%s] in %s and %s", enum.Name, f, file.FilePath)
 			}
 			qualified := r.qualifiedName(file.Package, enum.Name)
-			r.names[qualified] = file.FilePath
+			r.qualified[qualified] = file.FilePath
 			r.enums[qualified] = true
 		}
 		for _, message := range file.Messages {
-			if f, exists := r.names[message.Name]; exists {
+			if f, exists := r.qualified[message.Name]; exists {
 				return fmt.Errorf("duplicate message define [%s] in %s and %s", message.Name, f, file.FilePath)
 			}
 			qualified := r.qualifiedName(file.Package, message.Name)
-			r.names[qualified] = file.FilePath
+			fmt.Println("qualified message: ", qualified)
+			fmt.Println("file path: ", file.FilePath)
+			r.qualified[qualified] = file.FilePath
 			r.messages[qualified] = true
 		}
 		for _, service := range file.Services {
-			if f, exists := r.names[service.Name]; exists {
+			if f, exists := r.qualified[service.Name]; exists {
 				return fmt.Errorf("duplicate rpc define [%s] in %s and %s", service.Name, f, file.FilePath)
 			}
-			r.names[r.qualifiedName(file.Package, service.Name)] = file.FilePath
+			r.qualified[r.qualifiedName(file.Package, service.Name)] = file.FilePath
 		}
 	}
 
 	for _, file := range files {
 		for _, message := range file.Messages {
 			for _, field := range message.Fields {
-				if err := r.resolveType(file.Package, field.Type); err != nil {
+				if err := r.resolveType(file, field.Type); err != nil {
 					return fmt.Errorf("resolve type in file [%s] failed: %s", file.FilePath, err.Error())
-				}
-				if field.Type.Type == schema.TypeTimestamp {
-					file.HasTimestampDefine = true
 				}
 			}
 		}
 		for _, service := range file.Services {
 			for _, rpc := range service.Rpc {
-				if err := r.resolveType(file.Package, rpc.Input); err != nil {
+				if err := r.resolveType(file, rpc.Input); err != nil {
 					return fmt.Errorf("resolve rpc input type in file [%s] failed: %s", file.FilePath, err.Error())
 				}
-				if err := r.resolveType(file.Package, rpc.Output); err != nil {
+				if err := r.resolveType(file, rpc.Output); err != nil {
 					return fmt.Errorf("resolve rpc output type in file [%s] failed: %s", file.FilePath, err.Error())
-				}
-				if rpc.Input.Type == schema.TypeTimestamp {
-					//TO-DO separate rpc and define to set HasTImestamp
-					file.HasTimestampRpc = true
-				}
-				if rpc.Output.Type == schema.TypeTimestamp {
-					file.HasTimestampRpc = true
 				}
 			}
 		}
@@ -86,28 +80,39 @@ func (r *resolver) resolve(files map[string]*schema.File) error {
 	return nil
 }
 
-func (r *resolver) resolveType(pkg string, info *schema.TypeInfo) error {
+func (r *resolver) resolveType(file *schema.File, info *schema.TypeInfo) error {
 	if info.Type == schema.TypeUndefined {
 		// object or enum
-		info.Type = r.resolveTypeRef(pkg, info.TypeRef)
+		r.resolveTypeRef(file, info)
 		if info.Type == schema.TypeUndefined {
 			return fmt.Errorf("undefine type \"%s\"", info.TypeRef)
 		}
 	} else if info.ElementType != nil {
 		// array or map
-		return r.resolveType(pkg, info.ElementType)
+		return r.resolveType(file, info.ElementType)
 	}
 	return nil
 }
 
-func (r *resolver) resolveTypeRef(pkg string, ref string) schema.Type {
-	qualified := r.qualifiedName(pkg, ref)
-	if r.isEnum(qualified) {
-		return schema.TypeEnum
-	} else if r.isObject(qualified) {
-		return schema.TypeObject
+func (r *resolver) resolveTypeRef(file *schema.File, info *schema.TypeInfo) {
+	info.Type = schema.TypeUndefined
+	qualified := r.qualifiedName(file.Package, info.TypeRef)
+	importPath, ok := r.qualified[qualified]
+	if !ok {
+		return
 	}
-	return schema.TypeUndefined
+	if importPath != file.FilePath {
+		if _, ok := file.AbsImports[importPath]; !ok {
+			return
+		}
+	}
+	if r.isEnum(qualified) {
+		info.Qualified = qualified
+		info.Type = schema.TypeEnum
+	} else if r.isObject(qualified) {
+		info.Qualified = qualified
+		info.Type = schema.TypeObject
+	}
 }
 
 func (r *resolver) isEnum(typ string) bool {

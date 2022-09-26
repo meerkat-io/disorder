@@ -18,12 +18,14 @@ import (
 
 func TestLoadYamlFile(t *testing.T) {
 	loader := loader.NewYamlLoader()
-	files, err := loader.Load("./internal/test_data/schema.yaml")
+	files, qualifiedPath, err := loader.Load("./internal/test_data/schema.yaml")
 	assert.Nil(t, err)
 
 	generator := golang.NewGoGenerator()
-	err = generator.Generate("./internal", files)
+	err = generator.Generate("./internal", files, qualifiedPath)
 	assert.Nil(t, err)
+
+	t.Fail()
 }
 
 func TestPrimaryType(t *testing.T) {
