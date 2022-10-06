@@ -11,8 +11,8 @@ import (
 var index uint64
 
 type mapItem struct {
-	Key   string
-	Value interface{}
+	key   string
+	value interface{}
 	index uint64
 }
 
@@ -28,7 +28,7 @@ func (m *mapSlice) UnmarshalJSON(b []byte) error {
 		return err
 	}
 	for k, v := range values {
-		*m = append(*m, mapItem{Key: k, Value: v.Value, index: v.index})
+		*m = append(*m, mapItem{key: k, value: v.value, index: v.index})
 	}
 	sort.Sort(*m)
 	return nil
@@ -39,7 +39,7 @@ func (p *mapItem) UnmarshalJSON(b []byte) error {
 	if err := json.Unmarshal(b, &v); err != nil {
 		return err
 	}
-	p.Value = v
+	p.value = v
 	p.index = next()
 	return nil
 }
@@ -51,11 +51,11 @@ func (m mapSlice) MarshalJSON() ([]byte, error) {
 		if i != 0 {
 			buf.Write([]byte{','})
 		}
-		b, err := json.Marshal(item.Value)
+		b, err := json.Marshal(item.value)
 		if err != nil {
 			return nil, err
 		}
-		buf.WriteString(fmt.Sprintf("%q:", fmt.Sprint(item.Key)))
+		buf.WriteString(fmt.Sprintf("%q:", fmt.Sprint(item.key)))
 		buf.Write(b)
 	}
 	buf.Write([]byte{'}'})

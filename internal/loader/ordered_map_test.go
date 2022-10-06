@@ -9,9 +9,9 @@ import (
 
 func TestMarshal(t *testing.T) {
 	ms := mapSlice{
-		mapItem{Key: "abc", Value: 123},
-		mapItem{Key: "def", Value: 456},
-		mapItem{Key: "ghi", Value: 789},
+		mapItem{key: "abc", value: 123},
+		mapItem{key: "def", value: 456},
+		mapItem{key: "ghi", value: 789},
 	}
 
 	b, err := json.Marshal(ms)
@@ -28,10 +28,10 @@ func TestUnmarshal(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	assert.Equal(t, ms[0].Key, "abc")
-	assert.Equal(t, ms[1].Key, "def")
-	assert.Equal(t, ms[2].Key, "ghi")
-	assert.Equal(t, ms[0].Value, 123.0)
-	assert.Equal(t, ms[1].Value, 456.0)
-	assert.Equal(t, ms[2].Value, 789.0)
+	assert.Equal(t, ms[0].key, "abc")
+	assert.Equal(t, ms[1].key, "def")
+	assert.Equal(t, ms[2].key, "ghi")
+	assert.Equal(t, ms[0].value, 123.0)
+	assert.Equal(t, ms[1].value, 456.0)
+	assert.Equal(t, ms[2].value, 789.0)
 }
