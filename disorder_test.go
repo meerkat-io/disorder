@@ -24,6 +24,7 @@ func TestLoadYamlFile(t *testing.T) {
 	generator := golang.NewGoGenerator()
 	err = generator.Generate("./internal", files, qualifiedPath)
 	assert.Nil(t, err)
+	fmt.Println(err.Error())
 
 	t.Fail()
 }
