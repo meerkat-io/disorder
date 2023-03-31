@@ -71,6 +71,8 @@ func getStructInfo(typ reflect.Type) (*structInfo, error) {
 		s.fieldsList = append(s.fieldsList, f)
 		s.fieldsMap[f.key] = f
 	}
+	structsMapMutex.Lock()
+	defer structsMapMutex.Unlock()
 	structsMap[typ] = s
 	return s, nil
 }
