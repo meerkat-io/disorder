@@ -4,3 +4,7 @@ package sub
 type SubObject struct {
 	Value int32 `disorder:"value" json:"value"`
 }
+
+type Version struct {
+	Value string `disorder:"value" json:"value"`
+}

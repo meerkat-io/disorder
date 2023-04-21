@@ -5,7 +5,7 @@ const (
 package {{PackageName .Package}}
 
 import (
-{{- range .RpcImports}}
+{{- range .Imports}} //TO-DO RpcImports
 	"{{.}}"
 {{- end}}
 )

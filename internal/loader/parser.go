@@ -61,16 +61,20 @@ func (p *parser) parse(proto *proto) (*schema.File, error) {
 		file.Enums = append(file.Enums, enum)
 	}
 
-	for name, fields := range proto.Messages {
-		if !p.validator.validateMessageName(name) {
-			return nil, fmt.Errorf("invalid message name: %s", name)
+	for _, item := range proto.Messages {
+		if !p.validator.validateMessageName(item.key) {
+			return nil, fmt.Errorf("invalid message name: %s", item.key)
 		}
-		if fields == nil {
+		if item.value == nil {
 			continue
 		}
 		fieldsSet := map[string]bool{}
 		message := &schema.Message{
-			Name: name,
+			Name: item.key,
+		}
+		fields, ok := item.value.(map[string]interface{})
+		if !ok {
+			continue
 		}
 		for fieldName, fieldType := range fields {
 			if _, exists := fieldsSet[fieldName]; exists {
@@ -80,14 +84,14 @@ func (p *parser) parse(proto *proto) (*schema.File, error) {
 				return nil, fmt.Errorf("invalid field name: %s", fieldName)
 			}
 			fieldsSet[fieldName] = true
-			field, err := p.parseField(proto.Package, fieldName, fieldType)
+			field, err := p.parseField(proto.Package, fieldName, fieldType.(string))
 			if err != nil {
 				return nil, err
 			}
 			message.Fields = append(message.Fields, field)
 		}
 		if len(message.Fields) == 0 {
-			return nil, fmt.Errorf("empty message define: %s", name)
+			return nil, fmt.Errorf("empty message define: %s", item.key)
 		}
 		file.Messages = append(file.Messages, message)
 	}

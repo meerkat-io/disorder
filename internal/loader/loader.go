@@ -29,9 +29,9 @@ type proto struct {
 	Imports  []string          `yaml:"import" json:"import" toml:"import"`
 	Options  map[string]string `yaml:"option" json:"option" toml:"option"`
 
-	Enums    map[string][]string          `yaml:"enums" json:"enums" toml:"enums"`
-	Messages map[string]map[string]string `yaml:"messages" json:"messages" toml:"messages"`
-	Services map[string]map[string]*rpc   `yaml:"services" json:"services" toml:"services"`
+	Enums    map[string][]string        `yaml:"enums" json:"enums" toml:"enums"`
+	Messages mapSlice                   `yaml:"messages" json:"messages" toml:"messages"`
+	Services map[string]map[string]*rpc `yaml:"services" json:"services" toml:"services"`
 }
 
 type loader struct {

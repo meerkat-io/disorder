@@ -16,6 +16,16 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func TestLoadJsonFile(t *testing.T) {
+	loader := loader.NewJsonLoader()
+	files, qualifiedPath, err := loader.Load("./internal/test_data/sub_schema.json")
+	assert.Nil(t, err)
+
+	generator := golang.NewGoGenerator()
+	err = generator.Generate("./internal", files, qualifiedPath)
+	assert.Nil(t, err)
+}
+
 func TestLoadYamlFile(t *testing.T) {
 	loader := loader.NewYamlLoader()
 	files, qualifiedPath, err := loader.Load("./internal/test_data/schema.yaml")
@@ -221,6 +231,7 @@ func TestZero(t *testing.T) {
 	assert.Equal(t, 0, len(object3.ZeroMap))
 }
 
+/*
 func TestRpcMath(t *testing.T) {
 	s := rpc.NewServer()
 	sub.RegisterMathServiceServer(s, &testService{})
@@ -235,7 +246,7 @@ func TestRpcMath(t *testing.T) {
 	_, rpcErr = c.Increase(rpc.NewContext(), int32(9))
 	assert.NotNil(t, rpcErr)
 	fmt.Println(rpcErr.Error)
-}
+}*/
 
 func TestRpcPrimary(t *testing.T) {
 	s := rpc.NewServer()

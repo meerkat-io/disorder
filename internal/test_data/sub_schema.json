@@ -1,4 +1,6 @@
 {
+  "schema": "disorder",
+  "version": "v1.0.0",
   "package": "test_data.test.sub",
   "option": {
     "go_package_prefix": "github.com/meerkat-io/disorder/internal"
@@ -6,6 +8,9 @@
   "messages": {
     "sub_object": {
       "value": "int"
+    },
+    "version": {
+      "value": "string"
     }
   },
   "services": {

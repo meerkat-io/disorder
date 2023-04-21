@@ -83,23 +83,23 @@ func (g *goGenerator) Generate(dir string, files map[string]*schema.File, qualif
 		if err != nil {
 			return err
 		}
-
-		if len(file.Services) > 0 {
-			buf = &bytes.Buffer{}
-			if err := g.rpc.Execute(buf, file); err != nil {
-				return err
-			}
-			source = buf.Bytes()
-			if source, err = format.Source(source); err != nil {
-				return err
-			}
-			schemaFile = filepath.Base(file.FilePath)
-			schemaFile = fmt.Sprintf("%s_rpc.go", strings.TrimSuffix(schemaFile, filepath.Ext(schemaFile)))
-			err = os.WriteFile(filepath.Join(schemaDir, schemaFile), source, 0666)
-			if err != nil {
-				return err
-			}
-		}
+		/*
+			if len(file.Services) > 0 {
+				buf = &bytes.Buffer{}
+				if err := g.rpc.Execute(buf, file); err != nil {
+					return err
+				}
+				source = buf.Bytes()
+				if source, err = format.Source(source); err != nil {
+					return err
+				}
+				schemaFile = filepath.Base(file.FilePath)
+				schemaFile = fmt.Sprintf("%s_rpc.go", strings.TrimSuffix(schemaFile, filepath.Ext(schemaFile)))
+				err = os.WriteFile(filepath.Join(schemaDir, schemaFile), source, 0666)
+				if err != nil {
+					return err
+				}
+			}*/
 	}
 	return nil
 }
