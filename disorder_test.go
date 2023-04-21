@@ -4,10 +4,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/meerkat-io/disorder"
 	"github.com/meerkat-io/disorder/internal/generator/golang"
 	"github.com/meerkat-io/disorder/internal/loader"
+	"github.com/meerkat-io/disorder/internal/test_data/test"
 	"github.com/meerkat-io/disorder/internal/test_data/test/sub"
 	"github.com/stretchr/testify/assert"
 )
@@ -104,7 +106,6 @@ func TestObjectType(t *testing.T) {
 	assert.JSONEq(t, string(json0), string(json3))
 }
 
-/*
 func TestAllTypes(t *testing.T) {
 	timestamp := time.Unix(time.Now().Unix(), 0)
 	color := test.ColorBlue
@@ -114,8 +115,10 @@ func TestAllTypes(t *testing.T) {
 		BytesFields: []byte{7, 8, 9},
 		EnumField:   &color,
 		TimeField:   &timestamp,
-		ObjField: &sub.SubObject{
-			Value: 789,
+		ObjField: &sub.NumberWrapper{
+			Value: &sub.Number{
+				Value: 789,
+			},
 		},
 		IntArray: []int32{1, 2, 3},
 		IntMap: map[string]int32{
@@ -123,9 +126,13 @@ func TestAllTypes(t *testing.T) {
 			"5": 5,
 			"6": 6,
 		},
-		ObjArray: []*sub.SubObject{{Value: 789}},
-		ObjMap: map[string]*sub.SubObject{
-			"789": {Value: 789},
+		ObjArray: []*sub.NumberWrapper{{Value: &sub.Number{
+			Value: 789,
+		}}},
+		ObjMap: map[string]*sub.NumberWrapper{
+			"789": {Value: &sub.Number{
+				Value: 789,
+			}},
 		},
 		Nested: map[string]map[string][][]map[string]*test.Color{
 			"key0": {
@@ -178,8 +185,8 @@ func TestAllTypes(t *testing.T) {
 	err = disorder.Unmarshal(data0, &miniObject)
 	assert.Nil(t, err)
 	assert.Equal(t, object0.IntField, miniObject.IntField)
-}*/
-/*
+}
+
 func TestZero(t *testing.T) {
 	object0 := test.Zero{
 		ZeroArray: []int32{},
@@ -216,7 +223,7 @@ func TestZero(t *testing.T) {
 	assert.Equal(t, 0, len(object3.ZeroArray))
 	assert.Equal(t, 0, len(object3.ZeroMap))
 }
-*/
+
 /*
 func TestRpcMath(t *testing.T) {
 	s := rpc.NewServer()
@@ -383,8 +390,8 @@ func (*testService) PrintNested(c *rpc.Context, request map[string]map[string][]
 	*request["key0"]["key1"][0][0]["key2"] = test.ColorRed
 	return request, nil
 }
+*/
 
 type MiniObject struct {
 	IntField int32 `disorder:"int_field" json:"int_field"`
 }
-*/

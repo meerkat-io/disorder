@@ -28,3 +28,4 @@ It can used as communication protocol or data storage format.
 
 //TO-DO introduce schema format
 //TO-DO support void in rpc
+//TO-DO support stream without delimiter
