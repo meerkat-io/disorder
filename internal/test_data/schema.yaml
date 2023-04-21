@@ -1,6 +1,6 @@
 schema: disorder
 
-version: v1.0.0
+version: v1
 
 package: test_data.test
 
@@ -17,15 +17,15 @@ messages:
     bytes_fields: bytes
     enum_field: color
     time_field: timestamp
-    obj_field: test_data.test.sub.sub_object
+    obj_field: test_data.test.sub.number_wrapper
     int_array: array[int]
     int_map: map[int]
-    obj_array: array[test_data.test.sub.sub_object]
-    obj_map: map[test_data.test.sub.sub_object]
+    obj_array: array[test_data.test.sub.number_wrapper]
+    obj_map: map[test_data.test.sub.number_wrapper]
     empty_string: string
     empty_enum: color
     empty_time: timestamp
-    empty_obj: test_data.test.sub.sub_object
+    empty_obj: test_data.test.sub.number_wrapper
     empty_array: array[int]
     empty_map: map[int]
     nested: map[map[array[array[map[color]]]]]
@@ -46,9 +46,9 @@ services:
       input: object
       output: object
 
-    print_sub_object:
-      input: test_data.test.sub.sub_object
-      output: test_data.test.sub.sub_object
+    print_imported_object:
+      input: test_data.test.sub.number_wrapper
+      output: test_data.test.sub.number_wrapper
 
     print_time:
       input: timestamp
