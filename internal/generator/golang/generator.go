@@ -52,11 +52,10 @@ func (g *goGenerator) Generate(dir string, files map[string]*schema.File, qualif
 		}
 		for _, service := range file.Services {
 			for _, rpc := range service.Rpc {
-				g.resolveImport(rpc.Input, defineImports, file, files, qualifiedPath)
-				g.resolveImport(rpc.Output, defineImports, file, files, qualifiedPath)
+				g.resolveImport(rpc.Input, rpcImports, file, files, qualifiedPath)
+				g.resolveImport(rpc.Output, rpcImports, file, files, qualifiedPath)
 			}
 		}
-
 		if len(file.Enums) > 0 {
 			defineImports["fmt"] = true
 		}
@@ -94,23 +93,23 @@ func (g *goGenerator) Generate(dir string, files map[string]*schema.File, qualif
 		if err != nil {
 			return err
 		}
-		/*
-			if len(file.Services) > 0 {
-				buf = &bytes.Buffer{}
-				if err := g.rpc.Execute(buf, file); err != nil {
-					return err
-				}
-				source = buf.Bytes()
-				if source, err = format.Source(source); err != nil {
-					return err
-				}
-				schemaFile = filepath.Base(file.FilePath)
-				schemaFile = fmt.Sprintf("%s_rpc.go", strings.TrimSuffix(schemaFile, filepath.Ext(schemaFile)))
-				err = os.WriteFile(filepath.Join(schemaDir, schemaFile), source, 0666)
-				if err != nil {
-					return err
-				}
-			}*/
+
+		if len(file.Services) > 0 {
+			buf = &bytes.Buffer{}
+			if err := g.rpc.Execute(buf, schemaFile); err != nil {
+				return err
+			}
+			source = buf.Bytes()
+			if source, err = format.Source(source); err != nil {
+				return err
+			}
+			schemaFilePath = filepath.Base(file.FilePath)
+			schemaFilePath = fmt.Sprintf("%s_rpc.go", strings.TrimSuffix(schemaFilePath, filepath.Ext(schemaFilePath)))
+			err = os.WriteFile(filepath.Join(schemaDir, schemaFilePath), source, 0666)
+			if err != nil {
+				return err
+			}
+		}
 	}
 	return nil
 }
