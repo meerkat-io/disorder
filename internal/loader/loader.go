@@ -6,14 +6,18 @@ import (
 	"path/filepath"
 
 	"github.com/meerkat-io/disorder/internal/schema"
+	"gopkg.in/yaml.v3"
 )
 
 type Loader interface {
 	Load(file string) (map[string]*schema.File, map[string]string, error)
 }
 
-type unmarshaller interface {
-	unmarshal([]byte, *proto) error
+func NewLoader() Loader {
+	return &loader{
+		parser:   newParser(),
+		resolver: newResolver(),
+	}
 }
 
 type rpc struct {
@@ -35,17 +39,8 @@ type proto struct {
 }
 
 type loader struct {
-	parser       *parser
-	unmarshaller unmarshaller
-	resolver     *resolver
-}
-
-func newLoader(unmarshaller unmarshaller) Loader {
-	return &loader{
-		parser:       newParser(),
-		unmarshaller: unmarshaller,
-		resolver:     newResolver(),
-	}
+	parser   *parser
+	resolver *resolver
 }
 
 func (l *loader) Load(file string) (map[string]*schema.File, map[string]string, error) {
@@ -77,7 +72,7 @@ func (l *loader) load(file string, files map[string]*schema.File) error {
 	p := &proto{
 		FilePath: file,
 	}
-	err = l.unmarshaller.unmarshal(bytes, p)
+	err = yaml.Unmarshal(bytes, p)
 	if err != nil {
 		return fmt.Errorf("unmarshal schema file [%s] failed: %s", file, err.Error())
 	}

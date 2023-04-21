@@ -1,9 +1,6 @@
 package loader
 
 import (
-	"bytes"
-	"encoding/json"
-	"fmt"
 	"sort"
 	"sync/atomic"
 )
@@ -22,9 +19,9 @@ func (m mapSlice) Len() int           { return len(m) }
 func (m mapSlice) Less(i, j int) bool { return m[i].index < m[j].index }
 func (m mapSlice) Swap(i, j int)      { m[i], m[j] = m[j], m[i] }
 
-func (m *mapSlice) UnmarshalJSON(b []byte) error {
+func (m *mapSlice) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	values := map[string]mapItem{}
-	if err := json.Unmarshal(b, &values); err != nil {
+	if err := unmarshal(&values); err != nil {
 		return err
 	}
 	for k, v := range values {
@@ -34,32 +31,14 @@ func (m *mapSlice) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
-func (p *mapItem) UnmarshalJSON(b []byte) error {
+func (p *mapItem) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	var v interface{}
-	if err := json.Unmarshal(b, &v); err != nil {
+	if err := unmarshal(&v); err != nil {
 		return err
 	}
 	p.value = v
 	p.index = next()
 	return nil
-}
-
-func (m mapSlice) MarshalJSON() ([]byte, error) {
-	buf := &bytes.Buffer{}
-	buf.Write([]byte{'{'})
-	for i, item := range m {
-		if i != 0 {
-			buf.Write([]byte{','})
-		}
-		b, err := json.Marshal(item.value)
-		if err != nil {
-			return nil, err
-		}
-		buf.WriteString(fmt.Sprintf("%q:", fmt.Sprint(item.key)))
-		buf.Write(b)
-	}
-	buf.Write([]byte{'}'})
-	return buf.Bytes(), nil
 }
 
 func next() uint64 {

@@ -17,26 +17,13 @@ import (
 )
 
 func TestLoadJsonFile(t *testing.T) {
-	loader := loader.NewJsonLoader()
-	files, qualifiedPath, err := loader.Load("./internal/test_data/sub_schema.json")
+	loader := loader.NewLoader()
+	files, qualifiedPath, err := loader.Load("./internal/test_data/sub_schema.yaml")
 	assert.Nil(t, err)
 
 	generator := golang.NewGoGenerator()
 	err = generator.Generate("./internal", files, qualifiedPath)
 	assert.Nil(t, err)
-}
-
-func TestLoadYamlFile(t *testing.T) {
-	loader := loader.NewYamlLoader()
-	files, qualifiedPath, err := loader.Load("./internal/test_data/schema.yaml")
-	assert.Nil(t, err)
-
-	generator := golang.NewGoGenerator()
-	err = generator.Generate("./internal", files, qualifiedPath)
-	assert.Nil(t, err)
-	fmt.Println(err.Error())
-
-	t.Fail()
 }
 
 func TestPrimaryType(t *testing.T) {

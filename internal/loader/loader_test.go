@@ -8,9 +8,9 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestLoadJsonFile(t *testing.T) {
-	loader := loader.NewJsonLoader()
-	files, _, err := loader.Load("../test_data/json_schema.json")
+func TestLoader(t *testing.T) {
+	loader := loader.NewLoader()
+	files, _, err := loader.Load("../test_data/sub_schema.yaml")
 	assert.Nil(t, err)
 
 	var file *schema.File

@@ -1,6 +1,6 @@
 schema: disorder
 
-version: v1.0.0
+version: v1
 
 package: test_data.test.sub
 
@@ -8,8 +8,10 @@ option:
   go_package_prefix: github.com/meerkat-io/disorder/internal
 
 messages:
-  sub_object:
+  number:
     value: int
+  number_wrapper:
+    value: number
 
 services:
   math_service:
