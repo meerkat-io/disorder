@@ -61,37 +61,33 @@ func (p *parser) parse(proto *proto) (*schema.File, error) {
 		file.Enums = append(file.Enums, enum)
 	}
 
-	for _, item := range proto.Messages {
-		if !p.validator.validateMessageName(item.key) {
-			return nil, fmt.Errorf("invalid message name: %s", item.key)
+	for _, m := range proto.Messages {
+		if !p.validator.validateMessageName(m.key) {
+			return nil, fmt.Errorf("invalid message name: %s", m.key)
 		}
-		if item.value == nil {
+		if m.value == nil {
 			continue
 		}
 		fieldsSet := map[string]bool{}
 		message := &schema.Message{
-			Name: item.key,
+			Name: m.key,
 		}
-		fields, ok := item.value.(map[string]interface{})
-		if !ok {
-			continue
-		}
-		for fieldName, fieldType := range fields {
-			if _, exists := fieldsSet[fieldName]; exists {
-				return nil, fmt.Errorf("duplicated field [%s]", fieldName)
+		for _, f := range m.value {
+			if _, exists := fieldsSet[f.key]; exists {
+				return nil, fmt.Errorf("duplicated field [%s]", f.key)
 			}
-			if !p.validator.validateFieldName(fieldName) {
-				return nil, fmt.Errorf("invalid field name: %s", fieldName)
+			if !p.validator.validateFieldName(f.key) {
+				return nil, fmt.Errorf("invalid field name: %s", f.key)
 			}
-			fieldsSet[fieldName] = true
-			field, err := p.parseField(proto.Package, fieldName, fieldType.(string))
+			fieldsSet[f.key] = true
+			field, err := p.parseField(proto.Package, f.key, f.value.(string))
 			if err != nil {
 				return nil, err
 			}
 			message.Fields = append(message.Fields, field)
 		}
 		if len(message.Fields) == 0 {
-			return nil, fmt.Errorf("empty message define: %s", item.key)
+			return nil, fmt.Errorf("empty message define: %s", m.key)
 		}
 		file.Messages = append(file.Messages, message)
 	}

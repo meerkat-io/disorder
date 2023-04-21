@@ -52,23 +52,23 @@ func (enum *Color) ToString() (string, error) {
 }
 
 type Object struct {
-	StringField string                                      `disorder:"string_field" json:"string_field"`
-	TimeField   *time.Time                                  `disorder:"time_field" json:"time_field,omitempty"`
-	IntArray    []int32                                     `disorder:"int_array" json:"int_array,omitempty"`
 	IntField    int32                                       `disorder:"int_field" json:"int_field"`
-	IntMap      map[string]int32                            `disorder:"int_map" json:"int_map,omitempty"`
-	EmptyString string                                      `disorder:"empty_string" json:"empty_string"`
-	EmptyMap    map[string]int32                            `disorder:"empty_map" json:"empty_map,omitempty"`
-	EnumField   *Color                                      `disorder:"enum_field" json:"enum_field,omitempty"`
-	ObjMap      map[string]*sub.NumberWrapper               `disorder:"obj_map" json:"obj_map,omitempty"`
-	EmptyEnum   *Color                                      `disorder:"empty_enum" json:"empty_enum,omitempty"`
-	Nested      map[string]map[string][][]map[string]*Color `disorder:"nested" json:"nested,omitempty"`
+	StringField string                                      `disorder:"string_field" json:"string_field"`
 	BytesFields []byte                                      `disorder:"bytes_fields" json:"bytes_fields"`
+	EnumField   *Color                                      `disorder:"enum_field" json:"enum_field,omitempty"`
+	TimeField   *time.Time                                  `disorder:"time_field" json:"time_field,omitempty"`
 	ObjField    *sub.NumberWrapper                          `disorder:"obj_field" json:"obj_field,omitempty"`
+	IntArray    []int32                                     `disorder:"int_array" json:"int_array,omitempty"`
+	IntMap      map[string]int32                            `disorder:"int_map" json:"int_map,omitempty"`
 	ObjArray    []*sub.NumberWrapper                        `disorder:"obj_array" json:"obj_array,omitempty"`
+	ObjMap      map[string]*sub.NumberWrapper               `disorder:"obj_map" json:"obj_map,omitempty"`
+	EmptyString string                                      `disorder:"empty_string" json:"empty_string"`
+	EmptyEnum   *Color                                      `disorder:"empty_enum" json:"empty_enum,omitempty"`
 	EmptyTime   *time.Time                                  `disorder:"empty_time" json:"empty_time,omitempty"`
 	EmptyObj    *sub.NumberWrapper                          `disorder:"empty_obj" json:"empty_obj,omitempty"`
 	EmptyArray  []int32                                     `disorder:"empty_array" json:"empty_array,omitempty"`
+	EmptyMap    map[string]int32                            `disorder:"empty_map" json:"empty_map,omitempty"`
+	Nested      map[string]map[string][][]map[string]*Color `disorder:"nested" json:"nested,omitempty"`
 }
 
 type Zero struct {

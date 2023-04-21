@@ -21,21 +21,21 @@ func NewLoader() Loader {
 }
 
 type rpc struct {
-	Input  string `yaml:"input" json:"input" toml:"input"`
-	Output string `yaml:"output" json:"output" toml:"output"`
+	Input  string `yaml:"input"`
+	Output string `yaml:"output"`
 }
 
 type proto struct {
-	FilePath string            `yaml:"-" json:"-" toml:"-"`
-	Schema   string            `yaml:"schema" json:"schema" toml:"schema"`
-	Version  string            `yaml:"version" json:"version" toml:"version"`
-	Package  string            `yaml:"package" json:"package" toml:"package"`
-	Imports  []string          `yaml:"import" json:"import" toml:"import"`
-	Options  map[string]string `yaml:"option" json:"option" toml:"option"`
+	FilePath string            `yaml:"-"`
+	Schema   string            `yaml:"schema"`
+	Version  string            `yaml:"version"`
+	Package  string            `yaml:"package"`
+	Imports  []string          `yaml:"import"`
+	Options  map[string]string `yaml:"option"`
 
-	Enums    map[string][]string        `yaml:"enums" json:"enums" toml:"enums"`
-	Messages mapSlice                   `yaml:"messages" json:"messages" toml:"messages"`
-	Services map[string]map[string]*rpc `yaml:"services" json:"services" toml:"services"`
+	Enums    map[string][]string        `yaml:"enums"`
+	Messages mapMatrix                  `yaml:"messages"`
+	Services map[string]map[string]*rpc `yaml:"services"`
 }
 
 type loader struct {
