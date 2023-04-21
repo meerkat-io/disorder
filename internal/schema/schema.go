@@ -5,19 +5,20 @@ type Type byte
 const (
 	TypeUndefined Type = 0
 
-	TypeBool      Type = 1
-	TypeInt       Type = 2
-	TypeLong      Type = 3
-	TypeFloat     Type = 4
-	TypeDouble    Type = 5
-	TypeString    Type = 6
-	TypeBytes     Type = 7
-	TypeTimestamp Type = 8
+	TypeBool   Type = 1
+	TypeInt    Type = 2
+	TypeLong   Type = 3
+	TypeFloat  Type = 4
+	TypeDouble Type = 5
+	TypeBytes  Type = 6
 
-	TypeEnum   Type = 9
-	TypeArray  Type = 10
-	TypeMap    Type = 11
-	TypeObject Type = 12
+	TypeString    Type = 11
+	TypeTimestamp Type = 12
+	TypeEnum      Type = 13
+
+	TypeArray  Type = 21
+	TypeMap    Type = 22
+	TypeObject Type = 23
 )
 
 func (t Type) IsPrimary() bool {
@@ -31,8 +32,8 @@ var (
 		"long":      TypeLong,
 		"float":     TypeFloat,
 		"double":    TypeDouble,
-		"string":    TypeString,
 		"bytes":     TypeBytes,
+		"string":    TypeString,
 		"timestamp": TypeTimestamp,
 	}
 )

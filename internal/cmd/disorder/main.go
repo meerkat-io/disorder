@@ -46,7 +46,7 @@ func main() {
 	} else if ext == ".toml" {
 		l = loader.NewTomlLoader()
 	} else {
-		fmt.Println("unknow schema type. should be yaml|json|toml file")
+		fmt.Println("unknow schema type. expect yaml|json|toml schema file")
 		os.Exit(0)
 	}
 	files, qualifiedPath, err := l.Load(f.Input)

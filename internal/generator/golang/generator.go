@@ -145,7 +145,7 @@ func (g *goGenerator) initTemplete() {
 			}
 		},
 		"Tag": func(typ *schema.TypeInfo, name string) string {
-			//TO-DO use "omitnil" in the future
+			//TO-DO support "omitnil" in the future
 			omitEmpty := ""
 			switch typ.Type {
 			case schema.TypeTimestamp, schema.TypeEnum, schema.TypeObject, schema.TypeArray, schema.TypeMap:

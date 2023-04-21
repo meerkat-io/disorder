@@ -1,9 +1,5 @@
 github.com/davecgh/go-spew v1.1.0 h1:ZDRjVQ15GmhC3fiQ8ni8+OwkZQO4DARzQgrnXU1Liz8=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
-github.com/meerkat-io/bloom v0.0.0-20220615152720-5ec3c029b7cc h1:4+TmWXbqoy6MBjxfThX1/qC7RTN/RVwQOVtOF4fjY9s=
-github.com/meerkat-io/bloom v0.0.0-20220615152720-5ec3c029b7cc/go.mod h1:aQkaaWErn6ghGjX+cVgfZRRS5C9TQ3GIvfphGrigpW0=
-github.com/meerkat-io/bloom v0.0.0-20220615154030-145cb988d495 h1:Tg/GEvbqWP9eG6nwR/BoC81HfMQPgfiDkU7QfWvYAwE=
-github.com/meerkat-io/bloom v0.0.0-20220615154030-145cb988d495/go.mod h1:aQkaaWErn6ghGjX+cVgfZRRS5C9TQ3GIvfphGrigpW0=
 github.com/meerkat-io/bloom v0.1.0 h1:vY+kQiY0rFYKE+8LT1c+v3J26AWr18Ecx4p9SJgAKB0=
 github.com/meerkat-io/bloom v0.1.0/go.mod h1:aQkaaWErn6ghGjX+cVgfZRRS5C9TQ3GIvfphGrigpW0=
 github.com/pelletier/go-toml/v2 v2.0.2 h1:+jQXlF3scKIcSEKkdHzXhCTDLPFi5r1wnK6yPS+49Gw=
