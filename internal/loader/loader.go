@@ -20,11 +20,6 @@ func NewLoader() Loader {
 	}
 }
 
-type rpc struct {
-	Input  string `yaml:"input"`
-	Output string `yaml:"output"`
-}
-
 type proto struct {
 	FilePath string            `yaml:"-"`
 	Schema   string            `yaml:"schema"`
@@ -33,9 +28,9 @@ type proto struct {
 	Imports  []string          `yaml:"import"`
 	Options  map[string]string `yaml:"option"`
 
-	Enums    map[string][]string        `yaml:"enums"`
-	Messages mapMatrix                  `yaml:"messages"`
-	Services map[string]map[string]*rpc `yaml:"services"`
+	Enums    mapSlice  `yaml:"enums"`
+	Messages mapMatrix `yaml:"messages"`
+	Services mapMatrix `yaml:"services"`
 }
 
 type loader struct {

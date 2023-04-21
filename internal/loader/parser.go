@@ -34,18 +34,25 @@ func (p *parser) parse(proto *proto) (*schema.File, error) {
 		Options:  proto.Options,
 	}
 
-	for name, values := range proto.Enums {
-		if !p.validator.validateEnumName(name) {
-			return nil, fmt.Errorf("invalid enum name: %s", name)
+	for _, e := range proto.Enums {
+		if !p.validator.validateEnumName(e.key) {
+			return nil, fmt.Errorf("invalid enum name: %s", e.key)
 		}
-		if values == nil {
+		if e.value == nil {
 			continue
 		}
 		valuesSet := map[string]bool{}
 		enum := &schema.Enum{
-			Name: name,
+			Name: e.key,
 		}
-		for _, value := range values {
+		if _, ok := e.value.([]interface{}); !ok {
+			return nil, fmt.Errorf("expect string list for enum \"%s\"", e.key)
+		}
+		for _, data := range e.value.([]interface{}) {
+			value, ok := data.(string)
+			if !ok {
+				return nil, fmt.Errorf("expect string value for enum %s", e.key)
+			}
 			if _, exists := valuesSet[value]; exists {
 				return nil, fmt.Errorf("duplicated enum value [%s]", value)
 			}
@@ -56,7 +63,7 @@ func (p *parser) parse(proto *proto) (*schema.File, error) {
 			enum.Values = append(enum.Values, value)
 		}
 		if len(enum.Values) == 0 {
-			return nil, fmt.Errorf("empty enum define: %s", name)
+			return nil, fmt.Errorf("empty enum define: %s", e.key)
 		}
 		file.Enums = append(file.Enums, enum)
 	}
@@ -73,6 +80,9 @@ func (p *parser) parse(proto *proto) (*schema.File, error) {
 			Name: m.key,
 		}
 		for _, f := range m.value {
+			if f.value == nil {
+				continue
+			}
 			if _, exists := fieldsSet[f.key]; exists {
 				return nil, fmt.Errorf("duplicated field [%s]", f.key)
 			}
@@ -80,6 +90,9 @@ func (p *parser) parse(proto *proto) (*schema.File, error) {
 				return nil, fmt.Errorf("invalid field name: %s", f.key)
 			}
 			fieldsSet[f.key] = true
+			if _, ok := f.value.(string); !ok {
+				return nil, fmt.Errorf("expect string for field type of \"%s\"", f.key)
+			}
 			field, err := p.parseField(proto.Package, f.key, f.value.(string))
 			if err != nil {
 				return nil, err
@@ -92,36 +105,39 @@ func (p *parser) parse(proto *proto) (*schema.File, error) {
 		file.Messages = append(file.Messages, message)
 	}
 
-	for name, rpcs := range proto.Services {
-		if !p.validator.validateServiceName(name) {
-			return nil, fmt.Errorf("invalid service name: %s", name)
+	for _, s := range proto.Services {
+		if !p.validator.validateServiceName(s.key) {
+			return nil, fmt.Errorf("invalid service name: %s", s.key)
 		}
-		if rpcs == nil {
+		if s.value == nil {
 			continue
 		}
 		rpcsSet := map[string]bool{}
 		service := &schema.Service{
-			Name: name,
+			Name: s.key,
 		}
-		for rpcName, rpcDefine := range rpcs {
-			if rpcDefine == nil {
+		for _, r := range s.value {
+			if r.value == nil {
 				continue
 			}
-			if _, exists := rpcsSet[rpcName]; exists {
-				return nil, fmt.Errorf("duplicated rpc [%s]", rpcName)
+			if _, exists := rpcsSet[r.key]; exists {
+				return nil, fmt.Errorf("duplicated rpc [%s]", r.key)
 			}
-			if !p.validator.validateRpcName(rpcName) {
-				return nil, fmt.Errorf("invalid rpc name: %s", rpcName)
+			if !p.validator.validateRpcName(r.key) {
+				return nil, fmt.Errorf("invalid rpc name: %s", r.key)
 			}
-			rpcsSet[rpcName] = true
-			rpc, err := p.parseRpc(proto.Package, rpcName, rpcDefine)
+			rpcsSet[r.key] = true
+			if _, ok := r.value.(map[string]interface{}); !ok {
+				return nil, fmt.Errorf("invalid rpc format of: %s", r.key)
+			}
+			rpc, err := p.parseRpc(proto.Package, r.key, r.value.(map[string]interface{}))
 			if err != nil {
 				return nil, err
 			}
 			service.Rpc = append(service.Rpc, rpc)
 		}
 		if len(service.Rpc) == 0 {
-			return nil, fmt.Errorf("empty service define: %s", name)
+			return nil, fmt.Errorf("empty service define: %s", s.key)
 		}
 		file.Services = append(file.Services, service)
 	}
@@ -139,23 +155,32 @@ func (p *parser) parseField(pkg, name, typ string) (*schema.Field, error) {
 	}, nil
 }
 
-func (p *parser) parseRpc(pkg, name string, rpc *rpc) (*schema.Rpc, error) {
+func (p *parser) parseRpc(pkg, name string, rpc map[string]interface{}) (*schema.Rpc, error) {
 	var err error
 	r := &schema.Rpc{
 		Name: name,
 	}
-	if rpc.Input == "" {
+	if rpc["input"] == nil {
+		return nil, fmt.Errorf("rpc [%s] input type missing: %s", name, err.Error())
+	}
+	if rpc["input"] == "void" {
 		r.Input = undefined
 	} else {
-		r.Input, err = p.parseType(pkg, rpc.Input)
+		if _, ok := rpc["input"].(string); !ok {
+			return nil, fmt.Errorf("expect string for input type of rpc \"%s\"", name)
+		}
+		r.Input, err = p.parseType(pkg, rpc["input"].(string))
 		if err != nil {
 			return nil, fmt.Errorf("rpc [%s] input type error: %s", name, err.Error())
 		}
 	}
-	if rpc.Output == "" {
+	if rpc["output"] == "void" {
 		r.Output = undefined
 	} else {
-		r.Output, err = p.parseType(pkg, rpc.Output)
+		if _, ok := rpc["output"].(string); !ok {
+			return nil, fmt.Errorf("expect string for output type of rpc \"%s\"", name)
+		}
+		r.Output, err = p.parseType(pkg, rpc["output"].(string))
 		if err != nil {
 			return nil, fmt.Errorf("rpc [%s] output type error: %s", name, err.Error())
 		}
