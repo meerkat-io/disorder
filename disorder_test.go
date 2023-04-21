@@ -2,6 +2,7 @@ package disorder_test
 
 import (
 	"encoding/json"
+	"fmt"
 	"testing"
 
 	"github.com/meerkat-io/disorder"
@@ -19,6 +20,8 @@ func TestLoadSchemaFile(t *testing.T) {
 	generator := golang.NewGoGenerator()
 	err = generator.Generate("./internal", files, qualifiedPath)
 	assert.Nil(t, err)
+
+	fmt.Printf("%v\n", err)
 }
 
 func TestPrimaryType(t *testing.T) {

@@ -45,8 +45,6 @@ func (r *resolver) resolve(files map[string]*schema.File) error {
 				return fmt.Errorf("duplicate message define [%s] in %s and %s", message.Name, f, file.FilePath)
 			}
 			qualified := r.qualifiedName(file.Package, message.Name)
-			fmt.Println("qualified message: ", qualified)
-			fmt.Println("file path: ", file.FilePath)
 			r.qualified[qualified] = file.FilePath
 			r.messages[qualified] = true
 		}

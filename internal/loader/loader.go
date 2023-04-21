@@ -92,7 +92,6 @@ func (l *loader) load(file string, files map[string]*schema.File) error {
 	for _, importPath := range p.Imports {
 		path := filepath.Join(dir, importPath)
 		schemaFile.AbsImports[path] = true
-		fmt.Println("abs import path:", path)
 		err = l.load(path, files)
 		if err != nil {
 			return err
