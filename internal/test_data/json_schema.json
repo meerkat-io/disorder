@@ -6,11 +6,11 @@
     "go_package_prefix": "github.com/meerkat-io/disorder/internal"
   },
   "messages": {
-    "sub_object": {
+    "number": {
       "value": "int"
     },
-    "version": {
-      "value": "string"
+    "number_wrapper": {
+      "value": "number"
     }
   },
   "services": {
