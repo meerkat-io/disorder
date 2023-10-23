@@ -1,6 +1,6 @@
 # Disorder
 
-Disorder is schema free, strong type, streamable, with minimal data types bson like binary protocol.
+Disorder is schema free, strong type, streamable bson like binary protocol.
 It can used as communication protocol or data storage format.
 
 ## Data bype
@@ -21,9 +21,7 @@ It can used as communication protocol or data storage format.
 | array     | 21/22 | var  | container | start(21) + [tag + data] + end(22)                      |
 | object    | 23/24 | var  | container | start(23) + [tag + key(short string)* + data] + end(24) |
 
-
-
-* Short string: 1 byte length + [raw string], so string length < 256
+* Short string: 1 byte length + [raw string], string length < 256
 * Different items can belong to the same container, since each item has its own tag
 
 //TO-DO introduce schema format

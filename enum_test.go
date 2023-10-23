@@ -11,13 +11,17 @@ import (
 
 func TestTypedEnum(t *testing.T) {
 	c := Color("color")
+
 	var ptr interface{} = &c
 	assert.NotNil(t, ptr.(disorder.Enum))
-	_, err := c.ToString()
+
+	_, err := c.GetValue()
 	assert.NotNil(t, err)
-	err = c.FromString("blue")
+
+	err = c.SetValue("blue")
 	assert.Nil(t, err)
-	s, err := c.ToString()
+
+	s, err := c.GetValue()
 	assert.Nil(t, err)
 	assert.Equal(t, s, "blue")
 
@@ -27,10 +31,33 @@ func TestTypedEnum(t *testing.T) {
 }
 
 func TestDynamicEnum(t *testing.T) {
-	c := disorder.EnumBase("color")
+	c := disorder.EnumBase("")
+
 	var ptr interface{} = &c
 	assert.NotNil(t, ptr.(disorder.Enum))
-	s, err := c.ToString()
+
+	_, err := c.GetValue()
+	assert.NotNil(t, err)
+
+	s := `888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888
+	888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888
+	888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888
+	888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888`
+
+	c = disorder.EnumBase(s)
+	_, err = c.GetValue()
+	assert.NotNil(t, err)
+
+	err = c.SetValue(s)
+	assert.NotNil(t, err)
+
+	err = c.SetValue("")
+	assert.NotNil(t, err)
+
+	err = c.SetValue("color")
+	assert.Nil(t, err)
+
+	s, err = c.GetValue()
 	assert.Nil(t, err)
 	assert.Equal(t, s, "color")
 
@@ -55,7 +82,7 @@ var colorEnumMap = map[string]Color{
 
 func (*Color) Enum() {}
 
-func (enum *Color) FromString(value string) error {
+func (enum *Color) SetValue(value string) error {
 	if value == "" {
 		return fmt.Errorf("empty enum value")
 	}
@@ -69,7 +96,7 @@ func (enum *Color) FromString(value string) error {
 	return fmt.Errorf("invalid enum value: %s", value)
 }
 
-func (enum *Color) ToString() (string, error) {
+func (enum *Color) GetValue() (string, error) {
 	name := string(*enum)
 	if len(name) == 0 {
 		return "", fmt.Errorf("empty enum value")

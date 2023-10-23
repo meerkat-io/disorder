@@ -45,7 +45,7 @@ func (e *Encoder) write(name string, value reflect.Value) error {
 	case Enum:
 		t = tagEnum
 		var enum string
-		enum, err = i.ToString()
+		enum, err = i.GetValue()
 		if err != nil {
 			return err
 		}

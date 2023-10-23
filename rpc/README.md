@@ -7,3 +7,5 @@ request
 response
 
 | packet_size(4 bytes) | status_code(byte) | body(any)/error(string) |
+
+TO-DO add interceptor to service & client

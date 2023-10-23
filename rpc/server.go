@@ -41,40 +41,30 @@ func (s *Server) RegisterService(serviceName string, service Service) {
 
 func (s *Server) Accept(conn *tcp.Connection) {
 	defer conn.Close()
-	data, err := conn.Receive()
-	if err != nil {
-		return
-	}
+	reader := conn.Reader()
 	context := NewContext()
-	reader := bytes.NewBuffer(data)
 	d := disorder.NewDecoder(reader)
-	err = d.Decode(context.Headers)
+	err := d.Decode(context.headers)
 	if err != nil {
-		s.writeError(conn, code.InvalidRequest, err)
+		s.writeError(conn, context, code.InvalidRequest, err)
 		return
 	}
-	var serviceName title
-	err = d.Decode(&serviceName)
+	serviceName, methodName, err := context.readRpcInfo()
 	if err != nil {
-		s.writeError(conn, code.InvalidRequest, err)
-		return
-	}
-	var methodName title
-	err = d.Decode(&methodName)
-	if err != nil {
-		s.writeError(conn, code.InvalidRequest, err)
+		s.writeError(conn, context, code.InvalidRequest, err)
 		return
 	}
 	service, exists := s.services[string(serviceName)]
 	if !exists {
-		s.writeError(conn, code.Unavailable, fmt.Errorf("service \"%s\" not found", serviceName))
+		s.writeError(conn, context, code.Unavailable, fmt.Errorf("service \"%s\" not found", serviceName))
 		return
 	}
 	response, status := service.Handle(context, string(methodName), d)
-	if status != nil && status.Code != code.OK {
-		s.writeError(conn, status.Code, status.Error)
+	if status != nil {
+		s.writeError(conn, context, status.Code, status.Error)
 		return
 	}
+
 	writer := &bytes.Buffer{}
 	_, _ = writer.Write([]byte{byte(code.OK)})
 	e := disorder.NewEncoder(writer)
@@ -86,8 +76,9 @@ func (s *Server) Accept(conn *tcp.Connection) {
 	_ = conn.Send(writer.Bytes())
 }
 
-func (s *Server) writeError(conn *tcp.Connection, code code.Code, err error) {
-	writer := &bytes.Buffer{}
+func (s *Server) writeError(conn *tcp.Connection, context *Context, code code.Code, err error) {
+	context.writeError()
+	writer := conn.Writer()
 	e := disorder.NewEncoder(writer)
 	status := byte(code)
 	_ = e.Encode(status)

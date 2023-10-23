@@ -1,8 +1,8 @@
 package code
 
-type Code byte
+type Code int
 
-// Custom code can start from 16
+// Custom code can start from 100
 const (
 	OK                  Code = 0
 	Unknown             Code = 1

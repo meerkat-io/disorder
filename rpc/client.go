@@ -40,7 +40,8 @@ func NewClientWithBalancer(b Balancer) *Client {
 	}
 }
 
-func (c *Client) Send(context *Context, serviceName, methodName string, request interface{}, response interface{}) *Error {
+func (c *Client) Send(context *Context, serviceName, methodName, entityName string, request interface{}, response interface{}) *Error {
+	// dial
 	addr, err := c.b.Address()
 	if err != nil {
 		return &Error{
@@ -56,48 +57,43 @@ func (c *Client) Send(context *Context, serviceName, methodName string, request 
 		}
 	}
 	defer conn.Close()
-	writer := &bytes.Buffer{}
-	e := disorder.NewEncoder(writer)
+
+	// send
+	e := disorder.NewEncoder(conn.Writer())
 	if context == nil {
 		context = NewContext()
 	}
-	err = e.Encode(context.Headers)
+	err = context.writeRpcInfo(serviceName, methodName, entityName)
 	if err != nil {
 		return &Error{
 			Code:  code.InvalidRequest,
 			Error: err,
 		}
 	}
-	service := title(serviceName)
-	err = e.Encode(&service)
+	err = e.Encode(context.headers)
 	if err != nil {
 		return &Error{
 			Code:  code.InvalidRequest,
 			Error: err,
 		}
 	}
-	method := title(methodName)
-	err = e.Encode(&method)
-	if err != nil {
-		return &Error{
-			Code:  code.InvalidRequest,
-			Error: err,
+	if entityName != "" {
+		if request == nil {
+			return &Error{
+				Code:  code.InvalidRequest,
+				Error: fmt.Errorf("request is null"),
+			}
+		}
+		err = e.Encode(request)
+		if err != nil {
+			return &Error{
+				Code:  code.InvalidRequest,
+				Error: err,
+			}
 		}
 	}
-	err = e.Encode(request)
-	if err != nil {
-		return &Error{
-			Code:  code.InvalidRequest,
-			Error: err,
-		}
-	}
-	err = conn.Send(writer.Bytes())
-	if err != nil {
-		return &Error{
-			Code:  code.NetworkDisconnected,
-			Error: err,
-		}
-	}
+
+	// read
 	var data []byte
 	data, err = conn.Receive()
 	if err != nil {
