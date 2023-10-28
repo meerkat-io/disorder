@@ -108,6 +108,9 @@ func (e *Encoder) write(name string, value reflect.Value) error {
 
 		case reflect.Map:
 			return e.writeMap(name, value)
+
+		case reflect.Struct:
+			return e.writeObject(name, value)
 		}
 	}
 

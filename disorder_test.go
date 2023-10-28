@@ -1,12 +1,35 @@
 package disorder_test
 
 import (
+	"encoding/json"
+	"reflect"
 	"testing"
 	"time"
 
 	"github.com/meerkat-io/disorder"
 	"github.com/stretchr/testify/assert"
 )
+
+func TestEnum(t *testing.T) {
+	c := Color{value: "color"}
+
+	var ptr interface{} = &c
+	assert.NotNil(t, ptr.(disorder.Enum))
+
+	_, err := c.GetValue()
+	assert.NotNil(t, err)
+
+	err = c.SetValue("blue")
+	assert.Nil(t, err)
+
+	s, err := c.GetValue()
+	assert.Nil(t, err)
+	assert.Equal(t, s, "blue")
+
+	v := reflect.ValueOf(ptr)
+	enum := v.Interface().(disorder.Enum)
+	assert.NotNil(t, enum)
+}
 
 func TestPrimaryTypes(t *testing.T) {
 	var b bool
@@ -52,7 +75,7 @@ func TestPrimaryTypes(t *testing.T) {
 	assert.Equal(t, []byte{1, 2, 3}, bytes)
 }
 
-func TestUnsupportedEncodeType(t *testing.T) {
+func TestUnsupportedEncodeTypes(t *testing.T) {
 	_, err := disorder.Marshal(int(123))
 	assert.NotNil(t, err)
 
@@ -85,5 +108,147 @@ func TestUtilTypes(t *testing.T) {
 }
 
 func TestContainerTypes(t *testing.T) {
+	var list []string
+	data, err := disorder.Marshal([]string{"hello", "world"})
+	assert.Nil(t, err)
+	err = disorder.Unmarshal(data, &list)
+	assert.Nil(t, err)
+	assert.Equal(t, []string{"hello", "world"}, list)
 
+	var set map[string]string
+	data, err = disorder.Marshal(map[string]string{"hello": "world"})
+	assert.Nil(t, err)
+	err = disorder.Unmarshal(data, &set)
+	assert.Nil(t, err)
+	assert.Equal(t, map[string]string{"hello": "world"}, set)
+
+	var complex map[string][]*Color
+	data, err = disorder.Marshal(map[string][]*Color{"hello": {&ColorBlue}})
+	assert.Nil(t, err)
+	err = disorder.Unmarshal(data, &complex)
+	assert.Nil(t, err)
+	assert.Equal(t, map[string][]*Color{"hello": {&ColorBlue}}, complex)
+}
+
+func TestStructTypes(t *testing.T) {
+	number0 := Number{
+		Value: 123,
+	}
+	json0, err := json.Marshal(&number0)
+	assert.Nil(t, err)
+	data0, err := disorder.Marshal(number0)
+	assert.Nil(t, err)
+
+	var number1 Number
+	err = disorder.Unmarshal(data0, &number1)
+	assert.Nil(t, err)
+	json1, err := json.Marshal(number1)
+	assert.Nil(t, err)
+
+	assert.Equal(t, number0, number1)
+	assert.JSONEq(t, string(json0), string(json1))
+
+	timestamp := time.UnixMilli(time.Now().UnixMilli())
+	object0 := Object{
+		BooleanField: true,
+		IntField:     123,
+		StringField:  "foo",
+		BytesFields:  []byte{7, 8, 9},
+		EnumField:    &ColorBlue,
+		TimeField:    &timestamp,
+		ObjField: &NumberWrapper{
+			Value: &Number{
+				Value: 789,
+			},
+		},
+		IntArray: []int32{1, 2, 3},
+		IntMap: map[string]int32{
+			"4": 4,
+			"5": 5,
+			"6": 6,
+		},
+		ObjArray: []*NumberWrapper{{Value: &Number{
+			Value: 789,
+		}}},
+		ObjMap: map[string]*NumberWrapper{
+			"789": {Value: &Number{
+				Value: 789,
+			}},
+		},
+		Nested: map[string]map[string][][]map[string]*Color{
+			"key0": {
+				"key1": {
+					{
+						{
+							"key2": &ColorBlue,
+						},
+					},
+				},
+			},
+		},
+	}
+	json0, err = json.Marshal(object0)
+	assert.Nil(t, err)
+	data0, err = disorder.Marshal(&object0)
+	assert.Nil(t, err)
+
+	var object1 Object
+	err = disorder.Unmarshal(data0, &object1)
+	assert.Nil(t, err)
+	json1, err = json.Marshal(object1)
+	assert.Nil(t, err)
+
+	assert.Equal(t, object0, object1)
+	assert.JSONEq(t, string(json0), string(json1))
+}
+
+func TestSkipStructFields(t *testing.T) {
+	timestamp := time.UnixMilli(time.Now().UnixMilli())
+	object0 := Object{
+		BooleanField: true,
+		IntField:     123,
+		StringField:  "foo",
+		BytesFields:  []byte{7, 8, 9},
+		EnumField:    &ColorBlue,
+		TimeField:    &timestamp,
+		ObjField: &NumberWrapper{
+			Value: &Number{
+				Value: 789,
+			},
+		},
+		IntArray: []int32{1, 2, 3},
+		IntMap: map[string]int32{
+			"4": 4,
+			"5": 5,
+			"6": 6,
+		},
+		ObjArray: []*NumberWrapper{{Value: &Number{
+			Value: 789,
+		}}},
+		ObjMap: map[string]*NumberWrapper{
+			"789": {Value: &Number{
+				Value: 789,
+			}},
+		},
+		Nested: map[string]map[string][][]map[string]*Color{
+			"key0": {
+				"key1": {
+					{
+						{
+							"key2": &ColorBlue,
+						},
+					},
+				},
+			},
+		},
+		EmptyString: "not empty",
+	}
+	data0, err := disorder.Marshal(&object0)
+	assert.Nil(t, err)
+
+	var object1 SkipObject
+	err = disorder.Unmarshal(data0, &object1)
+	assert.Nil(t, err)
+
+	assert.Equal(t, object0.EmptyString, object1.EmptyString)
 }
