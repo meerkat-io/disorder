@@ -15,7 +15,7 @@ It can used as communication protocol or data storage format.
 | bytes     | 6     | var  | primary   | tag(6) + 4 bytes length + [raw bytes]                   |
 |           |       |      |           |                                                         |
 | string    | 11    | var  | util      | alias "bytes"                                           |
-| timestamp | 12    | 8    | util      | alias "long"                                            |
+| timestamp | 12    | 8    | util      | alias "long", miliseconds unix time from 1970           |
 | enum      | 13    | var  | util      | tag(13) + (short string)*                               |
 |           |       |      |           |                                                         |
 | array     | 21/22 | var  | container | start(21) + [tag + data] + end(22)                      |

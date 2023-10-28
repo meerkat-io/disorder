@@ -10,7 +10,7 @@ import (
 )
 
 func TestTypedEnum(t *testing.T) {
-	c := Color("color")
+	c := Color{value: "color"}
 
 	var ptr interface{} = &c
 	assert.NotNil(t, ptr.(disorder.Enum))
@@ -30,48 +30,14 @@ func TestTypedEnum(t *testing.T) {
 	assert.NotNil(t, enum)
 }
 
-func TestDynamicEnum(t *testing.T) {
-	c := disorder.EnumBase("")
-
-	var ptr interface{} = &c
-	assert.NotNil(t, ptr.(disorder.Enum))
-
-	_, err := c.GetValue()
-	assert.NotNil(t, err)
-
-	s := `888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888
-	888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888
-	888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888
-	888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888`
-
-	c = disorder.EnumBase(s)
-	_, err = c.GetValue()
-	assert.NotNil(t, err)
-
-	err = c.SetValue(s)
-	assert.NotNil(t, err)
-
-	err = c.SetValue("")
-	assert.NotNil(t, err)
-
-	err = c.SetValue("color")
-	assert.Nil(t, err)
-
-	s, err = c.GetValue()
-	assert.Nil(t, err)
-	assert.Equal(t, s, "color")
-
-	v := reflect.ValueOf(ptr)
-	enum := v.Interface().(disorder.Enum)
-	assert.NotNil(t, enum)
+type Color struct {
+	value string
 }
 
-type Color string
-
-const (
-	ColorRed   = Color("red")
-	ColorGreen = Color("green")
-	ColorBlue  = Color("blue")
+var (
+	ColorRed   = Color{value: "red"}
+	ColorGreen = Color{value: "green"}
+	ColorBlue  = Color{value: "blue"}
 )
 
 var colorEnumMap = map[string]Color{
@@ -89,23 +55,22 @@ func (enum *Color) SetValue(value string) error {
 	if len(value) > 255 {
 		return fmt.Errorf("enum length overflow. should less than 255")
 	}
-	if color, ok := colorEnumMap[value]; ok {
-		*enum = color
+	if _, ok := colorEnumMap[value]; ok {
+		enum.value = value
 		return nil
 	}
 	return fmt.Errorf("invalid enum value: %s", value)
 }
 
 func (enum *Color) GetValue() (string, error) {
-	name := string(*enum)
-	if len(name) == 0 {
+	if len(enum.value) == 0 {
 		return "", fmt.Errorf("empty enum value")
 	}
-	if len(name) > 255 {
+	if len(enum.value) > 255 {
 		return "", fmt.Errorf("enum length overflow. should less than 255")
 	}
-	if _, ok := colorEnumMap[name]; ok {
-		return name, nil
+	if _, ok := colorEnumMap[enum.value]; ok {
+		return enum.value, nil
 	}
-	return "", fmt.Errorf("invalid enum value: %s", name)
+	return "", fmt.Errorf("invalid enum value: %s", enum.value)
 }

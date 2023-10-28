@@ -40,7 +40,7 @@ func (e *Encoder) write(name string, value reflect.Value) error {
 	case *time.Time:
 		t = tagTimestamp
 		bytes = make([]byte, 8)
-		binary.BigEndian.PutUint64(bytes, uint64(i.Unix()))
+		binary.BigEndian.PutUint64(bytes, uint64(i.UnixMilli()))
 
 	case Enum:
 		t = tagEnum
@@ -54,8 +54,10 @@ func (e *Encoder) write(name string, value reflect.Value) error {
 
 	default:
 		switch value.Kind() {
-		case reflect.Ptr, reflect.Interface:
-			return e.write(name, value.Elem())
+		case reflect.Ptr:
+			if value.Elem().Kind() == reflect.Struct {
+				return e.writeObject(name, value.Elem())
+			}
 
 		case reflect.Bool:
 			t = tagBool
@@ -106,9 +108,6 @@ func (e *Encoder) write(name string, value reflect.Value) error {
 
 		case reflect.Map:
 			return e.writeMap(name, value)
-
-		case reflect.Struct:
-			return e.writeObject(name, value)
 		}
 	}
 

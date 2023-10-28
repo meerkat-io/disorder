@@ -63,11 +63,9 @@ func (d *Decoder) read(t tag, value reflect.Value) error {
 			return fmt.Errorf("type mismatch: assign enum to %s", value.Type())
 		}
 	}
-
 	if value.Kind() == reflect.Ptr {
 		return d.read(t, value.Elem())
 	}
-
 	var bytes []byte
 	var resolved interface{}
 	switch t {
@@ -173,22 +171,6 @@ func (d *Decoder) read(t tag, value reflect.Value) error {
 			return nil
 		}
 
-	case tagTimestamp:
-		var err error
-		resolved, err = d.readTime()
-		if err != nil {
-			return err
-		}
-
-	case tagEnum:
-		var err error
-		name, err := d.readName()
-		if err != nil {
-			return err
-		}
-		enum := EnumBase(name)
-		resolved = &enum
-
 	case tagArrayStart:
 		return d.readArray(value)
 
@@ -198,30 +180,14 @@ func (d *Decoder) read(t tag, value reflect.Value) error {
 	default:
 		return fmt.Errorf("invalid tag: %d", t)
 	}
-
-	if value.Kind() == reflect.Interface {
-		value.Set(reflect.ValueOf(resolved))
-		return nil
-	}
 	return fmt.Errorf("type mismatch: assign %s to %s", reflect.ValueOf(resolved).Type(), value.Type())
 }
 
 func (d *Decoder) readArray(value reflect.Value) error {
-	var valueCopy reflect.Value
-	var elementType reflect.Type
-	switch value.Kind() {
-	case reflect.Slice:
-		elementType = value.Type().Elem()
-
-	case reflect.Interface:
-		valueCopy = value
-		var i interface{}
-		elementType = d.createValue(&i).Elem().Type()
-
-	default:
+	if value.Kind() != reflect.Slice {
 		return fmt.Errorf("type mismatch, assign slice to type %s ", value.Type())
 	}
-
+	elementType := value.Type().Elem()
 	t, err := d.readTag()
 	if err != nil {
 		return err
@@ -244,18 +210,9 @@ func (d *Decoder) readArray(value reflect.Value) error {
 		values = append(values, element)
 	}
 	count := len(values)
-	switch value.Kind() {
-	case reflect.Slice:
-		value.Set(reflect.MakeSlice(value.Type(), count, count))
-
-	case reflect.Interface:
-		value = d.createValue(make([]interface{}, count))
-	}
+	value.Set(reflect.MakeSlice(value.Type(), count, count))
 	for i, v := range values {
 		value.Index(i).Set(v)
-	}
-	if valueCopy.IsValid() {
-		valueCopy.Set(value)
 	}
 	return nil
 }
@@ -305,11 +262,6 @@ func (d *Decoder) readObject(value reflect.Value) error {
 			return fmt.Errorf("key type of map must be string")
 		}
 
-	case reflect.Interface:
-		valueCopy := value
-		value = reflect.MakeMap(reflect.TypeOf(map[string]interface{}{}))
-		valueCopy.Set(value)
-
 	default:
 		return fmt.Errorf("type mismatch, assign map to type %s ", value.Type())
 	}
@@ -356,7 +308,7 @@ func (d *Decoder) readTime() (*time.Time, error) {
 		return nil, err
 	}
 	timestamp := int64(binary.BigEndian.Uint64(bytes))
-	t := time.Unix(timestamp, 0)
+	t := time.UnixMilli(timestamp)
 	return &t, nil
 }
 
@@ -382,13 +334,6 @@ func (d *Decoder) readTag() (tag, error) {
 	t := make([]byte, 1)
 	_, err := d.reader.Read(t)
 	return tag(t[0]), err
-}
-
-func (d *Decoder) createValue(i interface{}) reflect.Value {
-	v := reflect.ValueOf(i)
-	value := reflect.New(reflect.ValueOf(i).Type()).Elem()
-	value.Set(v)
-	return value
 }
 
 func (d *Decoder) skip(t tag) error {
