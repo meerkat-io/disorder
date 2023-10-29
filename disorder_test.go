@@ -252,3 +252,24 @@ func TestSkipStructFields(t *testing.T) {
 
 	assert.Equal(t, object0.EmptyString, object1.EmptyString)
 }
+
+func TestZero(t *testing.T) {
+	object0 := Zero{
+		ZeroArray: []int32{},
+		ZeroMap:   map[string]int32{},
+	}
+	assert.NotNil(t, object0.ZeroArray)
+	assert.NotNil(t, object0.ZeroMap)
+	assert.Equal(t, 0, len(object0.ZeroArray))
+	assert.Equal(t, 0, len(object0.ZeroMap))
+	data0, err := disorder.Marshal(&object0)
+	assert.Nil(t, err)
+
+	object1 := Zero{}
+	err = disorder.Unmarshal(data0, &object1)
+	assert.Nil(t, err)
+	assert.NotNil(t, object1.ZeroArray)
+	assert.NotNil(t, object1.ZeroMap)
+	assert.Equal(t, 0, len(object1.ZeroArray))
+	assert.Equal(t, 0, len(object1.ZeroMap))
+}

@@ -82,3 +82,8 @@ type NumberWrapper struct {
 type SkipObject struct {
 	EmptyString string `disorder:"empty_string" json:"empty_string"`
 }
+
+type Zero struct {
+	ZeroArray []int32          `disorder:"zero_array" json:"zero_array,omitempty"`
+	ZeroMap   map[string]int32 `disorder:"zero_map" json:"zero_map,omitempty"`
+}
