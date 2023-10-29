@@ -10,7 +10,6 @@ import (
 const (
 	serviceName = "service"
 	methodName  = "method"
-	entityName  = "entity"
 	errorCode   = "code"
 	errorMsg    = "error"
 )
@@ -18,7 +17,6 @@ const (
 var reservedHeader = map[string]bool{
 	serviceName: true,
 	methodName:  true,
-	entityName:  true,
 	errorCode:   true,
 	errorMsg:    true,
 }
@@ -56,26 +54,22 @@ func (c *Context) UnsetHeader(key string) error {
 	return nil
 }
 
-func (c *Context) readRpcInfo() (service, method, entity string, err error) {
+func (c *Context) readRpcInfo() (service, method string, err error) {
 	if c.headers[serviceName] == "" || c.headers[methodName] == "" {
 		err = fmt.Errorf("invalid rpc info")
 		return
 	}
 	service = c.headers[serviceName]
 	method = c.headers[methodName]
-	entity = c.headers[entityName]
 	return
 }
 
-func (c *Context) writeRpcInfo(service, method, entity string) error {
-	if c.headers[serviceName] == "" || c.headers[methodName] == "" {
+func (c *Context) writeRpcInfo(service, method string) error {
+	if service == "" || method == "" {
 		return fmt.Errorf("invalid rpc info")
 	}
 	c.headers[serviceName] = service
 	c.headers[methodName] = method
-	if entity != "" {
-		c.headers[entityName] = entity
-	}
 	return nil
 }
 
@@ -96,12 +90,11 @@ func (c *Context) readError() *Error {
 	}
 }
 
-func (c *Context) writeError(err *Error) {
-	c.headers[errorCode] = strconv.Itoa(int(err.Code))
-	c.headers[errorMsg] = err.Error.Error()
+func (c *Context) writeError(code code.Code, err error) {
+	c.headers[errorCode] = strconv.Itoa(int(code))
+	c.headers[errorMsg] = err.Error()
 }
 
-type Error struct {
-	Code  code.Code
-	Error error
+func (c *Context) reset() {
+	c.headers = make(map[string]string)
 }

@@ -1,9 +1,6 @@
 package rpc
 
 import (
-	"bytes"
-	"fmt"
-
 	"github.com/meerkat-io/bloom/tcp"
 
 	"github.com/meerkat-io/disorder"
@@ -23,24 +20,32 @@ func (b *dummyBalancer) Address() (string, error) {
 }
 
 type Client struct {
-	b Balancer
+	b            Balancer
+	service      string
+	interceptors []Interceptor
 }
 
-func NewClient(addr string) *Client {
+func NewClient(addr, service string) *Client {
 	return &Client{
+		service: service,
 		b: &dummyBalancer{
 			addr: addr,
 		},
 	}
 }
 
-func NewClientWithBalancer(b Balancer) *Client {
+func NewClientWithBalancer(b Balancer, service string) *Client {
 	return &Client{
-		b: b,
+		service: service,
+		b:       b,
 	}
 }
 
-func (c *Client) Send(context *Context, serviceName, methodName, entityName string, request interface{}, response interface{}) *Error {
+func (c *Client) AddInterceptor(interceptor Interceptor) {
+	c.interceptors = append(c.interceptors, interceptor)
+}
+
+func (c *Client) Send(method string, request interface{}, response interface{}) *Error {
 	// dial
 	addr, err := c.b.Address()
 	if err != nil {
@@ -60,10 +65,16 @@ func (c *Client) Send(context *Context, serviceName, methodName, entityName stri
 
 	// send
 	e := disorder.NewEncoder(conn.Writer())
-	if context == nil {
-		context = NewContext()
+	context := NewContext()
+	if len(c.interceptors) > 0 {
+		for _, i := range c.interceptors {
+			rpcErr := i.Intercept(context)
+			if rpcErr != nil {
+				return rpcErr
+			}
+		}
 	}
-	err = context.writeRpcInfo(serviceName, methodName, entityName)
+	err = context.writeRpcInfo(c.service, method)
 	if err != nil {
 		return &Error{
 			Code:  code.InvalidRequest,
@@ -77,51 +88,32 @@ func (c *Client) Send(context *Context, serviceName, methodName, entityName stri
 			Error: err,
 		}
 	}
-	if entityName != "" {
-		if request == nil {
-			return &Error{
-				Code:  code.InvalidRequest,
-				Error: fmt.Errorf("request is null"),
-			}
-		}
-		err = e.Encode(request)
-		if err != nil {
-			return &Error{
-				Code:  code.InvalidRequest,
-				Error: err,
-			}
+	err = e.Encode(request)
+	if err != nil {
+		return &Error{
+			Code:  code.InvalidRequest,
+			Error: err,
 		}
 	}
 
 	// read
-	var data []byte
-	data, err = conn.Receive()
+	d := disorder.NewDecoder(conn.Reader())
+	context.reset()
+	err = d.Decode(&context.headers)
 	if err != nil {
 		return &Error{
-			Code:  code.NetworkDisconnected,
+			Code:  code.DataCorrupt,
 			Error: err,
 		}
 	}
-	status := data[0]
-	d := disorder.NewDecoder(bytes.NewBuffer(data[1:]))
-	if code.Code(status) != code.OK {
-		var errMsg string
-		err = d.Decode(&errMsg)
-		if err != nil {
-			return &Error{
-				Code:  code.Internal,
-				Error: err,
-			}
-		}
-		return &Error{
-			Code:  code.Code(status),
-			Error: fmt.Errorf(errMsg),
-		}
+	rpcErr := context.readError()
+	if rpcErr != nil {
+		return rpcErr
 	}
 	err = d.Decode(response)
 	if err != nil {
 		return &Error{
-			Code:  code.Internal,
+			Code:  code.DataCorrupt,
 			Error: err,
 		}
 	}

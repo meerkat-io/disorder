@@ -24,6 +24,5 @@ It can used as communication protocol or data storage format.
 * Short string: 1 byte length + [raw string], string length < 256
 * Different items can belong to the same container, since each item has its own tag
 
-//TO-DO introduce schema format
+//TO-DO add schema format
 //TO-DO support void in rpc
-//TO-DO support stream without delimiter

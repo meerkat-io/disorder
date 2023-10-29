@@ -1,11 +1,8 @@
 rpc packet
 
-request
+request / response
 
-| packet_size(4 bytes) | headers(map[string]string) | service_name(short string) | method_name(short string) | body(any) |
+| headers(map[string]string) | body(any) |
 
-response
-
-| packet_size(4 bytes) | status_code(byte) | body(any)/error(string) |
-
-TO-DO add interceptor to service & client
+TO-DO add timeout to server
+TO-DO add readAny -> bytes (router service)

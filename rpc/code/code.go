@@ -1,12 +1,12 @@
 package code
 
-type Code int
+type Code int32
 
-// Custom code can start from 100
+// Custom code start from 100
 const (
-	OK                  Code = 0
-	Unknown             Code = 1
-	InvalidRequest      Code = 2
+	Unknown             Code = 0
+	InvalidRequest      Code = 1
+	DataCorrupt         Code = 2
 	NotFound            Code = 3
 	AlreadyExists       Code = 4
 	PermissionDenied    Code = 5
