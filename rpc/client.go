@@ -22,7 +22,7 @@ func (b *dummyBalancer) Address() (string, error) {
 type Client struct {
 	b            Balancer
 	service      string
-	interceptors []Interceptor
+	interceptors []ClientInterceptor
 }
 
 func NewClient(addr, service string) *Client {
@@ -41,7 +41,7 @@ func NewClientWithBalancer(b Balancer, service string) *Client {
 	}
 }
 
-func (c *Client) AddInterceptor(interceptor Interceptor) {
+func (c *Client) AddInterceptor(interceptor ClientInterceptor) {
 	c.interceptors = append(c.interceptors, interceptor)
 }
 
@@ -63,23 +63,19 @@ func (c *Client) Send(method string, request interface{}, response interface{}) 
 	}
 	defer conn.Close()
 
-	// send
+	// write
 	e := disorder.NewEncoder(conn.Writer())
 	context := NewContext()
-	if len(c.interceptors) > 0 {
-		for _, i := range c.interceptors {
-			rpcErr := i.Intercept(context)
-			if rpcErr != nil {
-				return rpcErr
-			}
-		}
-	}
 	err = context.writeRpcInfo(c.service, method)
 	if err != nil {
 		return &Error{
 			Code:  code.InvalidRequest,
 			Error: err,
 		}
+	}
+	rpcErr := c.intercept(context)
+	if rpcErr != nil {
+		return rpcErr
 	}
 	err = e.Encode(context.headers)
 	if err != nil {
@@ -98,7 +94,7 @@ func (c *Client) Send(method string, request interface{}, response interface{}) 
 
 	// read
 	d := disorder.NewDecoder(conn.Reader())
-	context.reset()
+	context.headers = make(map[string]string)
 	err = d.Decode(&context.headers)
 	if err != nil {
 		return &Error{
@@ -106,7 +102,7 @@ func (c *Client) Send(method string, request interface{}, response interface{}) 
 			Error: err,
 		}
 	}
-	rpcErr := context.readError()
+	rpcErr = context.readError()
 	if rpcErr != nil {
 		return rpcErr
 	}
@@ -115,6 +111,18 @@ func (c *Client) Send(method string, request interface{}, response interface{}) 
 		return &Error{
 			Code:  code.DataCorrupt,
 			Error: err,
+		}
+	}
+	return nil
+}
+
+func (c *Client) intercept(context *Context) *Error {
+	if len(c.interceptors) > 0 {
+		for _, i := range c.interceptors {
+			rpcErr := i.Intercept(context)
+			if rpcErr != nil {
+				return rpcErr
+			}
 		}
 	}
 	return nil

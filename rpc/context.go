@@ -54,6 +54,14 @@ func (c *Context) UnsetHeader(key string) error {
 	return nil
 }
 
+func (c *Context) Router() string {
+	service, method, err := c.readRpcInfo()
+	if err != nil {
+		return "unknown"
+	}
+	return fmt.Sprintf("%s.%s", service, method)
+}
+
 func (c *Context) readRpcInfo() (service, method string, err error) {
 	if c.headers[serviceName] == "" || c.headers[methodName] == "" {
 		err = fmt.Errorf("invalid rpc info")
@@ -93,8 +101,4 @@ func (c *Context) readError() *Error {
 func (c *Context) writeError(code code.Code, err error) {
 	c.headers[errorCode] = strconv.Itoa(int(code))
 	c.headers[errorMsg] = err.Error()
-}
-
-func (c *Context) reset() {
-	c.headers = make(map[string]string)
 }
