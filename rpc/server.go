@@ -73,7 +73,9 @@ func (s *Server) Accept(conn *tcp.Connection) {
 		return
 	}
 	var rpcErr *Error
-	defer s.postHandle(service, context, rpcErr)
+	defer func() {
+		s.postHandle(service, context, rpcErr)
+	}()
 	rpcErr = s.preHandle(service, context)
 	if rpcErr != nil {
 		s.sendError(conn, rpcErr.Code, rpcErr.Error)

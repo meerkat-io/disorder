@@ -2,6 +2,7 @@ package rpc_test
 
 import (
 	"fmt"
+	"strconv"
 	"testing"
 	"time"
 
@@ -66,8 +67,8 @@ func TestInterceptor(t *testing.T) {
 	s := rpc.NewServer()
 	RegisterTestService(s, &TestServiceImpl{})
 	metrics := &ServerMetricsInterceptor{}
-	AddTestServiceInterceptor(s, &ServerAuthInterceptor{})
 	AddTestServiceInterceptor(s, metrics)
+	AddTestServiceInterceptor(s, &ServerAuthInterceptor{})
 	err := s.Listen(":9999")
 	assert.Nil(t, err)
 
@@ -82,6 +83,10 @@ func TestInterceptor(t *testing.T) {
 	increase, rpcErr := c.Increase(int32(1))
 	assert.Nil(t, rpcErr)
 	assert.Equal(t, int32(2), increase)
+
+	assert.Equal(t, 2, metrics.counter)
+	assert.Equal(t, 1, metrics.errCounter)
+	assert.True(t, metrics.delay > 0)
 
 	s.Close()
 }
@@ -198,11 +203,22 @@ func (s *ServerAuthInterceptor) PostHandle(context *rpc.Context, err *rpc.Error)
 }
 
 type ServerMetricsInterceptor struct {
+	counter    int
+	errCounter int
+	delay      int64
 }
 
 func (s *ServerMetricsInterceptor) PreHandle(context *rpc.Context) *rpc.Error {
+	s.counter++
+	context.SetHeader("start", strconv.FormatInt(time.Now().UnixNano(), 10))
 	return nil
 }
 
 func (s *ServerMetricsInterceptor) PostHandle(context *rpc.Context, err *rpc.Error) {
+	fmt.Println("post handle", err)
+	if err == nil {
+		s.delay, _ = strconv.ParseInt(context.GetHeader("start"), 10, 64)
+	} else {
+		s.errCounter++
+	}
 }
