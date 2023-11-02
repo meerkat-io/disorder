@@ -74,7 +74,7 @@ func (l *loader) load(file string, files map[string]*schema.File) error {
 	if p.Schema != "disorder" {
 		return fmt.Errorf("invalid disorder schema file")
 	}
-	//TO-DO support version in the future
+	//TO-DO support version
 
 	schemaFile, err := l.parser.parse(p)
 	if err != nil {

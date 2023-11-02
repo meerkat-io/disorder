@@ -25,4 +25,7 @@ It can used as communication protocol or data storage format.
 * Different items can belong to the same container, since each item has its own tag
 
 //TO-DO add schema format
-//TO-DO support void in rpc
+//TO-DO add remote schema <https/http>
+//TO-DO import not used error (sub yaml)
+//TO-DO check define and rpc separately
+//TO-DO support schema version

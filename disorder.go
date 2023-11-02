@@ -4,9 +4,6 @@ import (
 	"bytes"
 )
 
-//TO-DO import not used error (sub yaml)
-//TO-DO check define and rpc separately
-
 func Marshal(value interface{}) ([]byte, error) {
 	buffer := &bytes.Buffer{}
 	encoder := NewEncoder(buffer)
