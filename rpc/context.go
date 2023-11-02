@@ -31,11 +31,8 @@ func NewContext() *Context {
 	}
 }
 
-func (c *Context) GetHeader(key string) (string, error) {
-	if reservedHeader[key] {
-		return "", fmt.Errorf("\"%s\" is reserved", key)
-	}
-	return c.headers[key], nil
+func (c *Context) GetHeader(key string) string {
+	return c.headers[key]
 }
 
 func (c *Context) SetHeader(key, value string) error {
