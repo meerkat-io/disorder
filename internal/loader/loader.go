@@ -10,15 +10,15 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
+// Loader reads a schema file and the files it imports.
 type Loader interface {
+	// Load returns the parsed files keyed by absolute path, and the defining
+	// file path of every qualified message and enum name.
 	Load(file string) (map[string]*schema.File, map[string]string, error)
 }
 
 func NewLoader() Loader {
-	return &loader{
-		parser:   newParser(),
-		resolver: newResolver(),
-	}
+	return &loader{}
 }
 
 type proto struct {
@@ -33,22 +33,18 @@ type proto struct {
 	Messages mapMatrix `yaml:"messages"`
 }
 
-type loader struct {
-	parser   *parser
-	resolver *resolver
-}
+type loader struct{}
 
 func (l *loader) Load(file string) (map[string]*schema.File, map[string]string, error) {
 	files := map[string]*schema.File{}
-	err := l.load(file, files)
-	if err != nil {
+	if err := l.load(file, files); err != nil {
 		return nil, nil, err
 	}
-	err = l.resolver.resolve(files)
-	if err != nil {
+	r := newResolver()
+	if err := r.resolve(files); err != nil {
 		return nil, nil, err
 	}
-	return files, l.resolver.qualified, nil
+	return files, r.qualified, nil
 }
 
 func (l *loader) load(file string, files map[string]*schema.File) error {
@@ -77,7 +73,7 @@ func (l *loader) load(file string, files map[string]*schema.File) error {
 		return fmt.Errorf("invalid disorder schema file")
 	}
 
-	schemaFile, err := l.parser.parse(p)
+	schemaFile, err := parse(p)
 	if err != nil {
 		return fmt.Errorf("parse schema file [%s] failed: %s", file, err.Error())
 	}

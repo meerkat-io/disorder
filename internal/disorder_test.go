@@ -1,6 +1,7 @@
 package internal_test
 
 import (
+	"bytes"
 	"encoding/json"
 	"os"
 	"path/filepath"
@@ -176,7 +177,7 @@ func TestUnknownFieldsAreSkipped(t *testing.T) {
 	require.NoError(t, err)
 
 	mini := &miniObject{}
-	decoder := disorder.NewDecoder(bytesReader(data))
+	decoder := disorder.NewDecoder(bytes.NewReader(data))
 	require.NoError(t, decoder.Decode(mini))
 	assert.Equal(t, int32(123), mini.IntField)
 	assert.NotEmpty(t, decoder.Warnings())

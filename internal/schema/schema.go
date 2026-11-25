@@ -1,5 +1,6 @@
 package schema
 
+// Type is the kind of a schema type.
 type Type byte
 
 const (
@@ -21,23 +22,25 @@ const (
 	TypeObject Type = 23
 )
 
+// IsPrimary reports whether t is a scalar type declared by name in a schema.
 func (t Type) IsPrimary() bool {
 	return t >= TypeBool && t <= TypeTimestamp
 }
 
-var (
-	PrimaryTypes = map[string]Type{
-		"bool":      TypeBool,
-		"int":       TypeInt,
-		"long":      TypeLong,
-		"float":     TypeFloat,
-		"double":    TypeDouble,
-		"bytes":     TypeBytes,
-		"string":    TypeString,
-		"timestamp": TypeTimestamp,
-	}
-)
+// PrimaryTypes maps the type names usable in a schema to their Type.
+var PrimaryTypes = map[string]Type{
+	"bool":      TypeBool,
+	"int":       TypeInt,
+	"long":      TypeLong,
+	"float":     TypeFloat,
+	"double":    TypeDouble,
+	"bytes":     TypeBytes,
+	"string":    TypeString,
+	"timestamp": TypeTimestamp,
+}
 
+// TypeInfo describes a field type. TypeRef is the name as written for message
+// and enum references; Qualified is the resolved "package.name".
 type TypeInfo struct {
 	Type        Type
 	TypeRef     string

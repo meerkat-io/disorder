@@ -16,15 +16,11 @@ import (
 	"github.com/meerkat-io/disorder/internal/schema"
 )
 
-const (
-	golang          = "golang"
-	goPackagePrefix = "go_package_prefix"
-)
+const goPackagePrefix = "go_package_prefix"
 
+// NewGoGenerator returns a generator that writes Go types, one file per schema.
 func NewGoGenerator() generator.Generator {
-	g := &goGenerator{}
-	g.initTemplete()
-	return g
+	return &goGenerator{define: newTemplate()}
 }
 
 type goGenerator struct {
@@ -38,70 +34,75 @@ type goSchema struct {
 
 func (g *goGenerator) Generate(dir string, files map[string]*schema.File, qualifiedPath map[string]string) error {
 	for _, file := range files {
-		schemaFile := &goSchema{
-			Schema: file,
-		}
-
-		imports := make(map[string]bool)
-		for _, message := range file.Messages {
-			for _, field := range message.Fields {
-				g.resolveImport(field.Type, imports, file, files, qualifiedPath)
-			}
-		}
-		if len(file.Enums) > 0 {
-			imports["fmt"] = true
-			imports["encoding/json"] = true
-		}
-		for path := range imports {
-			schemaFile.Imports = append(schemaFile.Imports, path)
-		}
-		sort.Strings(schemaFile.Imports)
-
-		schemaDir, err := filepath.Abs(filepath.Join(dir, g.packageFolder(file.Package)))
-		if err != nil {
-			return err
-		}
-		err = folder.Create(schemaDir)
-		if err != nil {
-			return err
-		}
-
-		buf := &bytes.Buffer{}
-		if err := g.define.Execute(buf, schemaFile); err != nil {
-			return err
-		}
-		source := buf.Bytes()
-		if source, err = format.Source(source); err != nil {
-			return err
-		}
-		schemaFilePath := filepath.Base(file.FilePath)
-		schemaFilePath = fmt.Sprintf("%s.go", strings.TrimSuffix(schemaFilePath, filepath.Ext(schemaFilePath)))
-		err = os.WriteFile(filepath.Join(schemaDir, schemaFilePath), source, 0666)
-		if err != nil {
-			return err
+		if err := g.generateFile(dir, file, files, qualifiedPath); err != nil {
+			return fmt.Errorf("generate %s failed: %w", file.FilePath, err)
 		}
 	}
 	return nil
 }
 
-func (g *goGenerator) packageFolder(pkg string) string {
+func (g *goGenerator) generateFile(dir string, file *schema.File, files map[string]*schema.File, qualifiedPath map[string]string) error {
+	data := &goSchema{
+		Schema:  file,
+		Imports: collectImports(file, files, qualifiedPath),
+	}
+	buf := &bytes.Buffer{}
+	if err := g.define.Execute(buf, data); err != nil {
+		return err
+	}
+	source, err := format.Source(buf.Bytes())
+	if err != nil {
+		return err
+	}
+
+	schemaDir, err := filepath.Abs(filepath.Join(dir, packageFolder(file.Package)))
+	if err != nil {
+		return err
+	}
+	if err := folder.Create(schemaDir); err != nil {
+		return err
+	}
+	name := strings.TrimSuffix(filepath.Base(file.FilePath), filepath.Ext(file.FilePath)) + ".go"
+	return os.WriteFile(filepath.Join(schemaDir, name), source, 0666)
+}
+
+// collectImports returns the sorted import paths needed by the generated file.
+func collectImports(file *schema.File, files map[string]*schema.File, qualifiedPath map[string]string) []string {
+	imports := map[string]bool{}
+	for _, message := range file.Messages {
+		for _, field := range message.Fields {
+			addImports(field.Type, imports, file, files, qualifiedPath)
+		}
+	}
+	if len(file.Enums) > 0 {
+		imports["fmt"] = true
+		imports["encoding/json"] = true
+	}
+	paths := make([]string, 0, len(imports))
+	for path := range imports {
+		paths = append(paths, path)
+	}
+	sort.Strings(paths)
+	return paths
+}
+
+func addImports(typeInfo *schema.TypeInfo, imports map[string]bool, current *schema.File, files map[string]*schema.File, qualifiedPath map[string]string) {
+	if typeInfo.Type == schema.TypeTimestamp {
+		imports["time"] = true
+	}
+	if typeInfo.ElementType != nil {
+		addImports(typeInfo.ElementType, imports, current, files, qualifiedPath)
+	}
+	if typeInfo.Qualified != "" && current.FilePath != qualifiedPath[typeInfo.Qualified] {
+		target := files[qualifiedPath[typeInfo.Qualified]]
+		imports[filepath.Join(target.Options[goPackagePrefix], packageFolder(target.Package))] = true
+	}
+}
+
+func packageFolder(pkg string) string {
 	folders := strings.Split(pkg, ".")
 	for i := range folders {
 		folders[i] = strcase.SnakeCase(folders[i])
 	}
 	return strings.Join(folders, "/")
-}
-
-func (g *goGenerator) resolveImport(typeInfo *schema.TypeInfo, importMap map[string]bool, current *schema.File, files map[string]*schema.File, qualifiedPath map[string]string) {
-	if typeInfo.Type == schema.TypeTimestamp {
-		importMap["time"] = true
-	}
-	if typeInfo.Qualified != "" && current.FilePath != qualifiedPath[typeInfo.Qualified] {
-		targetFile := files[qualifiedPath[typeInfo.Qualified]]
-		prefix := ""
-		if targetFile.Options != nil {
-			prefix = targetFile.Options[goPackagePrefix]
-		}
-		importMap[filepath.Join(prefix, g.packageFolder(targetFile.Package))] = true
-	}
 }

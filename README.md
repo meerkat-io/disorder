@@ -57,9 +57,7 @@ guaranteed to match when decoding into a generated type, not into `interface{}`.
 Bytes use Base64 because the schema already says the field is `bytes`, so the
 decoder knows to decode the string. No marker is needed and it round-trips exactly.
 
-
-
-## Data bypes
+## Binary format
 
 | type      | tag   | byte | kind      | format                                                  |
 | --------- | ----- | ---- | --------- | ------------------------------------------------------- |
@@ -71,7 +69,7 @@ decoder knows to decode the string. No marker is needed and it round-trips exact
 | bytes     | 6     | var  | primary   | tag(6) + 4 bytes length + [raw bytes]                   |
 |           |       |      |           |                                                         |
 | string    | 11    | var  | util      | alias "bytes"                                           |
-| timestamp | 12    | 8    | util      | alias "long", miliseconds unix time from 1970           |
+| timestamp | 12    | 8    | util      | alias "long", unix time in milliseconds           |
 | enum      | 13    | var  | util      | tag(13) + (short string)*                               |
 |           |       |      |           |                                                         |
 | array     | 21/22 | var  | container | start(21) + [tag + data] + end(22)                      |
@@ -82,8 +80,7 @@ decoder knows to decode the string. No marker is needed and it round-trips exact
 
 ## Schema format
 
-Disorder use yaml as schema file format
-Schema file fields:
+Disorder uses yaml as the schema file format:
 
 ```
 schema: disorder
@@ -93,7 +90,7 @@ package: test
 option:
   go_package_prefix: github.com/meerkat-io/disorder/internal
 
-import: 
+import:
   - sub.yaml
 
 messages:
@@ -109,14 +106,14 @@ enums:
 
 * schema and version are fixed fields
 * unknown top level keys are rejected, e.g. the removed `services`
-* package works as namespace or package in a program language, to prevent name conflict
-* option is a string map, used to store extra data for code generation
-* import field is external schema files list, now only relative path is supported, later remote (http) schema will be supported
-* messages is message map[message name -> message body], nested structures are not allowed. instead we can use complex object type as member type
-* message itself is a types map[string -> type]
-* enums is a map[enum name -> enum values list], enum values are strings only
-* containers type:  array[element_type] and map[element_type]. the key type of map is always string, we don't need to assign type for key again
-* nested containers are allowed, eg: map[map[array[array[map[int]]]]]
+* package works as a namespace (a package in Go) to prevent name conflicts
+* option is a string map holding extra data for code generation
+* import is a list of external schema files, only relative paths are supported for now
+* messages is a map[message name -> message body]. Nested structures are not allowed, use another message as the member type instead
+* a message body is a map[field name -> type]
+* enums is a map[enum name -> list of values], values are strings
+* container types: array[element_type] and map[element_type]. The key type of a map is always string
+* nested containers are allowed, e.g. map[map[array[array[map[int]]]]]
 
 A more complex example:
 
@@ -125,7 +122,7 @@ schema: disorder
 version: v1
 package: test
 
-import: 
+import:
   - sub.yaml
 
 option:

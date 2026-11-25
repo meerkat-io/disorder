@@ -145,39 +145,24 @@ func (d *Decoder) readEnum(t tag, enum Enum) error {
 func (d *Decoder) readScalar(t tag) (interface{}, error) {
 	switch t {
 	case tagBool:
-		b, err := d.readFull(1)
-		if err != nil {
-			return nil, err
-		}
-		return b[0] == 1, nil
+		v, err := d.readUint(1)
+		return v == 1, err
 
 	case tagInt:
-		b, err := d.readFull(4)
-		if err != nil {
-			return nil, err
-		}
-		return int32(binary.BigEndian.Uint32(b)), nil
+		v, err := d.readUint(4)
+		return int32(v), err
 
 	case tagLong:
-		b, err := d.readFull(8)
-		if err != nil {
-			return nil, err
-		}
-		return int64(binary.BigEndian.Uint64(b)), nil
+		v, err := d.readUint(8)
+		return int64(v), err
 
 	case tagFloat:
-		b, err := d.readFull(4)
-		if err != nil {
-			return nil, err
-		}
-		return math.Float32frombits(binary.BigEndian.Uint32(b)), nil
+		v, err := d.readUint(4)
+		return math.Float32frombits(uint32(v)), err
 
 	case tagDouble:
-		b, err := d.readFull(8)
-		if err != nil {
-			return nil, err
-		}
-		return math.Float64frombits(binary.BigEndian.Uint64(b)), nil
+		v, err := d.readUint(8)
+		return math.Float64frombits(v), err
 
 	case tagBytes:
 		b, err := d.readLengthPrefixed()
@@ -194,11 +179,8 @@ func (d *Decoder) readScalar(t tag) (interface{}, error) {
 		return string(b), nil
 
 	case tagTimestamp:
-		b, err := d.readFull(8)
-		if err != nil {
-			return nil, err
-		}
-		return time.UnixMilli(int64(binary.BigEndian.Uint64(b))), nil
+		v, err := d.readUint(8)
+		return time.UnixMilli(int64(v)), err
 	}
 	return nil, fmt.Errorf("invalid tag: %d", t)
 }
@@ -364,6 +346,21 @@ func (d *Decoder) readName() (string, error) {
 		return "", err
 	}
 	return string(b), nil
+}
+
+// readUint reads a big-endian unsigned integer of size 1, 4 or 8 bytes.
+func (d *Decoder) readUint(size int) (uint64, error) {
+	b, err := d.readFull(size)
+	if err != nil {
+		return 0, err
+	}
+	switch size {
+	case 1:
+		return uint64(b[0]), nil
+	case 4:
+		return uint64(binary.BigEndian.Uint32(b)), nil
+	}
+	return binary.BigEndian.Uint64(b), nil
 }
 
 // readLengthPrefixed reads a 4 bytes length followed by that many bytes. The

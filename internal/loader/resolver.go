@@ -7,8 +7,10 @@ import (
 	"github.com/meerkat-io/disorder/internal/schema"
 )
 
+// resolver links type references to the enums and messages they name, and
+// records which file defines each qualified name.
 type resolver struct {
-	qualified map[string]string
+	qualified map[string]string // qualified name -> defining file path
 	enums     map[string]bool
 	messages  map[string]bool
 }
@@ -21,32 +23,26 @@ func newResolver() *resolver {
 	}
 }
 
-func (r *resolver) qualifiedName(pkg, name string) string {
+// qualifiedName returns name unchanged if it already carries a package,
+// otherwise prefixes it with pkg.
+func qualifiedName(pkg, name string) string {
 	if strings.Contains(name, ".") {
-		//remote
 		return name
 	}
-	//local
-	return fmt.Sprintf("%s.%s", pkg, name)
+	return pkg + "." + name
 }
 
 func (r *resolver) resolve(files map[string]*schema.File) error {
 	for _, file := range files {
 		for _, enum := range file.Enums {
-			if f, exists := r.qualified[enum.Name]; exists {
-				return fmt.Errorf("duplicate enum define [%s] in %s and %s", enum.Name, f, file.FilePath)
+			if err := r.define("enum", enum.Name, file, r.enums); err != nil {
+				return err
 			}
-			qualified := r.qualifiedName(file.Package, enum.Name)
-			r.qualified[qualified] = file.FilePath
-			r.enums[qualified] = true
 		}
 		for _, message := range file.Messages {
-			if f, exists := r.qualified[message.Name]; exists {
-				return fmt.Errorf("duplicate message define [%s] in %s and %s", message.Name, f, file.FilePath)
+			if err := r.define("message", message.Name, file, r.messages); err != nil {
+				return err
 			}
-			qualified := r.qualifiedName(file.Package, message.Name)
-			r.qualified[qualified] = file.FilePath
-			r.messages[qualified] = true
 		}
 	}
 
@@ -62,47 +58,46 @@ func (r *resolver) resolve(files map[string]*schema.File) error {
 	return nil
 }
 
+// define registers a name in kinds (the enum or message set) and rejects
+// names already defined in the same package.
+func (r *resolver) define(kind, name string, file *schema.File, kinds map[string]bool) error {
+	qualified := qualifiedName(file.Package, name)
+	if other, exists := r.qualified[qualified]; exists {
+		return fmt.Errorf("duplicate %s define [%s] in %s and %s", kind, name, other, file.FilePath)
+	}
+	r.qualified[qualified] = file.FilePath
+	kinds[qualified] = true
+	return nil
+}
+
 func (r *resolver) resolveType(file *schema.File, info *schema.TypeInfo) error {
-	if info.Type == schema.TypeUndefined {
-		// object or enum
-		r.resolveTypeRef(file, info)
-		if info.Type == schema.TypeUndefined {
+	switch {
+	case info.Type == schema.TypeUndefined:
+		if !r.resolveRef(file, info) {
 			return fmt.Errorf("undefine type \"%s\"", info.TypeRef)
 		}
-	} else if info.ElementType != nil {
-		// array or map
+	case info.ElementType != nil:
 		return r.resolveType(file, info.ElementType)
 	}
 	return nil
 }
 
-func (r *resolver) resolveTypeRef(file *schema.File, info *schema.TypeInfo) {
-	info.Type = schema.TypeUndefined
-	qualified := r.qualifiedName(file.Package, info.TypeRef)
-	importPath, ok := r.qualified[qualified]
-	if !ok {
-		return
+// resolveRef sets the type of a message or enum reference. The target must be
+// defined in the same file or in a file it imports.
+func (r *resolver) resolveRef(file *schema.File, info *schema.TypeInfo) bool {
+	qualified := qualifiedName(file.Package, info.TypeRef)
+	path, ok := r.qualified[qualified]
+	if !ok || (path != file.FilePath && !file.AbsImports[path]) {
+		return false
 	}
-	if importPath != file.FilePath {
-		if _, ok := file.AbsImports[importPath]; !ok {
-			return
-		}
-	}
-	if r.isEnum(qualified) {
-		info.Qualified = qualified
+	switch {
+	case r.enums[qualified]:
 		info.Type = schema.TypeEnum
-	} else if r.isObject(qualified) {
-		info.Qualified = qualified
+	case r.messages[qualified]:
 		info.Type = schema.TypeObject
+	default:
+		return false
 	}
-}
-
-func (r *resolver) isEnum(typ string) bool {
-	_, exists := r.enums[typ]
-	return exists
-}
-
-func (r *resolver) isObject(typ string) bool {
-	_, exists := r.messages[typ]
-	return exists
+	info.Qualified = qualified
+	return true
 }

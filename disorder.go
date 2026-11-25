@@ -4,6 +4,7 @@ import (
 	"bytes"
 )
 
+// Marshal returns the binary encoding of value.
 func Marshal(value interface{}) ([]byte, error) {
 	buffer := &bytes.Buffer{}
 	encoder := NewEncoder(buffer)
@@ -14,6 +15,7 @@ func Marshal(value interface{}) ([]byte, error) {
 	return nil, err
 }
 
+// Unmarshal decodes binary data into value, which must be a non-nil pointer.
 func Unmarshal(data []byte, value interface{}) error {
 	buffer := bytes.NewBuffer(data)
 	decoder := NewDecoder(buffer)

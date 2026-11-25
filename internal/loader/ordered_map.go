@@ -1,80 +1,69 @@
 package loader
 
 import (
-	"sort"
-	"sync/atomic"
+	"fmt"
+
+	"gopkg.in/yaml.v3"
 )
 
-var index uint64
+// Go maps lose the declaration order of yaml keys, and the generated code
+// should follow the schema, so these types decode a yaml mapping into an
+// ordered slice.
 
 type mapItem struct {
 	key   string
 	value interface{}
-	index uint64
 }
 
+// mapSlice is a yaml mapping whose values are arbitrary.
 type mapSlice []mapItem
-
-func (m mapSlice) Len() int           { return len(m) }
-func (m mapSlice) Less(i, j int) bool { return m[i].index < m[j].index }
-func (m mapSlice) Swap(i, j int)      { m[i], m[j] = m[j], m[i] }
 
 type mapSliceItem struct {
 	key   string
 	value mapSlice
-	index uint64
 }
 
+// mapMatrix is a yaml mapping whose values are mapSlices.
 type mapMatrix []mapSliceItem
 
-func (m mapMatrix) Len() int           { return len(m) }
-func (m mapMatrix) Less(i, j int) bool { return m[i].index < m[j].index }
-func (m mapMatrix) Swap(i, j int)      { m[i], m[j] = m[j], m[i] }
-
-func (m *mapMatrix) UnmarshalYAML(unmarshal func(interface{}) error) error {
-	values := map[string]mapSliceItem{}
-	if err := unmarshal(&values); err != nil {
-		return err
-	}
-	for k, v := range values {
-		*m = append(*m, mapSliceItem{key: k, value: v.value, index: v.index})
-	}
-	sort.Sort(*m)
-	return nil
+func (m *mapSlice) UnmarshalYAML(node *yaml.Node) error {
+	return decodeMapping(node, func(key string, value *yaml.Node) error {
+		var v interface{}
+		if err := value.Decode(&v); err != nil {
+			return err
+		}
+		*m = append(*m, mapItem{key: key, value: v})
+		return nil
+	})
 }
 
-func (p *mapSliceItem) UnmarshalYAML(unmarshal func(interface{}) error) error {
-	var v mapSlice
-	if err := unmarshal(&v); err != nil {
-		return err
-	}
-	p.value = v
-	p.index = next()
-	return nil
+func (m *mapMatrix) UnmarshalYAML(node *yaml.Node) error {
+	return decodeMapping(node, func(key string, value *yaml.Node) error {
+		var v mapSlice
+		if err := value.Decode(&v); err != nil {
+			return err
+		}
+		*m = append(*m, mapSliceItem{key: key, value: v})
+		return nil
+	})
 }
 
-func (m *mapSlice) UnmarshalYAML(unmarshal func(interface{}) error) error {
-	values := map[string]mapItem{}
-	if err := unmarshal(&values); err != nil {
-		return err
+// decodeMapping calls add for each key/value of a yaml mapping in document
+// order and rejects duplicated keys.
+func decodeMapping(node *yaml.Node, add func(key string, value *yaml.Node) error) error {
+	if node.Kind != yaml.MappingNode {
+		return fmt.Errorf("line %d: expect a mapping", node.Line)
 	}
-	for k, v := range values {
-		*m = append(*m, mapItem{key: k, value: v.value, index: v.index})
+	seen := map[string]bool{}
+	for i := 0; i+1 < len(node.Content); i += 2 {
+		key := node.Content[i]
+		if seen[key.Value] {
+			return fmt.Errorf("line %d: duplicated key \"%s\"", key.Line, key.Value)
+		}
+		seen[key.Value] = true
+		if err := add(key.Value, node.Content[i+1]); err != nil {
+			return err
+		}
 	}
-	sort.Sort(*m)
 	return nil
-}
-
-func (p *mapItem) UnmarshalYAML(unmarshal func(interface{}) error) error {
-	var v interface{}
-	if err := unmarshal(&v); err != nil {
-		return err
-	}
-	p.value = v
-	p.index = next()
-	return nil
-}
-
-func next() uint64 {
-	return atomic.AddUint64(&index, 1)
 }

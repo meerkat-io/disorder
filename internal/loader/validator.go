@@ -7,66 +7,27 @@ import (
 	"github.com/meerkat-io/disorder/internal/schema"
 )
 
-type validator struct {
-	variableName *regexp.Regexp
-	packageName  *regexp.Regexp
-	singularType *regexp.Regexp
+var (
+	identifier = regexp.MustCompile(`^[a-zA-Z_][a-zA-Z_0-9]*$`)
+	// dotted is a package name or a (possibly package-qualified) type name.
+	dotted = regexp.MustCompile(`^[a-zA-Z_][a-zA-Z_0-9]*(\.[a-zA-Z_][a-zA-Z_0-9]*)*$`)
+)
+
+// validName reports whether name is usable as an enum, enum value, message or
+// field name: a plain identifier that is not a primary type name.
+func validName(name string) bool {
+	_, primary := schema.PrimaryTypes[name]
+	return !primary && identifier.MatchString(name)
 }
 
-func newValidator() *validator {
-	return &validator{
-		variableName: regexp.MustCompile(`^[a-zA-Z_][a-zA-Z_0-9]*$`),
-		packageName:  regexp.MustCompile(`^[a-zA-Z_][a-zA-Z_0-9]*(.[a-zA-Z_][a-zA-Z_0-9]*)*$`),
-		singularType: regexp.MustCompile(`^[a-zA-Z_][a-zA-Z_0-9]*(.[a-zA-Z_][a-zA-Z_0-9]*)*$`),
-	}
+func validPackageName(pkg string) bool {
+	return dotted.MatchString(pkg)
 }
 
-func (v *validator) isPrimary(typ string) bool {
-	_, ok := schema.PrimaryTypes[typ]
-	return ok
-}
-
-func (v *validator) primaryType(typ string) schema.Type {
-	return schema.PrimaryTypes[typ]
-}
-
-func (v *validator) validateEnumName(name string) bool {
-	if v.isPrimary(name) {
-		return false
-	}
-	return v.variableName.MatchString(name)
-}
-
-func (v *validator) validateEnumValue(name string) bool {
-	return v.variableName.MatchString(name)
-}
-
-func (v *validator) validateMessageName(name string) bool {
-	if v.isPrimary(name) {
-		return false
-	}
-	return v.variableName.MatchString(name)
-}
-
-func (v *validator) validateFieldName(name string) bool {
-	if v.isPrimary(name) {
-		return false
-	}
-	return v.variableName.MatchString(name)
-}
-
-func (v *validator) validatePackageName(pkg string) bool {
-	return v.packageName.MatchString(pkg)
-}
-
-func (v *validator) isSingularType(typ string) bool {
-	return v.singularType.MatchString(typ)
-}
-
-func (v *validator) isArrayType(typ string) bool {
+func isArrayType(typ string) bool {
 	return strings.HasPrefix(typ, "array[") && strings.HasSuffix(typ, "]")
 }
 
-func (v *validator) isMapType(typ string) bool {
+func isMapType(typ string) bool {
 	return strings.HasPrefix(typ, "map[") && strings.HasSuffix(typ, "]")
 }

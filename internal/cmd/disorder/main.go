@@ -12,9 +12,8 @@ import (
 )
 
 type flags struct {
-	Help bool `flag:"h" usage:"help"`
-	//Lang   string `flag:"l" usage:"language template" tip:"go|cs|java" required:"true"`
-	Input  string `flag:"i" usage:"input schema (yaml, json or toml)" tip:"input" required:"true"`
+	Help   bool   `flag:"h" usage:"help"`
+	Input  string `flag:"i" usage:"input schema (yaml)" tip:"input" required:"true"`
 	Output string `flag:"o" usage:"output folder" tip:"output" default:"."`
 }
 
@@ -27,27 +26,25 @@ func main() {
 	}
 	if err != nil {
 		flag.Usage()
-		fmt.Println(err)
+		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}
 
 	if exists := folder.Exists(f.Output); !exists {
-		fmt.Printf("folder \"%s\" does not exist\n", f.Output)
+		fmt.Fprintf(os.Stderr, "folder \"%s\" does not exist\n", f.Output)
 		os.Exit(1)
 	}
 
-	var l loader.Loader = loader.NewLoader()
-	files, qualifiedPath, err := l.Load(f.Input)
+	files, qualifiedPath, err := loader.NewLoader().Load(f.Input)
 	if err != nil {
-		fmt.Printf("load file %s failed: %s\n", f.Input, err.Error())
+		fmt.Fprintf(os.Stderr, "load file %s failed: %s\n", f.Input, err.Error())
 		os.Exit(1)
 	}
 
-	//TO-DO check language
-	generator := golang.NewGoGenerator()
-	err = generator.Generate(f.Output, files, qualifiedPath)
+	// Go is the only supported language for now.
+	err = golang.NewGoGenerator().Generate(f.Output, files, qualifiedPath)
 	if err != nil {
-		fmt.Printf("generate failed: %s\n", err.Error())
+		fmt.Fprintf(os.Stderr, "generate failed: %s\n", err.Error())
 		os.Exit(1)
 	}
 }
