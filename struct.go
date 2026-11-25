@@ -65,7 +65,7 @@ func getStructInfo(typ reflect.Type) (*structInfo, error) {
 		}
 
 		if _, exists = s.fieldsMap[f.key]; exists {
-			return nil, fmt.Errorf("duplicated key '" + f.key + "' in struct " + typ.String())
+			return nil, fmt.Errorf("duplicated key '%s' in struct %s", f.key, typ.String())
 		}
 
 		s.fieldsList = append(s.fieldsList, f)

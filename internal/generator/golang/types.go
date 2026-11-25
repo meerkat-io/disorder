@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/meerkat-io/bloom/format/strcase"
+	"github.com/meerkat-io/bloom/strcase"
 	"github.com/meerkat-io/disorder/internal/schema"
 )
 

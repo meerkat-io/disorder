@@ -6,11 +6,12 @@ import (
 	"go/format"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 	"text/template"
 
 	"github.com/meerkat-io/bloom/folder"
-	"github.com/meerkat-io/bloom/format/strcase"
+	"github.com/meerkat-io/bloom/strcase"
 	"github.com/meerkat-io/disorder/internal/generator"
 	"github.com/meerkat-io/disorder/internal/schema"
 )
@@ -28,13 +29,11 @@ func NewGoGenerator() generator.Generator {
 
 type goGenerator struct {
 	define *template.Template
-	rpc    *template.Template
 }
 
 type goSchema struct {
-	Schema        *schema.File
-	DefineImports []string
-	RpcImports    []string
+	Schema  *schema.File
+	Imports []string
 }
 
 func (g *goGenerator) Generate(dir string, files map[string]*schema.File, qualifiedPath map[string]string) error {
@@ -43,32 +42,20 @@ func (g *goGenerator) Generate(dir string, files map[string]*schema.File, qualif
 			Schema: file,
 		}
 
-		defineImports := make(map[string]bool)
-		rpcImports := make(map[string]bool)
+		imports := make(map[string]bool)
 		for _, message := range file.Messages {
 			for _, field := range message.Fields {
-				g.resolveImport(field.Type, defineImports, file, files, qualifiedPath)
-			}
-		}
-		for _, service := range file.Services {
-			for _, rpc := range service.Rpc {
-				g.resolveImport(rpc.Input, rpcImports, file, files, qualifiedPath)
-				g.resolveImport(rpc.Output, rpcImports, file, files, qualifiedPath)
+				g.resolveImport(field.Type, imports, file, files, qualifiedPath)
 			}
 		}
 		if len(file.Enums) > 0 {
-			defineImports["fmt"] = true
+			imports["fmt"] = true
+			imports["encoding/json"] = true
 		}
-		rpcImports["fmt"] = true
-		rpcImports["github.com/meerkat-io/disorder"] = true
-		rpcImports["github.com/meerkat-io/disorder/rpc"] = true
-		rpcImports["github.com/meerkat-io/disorder/rpc/code"] = true
-		for path := range defineImports {
-			schemaFile.DefineImports = append(schemaFile.DefineImports, path)
+		for path := range imports {
+			schemaFile.Imports = append(schemaFile.Imports, path)
 		}
-		for path := range rpcImports {
-			schemaFile.RpcImports = append(schemaFile.RpcImports, path)
-		}
+		sort.Strings(schemaFile.Imports)
 
 		schemaDir, err := filepath.Abs(filepath.Join(dir, g.packageFolder(file.Package)))
 		if err != nil {
@@ -92,23 +79,6 @@ func (g *goGenerator) Generate(dir string, files map[string]*schema.File, qualif
 		err = os.WriteFile(filepath.Join(schemaDir, schemaFilePath), source, 0666)
 		if err != nil {
 			return err
-		}
-
-		if len(file.Services) > 0 {
-			buf = &bytes.Buffer{}
-			if err := g.rpc.Execute(buf, schemaFile); err != nil {
-				return err
-			}
-			source = buf.Bytes()
-			if source, err = format.Source(source); err != nil {
-				return err
-			}
-			schemaFilePath = filepath.Base(file.FilePath)
-			schemaFilePath = fmt.Sprintf("%s_rpc.go", strings.TrimSuffix(schemaFilePath, filepath.Ext(schemaFilePath)))
-			err = os.WriteFile(filepath.Join(schemaDir, schemaFilePath), source, 0666)
-			if err != nil {
-				return err
-			}
 		}
 	}
 	return nil

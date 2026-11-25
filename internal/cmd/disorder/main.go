@@ -28,25 +28,26 @@ func main() {
 	if err != nil {
 		flag.Usage()
 		fmt.Println(err)
-		os.Exit(0)
+		os.Exit(1)
 	}
 
 	if exists := folder.Exists(f.Output); !exists {
 		fmt.Printf("folder \"%s\" does not exist\n", f.Output)
-		os.Exit(0)
+		os.Exit(1)
 	}
 
 	var l loader.Loader = loader.NewLoader()
 	files, qualifiedPath, err := l.Load(f.Input)
 	if err != nil {
-		fmt.Printf("load file %s failed: %s", f.Input, err.Error())
-		os.Exit(0)
+		fmt.Printf("load file %s failed: %s\n", f.Input, err.Error())
+		os.Exit(1)
 	}
 
 	//TO-DO check language
 	generator := golang.NewGoGenerator()
 	err = generator.Generate(f.Output, files, qualifiedPath)
 	if err != nil {
-		fmt.Printf("generate failed: %s", err.Error())
+		fmt.Printf("generate failed: %s\n", err.Error())
+		os.Exit(1)
 	}
 }

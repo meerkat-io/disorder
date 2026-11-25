@@ -2,6 +2,7 @@
 package test
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/meerkat-io/disorder/internal/test_data/test/sub"
 	"time"
@@ -21,9 +22,10 @@ var colorEnumMap = map[string]Color{
 	"blue":  ColorBlue,
 }
 
+// Enum marks the type as a disorder enum (see disorder.Enum).
 func (*Color) Enum() {}
 
-func (enum *Color) FromString(value string) error {
+func (enum *Color) SetValue(value string) error {
 	if value == "" {
 		return fmt.Errorf("empty enum value")
 	}
@@ -37,7 +39,7 @@ func (enum *Color) FromString(value string) error {
 	return fmt.Errorf("invalid enum value: %s", value)
 }
 
-func (enum *Color) ToString() (string, error) {
+func (enum *Color) GetValue() (string, error) {
 	name := string(*enum)
 	if len(name) == 0 {
 		return "", fmt.Errorf("empty enum value")
@@ -51,8 +53,30 @@ func (enum *Color) ToString() (string, error) {
 	return "", fmt.Errorf("invalid enum value: %s", name)
 }
 
+// MarshalJSON encodes the enum as a JSON string, rejecting unknown values.
+func (enum Color) MarshalJSON() ([]byte, error) {
+	value, err := enum.GetValue()
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(value)
+}
+
+// UnmarshalJSON decodes a JSON string, rejecting unknown values.
+func (enum *Color) UnmarshalJSON(data []byte) error {
+	var value string
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	return enum.SetValue(value)
+}
+
 type Object struct {
+	BoolField   bool                                        `disorder:"bool_field" json:"bool_field"`
 	IntField    int32                                       `disorder:"int_field" json:"int_field"`
+	LongField   int64                                       `disorder:"long_field" json:"long_field"`
+	FloatField  float32                                     `disorder:"float_field" json:"float_field"`
+	DoubleField float64                                     `disorder:"double_field" json:"double_field"`
 	StringField string                                      `disorder:"string_field" json:"string_field"`
 	BytesFields []byte                                      `disorder:"bytes_fields" json:"bytes_fields"`
 	EnumField   *Color                                      `disorder:"enum_field" json:"enum_field,omitempty"`

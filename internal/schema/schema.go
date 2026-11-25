@@ -60,17 +60,6 @@ type Enum struct {
 	Values []string
 }
 
-type Rpc struct {
-	Name   string
-	Input  *TypeInfo
-	Output *TypeInfo
-}
-
-type Service struct {
-	Name string
-	Rpc  []*Rpc
-}
-
 type File struct {
 	FilePath string
 	Package  string
@@ -79,7 +68,6 @@ type File struct {
 
 	Enums    []*Enum
 	Messages []*Message
-	Services []*Service
 
 	AbsImports map[string]bool
 }

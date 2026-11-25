@@ -55,20 +55,6 @@ func (v *validator) validateFieldName(name string) bool {
 	return v.variableName.MatchString(name)
 }
 
-func (v *validator) validateServiceName(name string) bool {
-	if v.isPrimary(name) {
-		return false
-	}
-	return v.variableName.MatchString(name)
-}
-
-func (v *validator) validateRpcName(name string) bool {
-	if v.isPrimary(name) {
-		return false
-	}
-	return v.variableName.MatchString(name)
-}
-
 func (v *validator) validatePackageName(pkg string) bool {
 	return v.packageName.MatchString(pkg)
 }

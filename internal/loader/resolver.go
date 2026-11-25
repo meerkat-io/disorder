@@ -48,12 +48,6 @@ func (r *resolver) resolve(files map[string]*schema.File) error {
 			r.qualified[qualified] = file.FilePath
 			r.messages[qualified] = true
 		}
-		for _, service := range file.Services {
-			if f, exists := r.qualified[service.Name]; exists {
-				return fmt.Errorf("duplicate rpc define [%s] in %s and %s", service.Name, f, file.FilePath)
-			}
-			r.qualified[r.qualifiedName(file.Package, service.Name)] = file.FilePath
-		}
 	}
 
 	for _, file := range files {
@@ -61,16 +55,6 @@ func (r *resolver) resolve(files map[string]*schema.File) error {
 			for _, field := range message.Fields {
 				if err := r.resolveType(file, field.Type); err != nil {
 					return fmt.Errorf("resolve type in file [%s] failed: %s", file.FilePath, err.Error())
-				}
-			}
-		}
-		for _, service := range file.Services {
-			for _, rpc := range service.Rpc {
-				if err := r.resolveType(file, rpc.Input); err != nil {
-					return fmt.Errorf("resolve rpc input type in file [%s] failed: %s", file.FilePath, err.Error())
-				}
-				if err := r.resolveType(file, rpc.Output); err != nil {
-					return fmt.Errorf("resolve rpc output type in file [%s] failed: %s", file.FilePath, err.Error())
 				}
 			}
 		}

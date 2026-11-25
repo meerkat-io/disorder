@@ -1,6 +1,7 @@
 package loader
 
 import (
+	"bytes"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -30,7 +31,6 @@ type proto struct {
 
 	Enums    mapSlice  `yaml:"enums"`
 	Messages mapMatrix `yaml:"messages"`
-	Services mapMatrix `yaml:"services"`
 }
 
 type loader struct {
@@ -59,7 +59,7 @@ func (l *loader) load(file string, files map[string]*schema.File) error {
 	if _, exists := files[file]; exists {
 		return nil
 	}
-	bytes, err := os.ReadFile(file)
+	content, err := os.ReadFile(file)
 	if err != nil {
 		return fmt.Errorf("load schema file [%s] failed: %s", file, err.Error())
 	}
@@ -67,7 +67,9 @@ func (l *loader) load(file string, files map[string]*schema.File) error {
 	p := &proto{
 		FilePath: file,
 	}
-	err = yaml.Unmarshal(bytes, p)
+	decoder := yaml.NewDecoder(bytes.NewReader(content))
+	decoder.KnownFields(true) // reject unknown keys, e.g. the removed "services"
+	err = decoder.Decode(p)
 	if err != nil {
 		return fmt.Errorf("unmarshal schema file [%s] failed: %s", file, err.Error())
 	}

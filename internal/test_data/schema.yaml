@@ -12,7 +12,11 @@ option:
 
 messages:
   object:
+    bool_field: bool
     int_field: int
+    long_field: long
+    float_field: float
+    double_field: double
     string_field: string
     bytes_fields: bytes
     enum_field: color
@@ -39,33 +43,3 @@ enums:
     - red
     - green
     - blue
-
-services:
-  primary_service:
-    print_object:
-      input: object
-      output: object
-
-    print_imported_object:
-      input: test_data.test.sub.number_wrapper
-      output: test_data.test.sub.number_wrapper
-
-    print_time:
-      input: timestamp
-      output: timestamp
-
-    print_array:
-      input: array[int]
-      output: array[int]
-
-    print_enum:
-      input: color
-      output: color
-
-    print_map:
-      input: map[string]
-      output: map[string]
-
-    print_nested:
-      input: map[map[array[array[map[color]]]]]
-      output: map[map[array[array[map[color]]]]]

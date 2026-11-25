@@ -1,7 +1,63 @@
 # Disorder
 
-Disorder is schema free, strong type, streamable bson like binary protocol.
-It can used as communication protocol or data storage format.
+Disorder is a strongly typed data format with two interchangeable encodings.
+It only encodes and decodes data, there is no RPC layer.
+
+| encoding | use it for                                                            |
+| -------- | --------------------------------------------------------------------- |
+| JSON     | development, config, tests: human and AI friendly, easy to edit       |
+| binary   | release builds: smaller, faster, fewer allocations, hard to edit      |
+
+Author data as JSON, pack it to binary in the release pipeline. Both encodings
+are described by the same yaml schema and decode into the same generated Go types.
+
+## Usage
+
+Generate Go types from a schema:
+
+```
+go run github.com/meerkat-io/disorder/internal/cmd/disorder -i schema.yaml -o ./out
+```
+
+Generated structs carry both `disorder` and `json` tags, so they work with
+`encoding/json` and with this package:
+
+```go
+// binary
+data, err := disorder.Marshal(&object)
+err = disorder.Unmarshal(data, &object)
+
+// json
+data, err = json.Marshal(&object)
+err = json.Unmarshal(data, &object)
+```
+
+Binary decoding also accepts `*interface{}`: you get `bool`, `int32`, `int64`,
+`float32`, `float64`, `string`, `[]byte`, `time.Time`, `[]interface{}` and
+`map[string]interface{}`. Unknown fields are skipped and reported by
+`Decoder.Warnings()`. Map keys are written sorted, so output is deterministic.
+
+JSON and binary are not self-describing in the same way. Encodings are only
+guaranteed to match when decoding into a generated type, not into `interface{}`.
+
+### JSON mapping
+
+| type      | JSON                                                    |
+| --------- | ------------------------------------------------------- |
+| bool      | `true` / `false`                                        |
+| int, long | number (long above 2^53 loses precision in JavaScript)  |
+| float     | number                                                  |
+| string    | string                                                  |
+| bytes     | standard Base64 string (`encoding/json` default)        |
+| timestamp | RFC 3339 string                                         |
+| enum      | string, validated against the schema on encode/decode   |
+| array     | array                                                   |
+| object    | object                                                  |
+
+Bytes use Base64 because the schema already says the field is `bytes`, so the
+decoder knows to decode the string. No marker is needed and it round-trips exactly.
+
+
 
 ## Data bypes
 
@@ -49,21 +105,16 @@ enums:
     - red
     - green
     - blue
-
-services:
-  math_service:
-    increase: int -> int
 ```
 
 * schema and version are fixed fields
+* unknown top level keys are rejected, e.g. the removed `services`
 * package works as namespace or package in a program language, to prevent name conflict
 * option is a string map, used to store extra data for code generation
 * import field is external schema files list, now only relative path is supported, later remote (http) schema will be supported
 * messages is message map[message name -> message body], nested structures are not allowed. instead we can use complex object type as member type
 * message itself is a types map[string -> type]
 * enums is a map[enum name -> enum values list], enum values are strings only
-* services is service map[name -> service]
-* service is rpc methods map[method name : input -> output]
 * containers type:  array[element_type] and map[element_type]. the key type of map is always string, we don't need to assign type for key again
 * nested containers are allowed, eg: map[map[array[array[map[int]]]]]
 
@@ -100,21 +151,10 @@ enums:
     - red
     - green
     - blue
-
-services:
-  printer:
-    print_object: object -> object
-    print_time: timestamp -> timestamp
-    print_array: array[int] -> array[int]
-    print_enum: color -> color
-    print_map: map[string] -> map[string]
-    print_nested: map[map[array[array[map[color]]]]] -> map[map[array[array[map[color]]]]]
-  health_check:
-    hello: bool -> bool
 ```
 
 ## TO-DO list
 * support remote schema <https/http>
 * check if import schema is used
-* validate define and rpc separately
+* validate JSON and binary data against the yaml schema
 * support schema version

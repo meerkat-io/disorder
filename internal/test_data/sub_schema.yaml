@@ -12,9 +12,3 @@ messages:
     value: int
   number_wrapper:
     value: number
-
-services:
-  math_service:
-    increase:
-      input: int
-      output: int

@@ -6,10 +6,6 @@ import (
 	"github.com/meerkat-io/disorder/internal/schema"
 )
 
-var (
-	undefined = &schema.TypeInfo{}
-)
-
 type parser struct {
 	validator *validator
 }
@@ -105,42 +101,6 @@ func (p *parser) parse(proto *proto) (*schema.File, error) {
 		file.Messages = append(file.Messages, message)
 	}
 
-	for _, s := range proto.Services {
-		if !p.validator.validateServiceName(s.key) {
-			return nil, fmt.Errorf("invalid service name: %s", s.key)
-		}
-		if s.value == nil {
-			continue
-		}
-		rpcsSet := map[string]bool{}
-		service := &schema.Service{
-			Name: s.key,
-		}
-		for _, r := range s.value {
-			if r.value == nil {
-				continue
-			}
-			if _, exists := rpcsSet[r.key]; exists {
-				return nil, fmt.Errorf("duplicated rpc [%s]", r.key)
-			}
-			if !p.validator.validateRpcName(r.key) {
-				return nil, fmt.Errorf("invalid rpc name: %s", r.key)
-			}
-			rpcsSet[r.key] = true
-			if _, ok := r.value.(map[string]interface{}); !ok {
-				return nil, fmt.Errorf("invalid rpc format of: %s", r.key)
-			}
-			rpc, err := p.parseRpc(proto.Package, r.key, r.value.(map[string]interface{}))
-			if err != nil {
-				return nil, err
-			}
-			service.Rpc = append(service.Rpc, rpc)
-		}
-		if len(service.Rpc) == 0 {
-			return nil, fmt.Errorf("empty service define: %s", s.key)
-		}
-		file.Services = append(file.Services, service)
-	}
 	return file, nil
 }
 
@@ -153,39 +113,6 @@ func (p *parser) parseField(pkg, name, typ string) (*schema.Field, error) {
 		Name: name,
 		Type: info,
 	}, nil
-}
-
-func (p *parser) parseRpc(pkg, name string, rpc map[string]interface{}) (*schema.Rpc, error) {
-	var err error
-	r := &schema.Rpc{
-		Name: name,
-	}
-	if rpc["input"] == nil {
-		return nil, fmt.Errorf("rpc [%s] input type missing: %s", name, err.Error())
-	}
-	if rpc["input"] == "void" {
-		r.Input = undefined
-	} else {
-		if _, ok := rpc["input"].(string); !ok {
-			return nil, fmt.Errorf("expect string for input type of rpc \"%s\"", name)
-		}
-		r.Input, err = p.parseType(pkg, rpc["input"].(string))
-		if err != nil {
-			return nil, fmt.Errorf("rpc [%s] input type error: %s", name, err.Error())
-		}
-	}
-	if rpc["output"] == "void" {
-		r.Output = undefined
-	} else {
-		if _, ok := rpc["output"].(string); !ok {
-			return nil, fmt.Errorf("expect string for output type of rpc \"%s\"", name)
-		}
-		r.Output, err = p.parseType(pkg, rpc["output"].(string))
-		if err != nil {
-			return nil, fmt.Errorf("rpc [%s] output type error: %s", name, err.Error())
-		}
-	}
-	return r, nil
 }
 
 func (p *parser) parseType(pkg, typ string) (t *schema.TypeInfo, err error) {
