@@ -40,6 +40,41 @@ Binary decoding also accepts `*interface{}`: you get `bool`, `int32`, `int64`,
 JSON and binary are not self-describing in the same way. Encodings are only
 guaranteed to match when decoding into a generated type, not into `interface{}`.
 
+### GDScript (Godot 4)
+
+Generate GDScript classes and use the codec in `lib/gdscript/disorder.gd`
+(copy it into your project, it registers `class_name Disorder`):
+
+```
+go run github.com/meerkat-io/disorder/internal/cmd/disorder -l gdscript -i schema.yaml -o ./out
+```
+
+```gdscript
+const Schema = preload("res://out/test/schema.gd")
+
+var object := Schema.Object.new()
+object.int_field = 1
+
+var bytes := Disorder.encode(object)                    # binary
+var copy = Disorder.decode(bytes, Schema.Object)
+
+var json := Disorder.to_json(object)                    # json
+var copy2 = Disorder.from_json(json, Schema.Object)
+
+if copy == null:
+    push_error(Disorder.last_error)                     # failures never throw
+```
+
+* each schema file becomes one `.gd` file, messages are inner classes, enums are native enums
+* `int`/`long` are `int`, `float`/`double` are `float`, `timestamp` is `int` (unix milliseconds),
+  `bytes` is `PackedByteArray`, arrays are `Array[T]` (plain `Array` when nested), maps are `Dictionary`
+* GDScript cannot tell an unset enum, timestamp, array or map from an empty one, so they are always written;
+  an unset message field is `null` and omitted
+* generated names must not shadow Godot built-ins (`Object`, `Color`, ...). The generator rejects them,
+  add `gdscript_class_prefix: Dis` to the schema `option` to prefix every class and enum
+* the Go tests run `lib/gdscript/test/run.gd` against Go-encoded data when Godot 4 is available
+  (set `GODOT` or put `godot` on `PATH`)
+
 ### JSON mapping
 
 | type      | JSON                                                    |
@@ -107,7 +142,7 @@ enums:
 * schema and version are fixed fields
 * unknown top level keys are rejected, e.g. the removed `services`
 * package works as a namespace (a package in Go) to prevent name conflicts
-* option is a string map holding extra data for code generation
+* option is a string map holding extra data for code generation (`go_package_prefix`, `gdscript_class_prefix`)
 * import is a list of external schema files, only relative paths are supported for now
 * messages is a map[message name -> message body]. Nested structures are not allowed, use another message as the member type instead
 * a message body is a map[field name -> type]
@@ -149,9 +184,3 @@ enums:
     - green
     - blue
 ```
-
-## TO-DO list
-* support remote schema <https/http>
-* check if import schema is used
-* validate JSON and binary data against the yaml schema
-* support schema version

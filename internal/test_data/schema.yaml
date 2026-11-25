@@ -9,6 +9,7 @@ import:
 
 option:
   go_package_prefix: github.com/meerkat-io/disorder/internal
+  gdscript_class_prefix: Dis
 
 messages:
   object:

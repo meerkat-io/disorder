@@ -7,12 +7,15 @@ import (
 	"github.com/meerkat-io/bloom/flag"
 	"github.com/meerkat-io/bloom/folder"
 
+	"github.com/meerkat-io/disorder/internal/generator"
+	"github.com/meerkat-io/disorder/internal/generator/gdscript"
 	"github.com/meerkat-io/disorder/internal/generator/golang"
 	"github.com/meerkat-io/disorder/internal/loader"
 )
 
 type flags struct {
 	Help   bool   `flag:"h" usage:"help"`
+	Lang   string `flag:"l" usage:"target language" tip:"go|gdscript" default:"go"`
 	Input  string `flag:"i" usage:"input schema (yaml)" tip:"input" required:"true"`
 	Output string `flag:"o" usage:"output folder" tip:"output" default:"."`
 }
@@ -41,8 +44,17 @@ func main() {
 		os.Exit(1)
 	}
 
-	// Go is the only supported language for now.
-	err = golang.NewGoGenerator().Generate(f.Output, files, qualifiedPath)
+	var gen generator.Generator
+	switch f.Lang {
+	case "go":
+		gen = golang.NewGoGenerator()
+	case "gdscript":
+		gen = gdscript.NewGenerator()
+	default:
+		fmt.Fprintf(os.Stderr, "unsupported language \"%s\", use go or gdscript\n", f.Lang)
+		os.Exit(1)
+	}
+	err = gen.Generate(f.Output, files, qualifiedPath)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "generate failed: %s\n", err.Error())
 		os.Exit(1)

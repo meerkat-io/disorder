@@ -15,6 +15,11 @@ jobs:
         with:
           go-version-file: go.mod
 
+      - uses: chickensoft-games/setup-godot@v2
+        with:
+          version: 4.4.1
+          use-dotnet: false
+
       - name: Vet
         run: go vet ./...
 
